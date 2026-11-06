@@ -522,6 +522,39 @@ tr:last-child td {
         <section class="panel">
             <div class="panel-heading">
                 <div>
+                    <h2>Crear nuevo usuario</h2>
+                    <p>Registra una cuenta y asígnale posteriormente sus permisos.</p>
+                </div>
+            </div>
+
+            <form id="createUserForm">
+                <div class="editor-grid">
+                    <div class="field">
+                        <label for="newFullName">Nombre completo</label>
+                        <input type="text" id="newFullName" maxlength="120" required>
+                    </div>
+                    <div class="field">
+                        <label for="newEmail">Correo electrónico</label>
+                        <input type="email" id="newEmail" required>
+                    </div>
+                    <div class="field">
+                        <label for="newPassword">Contraseña temporal</label>
+                        <input type="password" id="newPassword" minlength="8" required>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button type="submit" class="primary-button" id="createUserButton">
+                        Crear usuario
+                    </button>
+                </div>
+                <div id="createUserFeedback" role="status" aria-live="polite"></div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
                     <h2>Usuarios registrados</h2>
                     <p>Selecciona una cuenta para administrar sus datos.</p>
                 </div>
@@ -618,10 +651,10 @@ tr:last-child td {
 
         <div class="notice">
             <strong>Nota de seguridad:</strong>
-            la creación de cuentas, modificación de correos y restablecimiento
-            de contraseñas se habilitarán mediante un servicio seguro de
-            administración. Esta página nunca utilizará la Secret Key de
-            Supabase en el navegador.
+            la creación de cuentas se realiza mediante una función segura del
+            servidor. La Secret Key de Supabase nunca se utiliza en este navegador.
+            La modificación de correos y el restablecimiento de contraseñas se
+            habilitarán en una siguiente etapa.
         </div>
 
     </main>
@@ -873,6 +906,79 @@ async function loadPermissions(userId) {
     });
 }
 
+async function createUser(event) {
+    event.preventDefault();
+
+    const form = document.getElementById("createUserForm");
+    const button = document.getElementById("createUserButton");
+    const message = document.getElementById("createUserFeedback");
+
+    const fullName = document.getElementById("newFullName").value.trim();
+    const email = document.getElementById("newEmail").value.trim().toLowerCase();
+    const password = document.getElementById("newPassword").value;
+
+    message.textContent = "";
+    message.className = "";
+
+    if (!fullName || !email || !password) {
+        message.textContent = "Completa todos los campos.";
+        message.className = "failure";
+        return;
+    }
+
+    if (password.length < 8) {
+        message.textContent = "La contraseña debe tener al menos 8 caracteres.";
+        message.className = "failure";
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Creando usuario...";
+
+    try {
+        const { data, error } = await supabase.functions.invoke(
+            "admin-create-user",
+            {
+                body: {
+                    full_name: fullName,
+                    email,
+                    password
+                }
+            }
+        );
+
+        if (error) {
+            let detail = error.message || "No se pudo conectar con la función.";
+            try {
+                const response = await error.context.json();
+                if (response?.error) detail = response.error;
+                else if (response?.message) detail = response.message;
+            } catch (_) {
+                // Se conserva el mensaje original si la respuesta no es JSON.
+            }
+            throw new Error(detail);
+        }
+
+        if (!data?.success) {
+            throw new Error(data?.error || "Supabase no confirmó la creación del usuario.");
+        }
+
+        form.reset();
+        message.textContent = "Usuario creado correctamente. Ya puedes buscarlo en la lista y asignarle permisos.";
+        message.className = "success";
+
+        await loadData();
+
+    } catch (error) {
+        console.error("Error creando usuario:", error);
+        message.textContent = "No se pudo crear el usuario: " + error.message;
+        message.className = "failure";
+    } finally {
+        button.disabled = false;
+        button.textContent = "Crear usuario";
+    }
+}
+
 async function saveChanges() {
     if (!selectedUser) return;
 
@@ -955,6 +1061,9 @@ async function saveChanges() {
         saveButton.textContent = "Guardar cambios";
     }
 }
+
+document.getElementById("createUserForm")
+    .addEventListener("submit", createUser);
 
 document.getElementById("searchUsers")
     .addEventListener("input", renderUsers);
