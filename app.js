@@ -1,21 +1,32 @@
 
 import { supabase } from "./config.js";
 
-// Elementos
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
 const buttonText = document.getElementById("buttonText");
 const loginMessage = document.getElementById("loginMessage");
 
-// Mostrar mensajes
 function showMessage(message, type) {
     loginMessage.textContent = message;
     loginMessage.className = "login-message " + type;
 }
 
+// Si ya existe una sesión, entrar directamente
+async function checkExistingSession() {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+        console.error("Error verificando sesión:", error.message);
+        return;
+    }
+
+    if (data.session) {
+        window.location.replace("./dashboard.html");
+    }
+}
+
 // Inicio de sesión
 loginForm.addEventListener("submit", async function(event) {
-
     event.preventDefault();
 
     const email = document.getElementById("email").value.trim();
@@ -23,32 +34,24 @@ loginForm.addEventListener("submit", async function(event) {
 
     loginButton.disabled = true;
     buttonText.textContent = "Verificando acceso...";
-
     loginMessage.className = "login-message";
 
     try {
-
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password
         });
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
         showMessage(
             "Acceso correcto. Entrando a la plataforma...",
             "success"
         );
 
-        console.log("Sesión iniciada correctamente.");
-
-        // Redirigir al dashboard
-        window.location.href = "./dashboard.html";
+        window.location.replace("./dashboard.html");
 
     } catch (error) {
-
         showMessage(
             "No fue posible iniciar sesión. Verifica tus credenciales.",
             "error"
@@ -58,7 +61,7 @@ loginForm.addEventListener("submit", async function(event) {
 
         loginButton.disabled = false;
         buttonText.textContent = "Ingresar a la plataforma";
-
     }
-
 });
+
+checkExistingSession();
