@@ -619,7 +619,23 @@ tr:last-child td {
                             <option value="inactive">Inactiva</option>
                         </select>
                     </div>
+
+                    <div class="field">
+                        <label for="editEmail">Nuevo correo electrónico (opcional)</label>
+                        <input type="email" id="editEmail" placeholder="Escribe el nuevo correo">
+                    </div>
+
+                    <div class="field">
+                        <label for="editPassword">Nueva contraseña (opcional)</label>
+                        <input type="password" id="editPassword" minlength="8" placeholder="Mínimo 8 caracteres">
+                    </div>
                 </div>
+
+                <p class="notice" style="margin-top:15px">
+                    Deja estos campos vacíos si no deseas cambiar las credenciales.
+                    Por seguridad, desde esta pantalla no puedes cambiar el correo ni la contraseña
+                    de tu propia cuenta de superadministrador.
+                </p>
 
                 <div style="margin-top:25px">
                     <h2 style="font-size:14px;color:var(--navy)">
@@ -651,10 +667,9 @@ tr:last-child td {
 
         <div class="notice">
             <strong>Nota de seguridad:</strong>
-            la creación de cuentas se realiza mediante una función segura del
-            servidor. La Secret Key de Supabase nunca se utiliza en este navegador.
-            La modificación de correos y el restablecimiento de contraseñas se
-            habilitarán en una siguiente etapa.
+            la creación de cuentas y la modificación de correos y contraseñas
+            se realizan mediante funciones seguras del servidor. La Secret Key
+            de Supabase nunca se utiliza en este navegador.
         </div>
 
     </main>
@@ -856,6 +871,21 @@ async function selectUser(user) {
 
     document.getElementById("userStatus").value = user.status;
 
+    const editEmail = document.getElementById("editEmail");
+    const editPassword = document.getElementById("editPassword");
+    const editingOwnAccount = user.id === currentUser.id;
+
+    editEmail.value = "";
+    editPassword.value = "";
+    editEmail.disabled = editingOwnAccount;
+    editPassword.disabled = editingOwnAccount;
+    editEmail.placeholder = editingOwnAccount
+        ? "No disponible para tu propia cuenta"
+        : "Escribe el nuevo correo";
+    editPassword.placeholder = editingOwnAccount
+        ? "No disponible para tu propia cuenta"
+        : "Mínimo 8 caracteres";
+
     feedback.textContent = "";
     editorEmpty.classList.add("hidden");
     editorContent.classList.remove("hidden");
@@ -1038,6 +1068,57 @@ async function saveChanges() {
             }
         }
 
+        // Actualizar correo y/o contraseña mediante la función segura del servidor.
+        const newEmail = document.getElementById("editEmail").value.trim().toLowerCase();
+        const newPassword = document.getElementById("editPassword").value;
+
+        if (newEmail || newPassword) {
+            if (selectedUser.id === currentUser.id) {
+                throw new Error(
+                    "No puedes modificar las credenciales de tu propia cuenta desde aquí."
+                );
+            }
+
+            if (newEmail && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(newEmail)) {
+                throw new Error("Escribe un correo electrónico válido.");
+            }
+
+            if (newPassword && newPassword.length < 8) {
+                throw new Error("La nueva contraseña debe tener al menos 8 caracteres.");
+            }
+
+            const credentialChanges = {};
+            if (newEmail) credentialChanges.email = newEmail;
+            if (newPassword) credentialChanges.password = newPassword;
+
+            const { data: credentialData, error: credentialError } =
+                await supabase.functions.invoke("admin-update-user", {
+                    body: {
+                        user_id: selectedUser.id,
+                        ...credentialChanges
+                    }
+                });
+
+            if (credentialError) {
+                let detail = credentialError.message || "No se pudo conectar con la función.";
+                try {
+                    const response = await credentialError.context.json();
+                    if (response?.error) detail = response.error;
+                    else if (response?.message) detail = response.message;
+                } catch (_) {
+                    // Se conserva el mensaje original.
+                }
+                throw new Error(detail);
+            }
+
+            if (!credentialData?.success) {
+                throw new Error(
+                    credentialData?.error ||
+                    "Supabase no confirmó la actualización de las credenciales."
+                );
+            }
+        }
+
         await loadData();
 
         const updatedUser = users.find(
@@ -1048,7 +1129,12 @@ async function saveChanges() {
             await selectUser(updatedUser);
         }
 
-        showFeedback("Los cambios se guardaron correctamente.");
+        showFeedback(
+            "Los cambios se guardaron correctamente" +
+            ((newEmail || newPassword)
+                ? ", incluidas las credenciales de acceso."
+                : ".")
+        );
 
     } catch (error) {
         console.error(error);
@@ -1098,4 +1184,3 @@ initialize();
 
 </body>
 </html>
-
