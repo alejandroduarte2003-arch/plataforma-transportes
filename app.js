@@ -1,3 +1,4 @@
+
 import { supabase } from "./config.js";
 
 // Elementos
@@ -37,11 +38,14 @@ loginForm.addEventListener("submit", async function(event) {
         }
 
         showMessage(
-            "Autenticación correcta. Próximamente ingresaremos al dashboard.",
+            "Acceso correcto. Entrando a la plataforma...",
             "success"
         );
 
         console.log("Sesión iniciada correctamente.");
+
+        // Redirigir al dashboard
+        window.location.href = "./dashboard.html";
 
     } catch (error) {
 
@@ -51,8 +55,6 @@ loginForm.addEventListener("submit", async function(event) {
         );
 
         console.error("Error de autenticación:", error.message);
-
-    } finally {
 
         loginButton.disabled = false;
         buttonText.textContent = "Ingresar a la plataforma";
