@@ -584,10 +584,18 @@
     }
 
     function showModule(module) {
-        document.getElementById("moduleMessage").textContent =
-            "Has seleccionado: " + module.name +
-            ". Aquí construiremos las herramientas y funciones de este módulo.";
+
+    // Abrir el módulo de administración
+    if (module.code === "administracion") {
+        window.location.href = "./administracion.html";
+        return;
     }
+
+    // Los demás módulos se desarrollarán posteriormente
+    document.getElementById("moduleMessage").textContent =
+        "Has seleccionado: " + module.name +
+        ". Aquí construiremos las herramientas y funciones de este módulo.";
+}
 
     document.getElementById("logoutButton").addEventListener("click", async () => {
         const button = document.getElementById("logoutButton");
