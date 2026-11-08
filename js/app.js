@@ -46,9 +46,9 @@ loginForm.addEventListener("submit", async function(event) {
     } catch (error) {
 
         showMessage(
-            "No fue posible iniciar sesión. Verifica tus credenciales.",
-            "error"
-        );
+    "Error: " + error.message,
+    "error"
+);
 
         console.error("Error de autenticación:", error.message);
 
