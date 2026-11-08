@@ -1,1 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Dashboard | Plataforma de Transportes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #172B4D;
+            --primary-light: #243F68;
+            --background: #F4F6FA;
+            --white: #FFFFFF;
+            --text: #202B3C;
+            --muted: #8490A3;
+            --border: #E8ECF2;
+            --orange: #E88A35;
+            --green: #249B70;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 260px;
+            background: var(--primary);
+            color: white;
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px 35px;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 17px;
+        }
+
+        .brand-name {
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+            letter-spacing: .5px;
+        }
+
+        .menu-label {
+            color: #91A3BC;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin: 30px 10px 15px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 12px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            color: #D0D9E7;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,.12);
+        }
+
+        .sidebar-bottom p {
+            font-size: 11px;
+            color: #91A3BC;
+            line-height: 1.7;
+        }
+
+        /* MAIN */
+
+        .main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topbar {
+            height: 76px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 35px;
+        }
+
+        .topbar-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #EAF0F8;
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-email {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .logout {
+            border: 1px solid var(--border);
+            background: white;
+            padding: 9px 13px;
+            border-radius: 7px;
+            cursor: pointer;
+            color: #596579;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .logout:hover {
+            background: #F4F6FA;
+        }
+
+        /* CONTENT */
+
+        .content {
+            padding: 35px;
+            max-width: 1450px;
+            margin: auto;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+            font-size: 25px;
+            font-weight: 800;
+            margin-bottom: 9px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        /* SUMMARY CARDS */
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 35px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 23px;
+        }
+
+        .summary-card span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .summary-card h3 {
+            font-size: 19px;
+            margin-top: 13px;
+            font-weight: 700;
+        }
+
+        .summary-card p {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        /* MODULES */
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .module-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 23px;
+            transition: .2s;
+        }
+
+        .module-card:hover {
+            border-color: #C4CEDD;
+            transform: translateY(-2px);
+        }
+
+        .module-icon {
+            width: 43px;
+            height: 43px;
+            background: #EDF2F9;
+            color: var(--primary);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .module-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .module-card p {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .module-tag {
+            display: inline-block;
+            margin-top: 17px;
+            padding: 6px 9px;
+            background: #F1F4F8;
+            border-radius: 5px;
+            color: #64738A;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .admin-section {
+            margin-top: 35px;
+        }
+
+        .admin-card {
+            border-left: 3px solid var(--orange);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #loading {
+            padding: 100px 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        #error {
+            color: #C0392B;
+            text-align: center;
+            padding: 30px;
+            font-size: 13px;
+        }
+
+        @media(max-width: 1000px) {
+            .sidebar {
+                width: 220px;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 700px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                padding: 22px 16px;
+            }
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-email {
+                max-width: 125px;
+                overflow-wrap: anywhere;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="loading">
+    Verificando acceso a la plataforma...
+</div>
+
+<div id="error" class="hidden"></div>
+
+<div class="layout hidden" id="dashboard">
+
+    <!-- MENÚ LATERAL -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">PT</div>
+
+            <div class="brand-name">
+                PLATAFORMA<br>
+                DE TRANSPORTES
+            </div>
+        </div>
+
+        <div class="menu-label">PRINCIPAL</div>
+
+        <div class="menu-item active">
+            <span class="menu-icon">▦</span>
+            Dashboard
+        </div>
+
+        <div class="menu-label">GESTIÓN EMPRESARIAL</div>
+
+        <div class="menu-item">
+            <span class="menu-icon">▤</span>
+            Operaciones
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">🚚</span>
+            Transporte
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">▣</span>
+            Finanzas
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">♙</span>
+            Recursos Humanos
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">▥</span>
+            Reportes
+        </div>
+
+        <div id="adminMenu" class="hidden">
+
+            <div class="menu-label">ADMINISTRACIÓN</div>
+
+            <div class="menu-item">
+                <span class="menu-icon">⚙</span>
+                Administración
+            </div>
+
+        </div>
+
+        <div class="sidebar-bottom">
+            <p>PLATAFORMA DE TRANSPORTES</p>
+            <p>Gestión empresarial © 2026</p>
+        </div>
+
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="topbar-title">
+                Panel principal
+            </div>
+
+            <div class="user-area">
+
+                <div class="user-avatar" id="avatar">
+                    U
+                </div>
+
+                <div class="user-info">
+
+                    <span class="user-email" id="userEmail">
+                        Usuario
+                    </span>
+
+                    <span class="user-role" id="userRole">
+                        Usuario
+                    </span>
+
+                </div>
+
+                <button class="logout" id="logoutButton">
+                    Cerrar sesión
+                </button>
+
+            </div>
+
+        </header>
+
+        <section class="content">
+
+            <div class="welcome">
+
+                <h1 id="welcomeTitle">
+                    Bienvenido a la plataforma
+                </h1>
+
+                <p>
+                    Centro de gestión y administración
+                    de operaciones de transporte.
+                </p>
+
+            </div>
+
+            <!-- RESUMEN -->
+
+            <h2 class="section-title">
+                Resumen general
+            </h2>
+
+            <div class="summary-grid">
+
+                <div class="summary-card">
+
+                    <span>ESTADO DE LA CUENTA</span>
+
+                    <h3 id="accountStatus">
+                        Activa
+                    </h3>
+
+                    <p>Estado de acceso del usuario</p>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <span>TIPO DE ACCESO</span>
+
+                    <h3 id="accountRole">
+                        Usuario
+                    </h3>
+
+                    <p>Rol asignado en la plataforma</p>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <span>SESIÓN</span>
+
+                    <h3>Conectada</h3>
+
+                    <p>Autenticación mediante Supabase</p>
+
+                </div>
+
+            </div>
+
+            <!-- MÓDULOS -->
+
+            <h2 class="section-title">
+                Módulos de la plataforma
+            </h2>
+
+            <div class="modules-grid">
+
+                <div class="module-card">
+                    <div class="module-icon">▤</div>
+                    <h3>Operaciones</h3>
+                    <p>
+                        Gestión y seguimiento de las
+                        operaciones de la empresa.
+                    </p>
+                    <span class="module-tag">GESTIÓN OPERATIVA</span>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">🚚</div>
+                    <h3>Transporte</h3>
+                    <p>
+                        Administración de transporte,
+                        vehículos y servicios.
+                    </p>
+                    <span class="module-tag">GESTIÓN DE TRANSPORTE</span>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">▣</div>
+                    <h3>Finanzas</h3>
+                    <p>
+                        Control financiero,
+                        ingresos y egresos.
+                    </p>
+                    <span class="module-tag">GESTIÓN FINANCIERA</span>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">♙</div>
+                    <h3>Recursos Humanos</h3>
+                    <p>
+                        Gestión del personal,
+                        información y administración.
+                    </p>
+                    <span class="module-tag">GESTIÓN DE PERSONAL</span>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">▥</div>
+                    <h3>Reportes</h3>
+                    <p>
+                        Información, indicadores
+                        y análisis empresarial.
+                    </p>
+                    <span class="module-tag">ANÁLISIS Y CONTROL</span>
+                </div>
+
+                <div class="module-card admin-card hidden"
+                     id="adminCard">
+
+                    <div class="module-icon">⚙</div>
+
+                    <h3>Administración</h3>
+
+                    <p>
+                        Gestión de usuarios, roles,
+                        permisos y configuración.
+                    </p>
+
+                    <span class="module-tag">
+                        SUPERADMINISTRADOR
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module">
+
+    import { supabase } from "./js/config.js";
+
+    const loading = document.getElementById("loading");
+    const dashboard = document.getElementById("dashboard");
+    const errorBox = document.getElementById("error");
+
+    async function initializeDashboard() {
+
+        try {
+
+            // VER
