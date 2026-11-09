@@ -1,18 +1,44 @@
 import { supabase } from "./config.js";
 
-// Elementos
+// =====================================
+// ELEMENTOS
+// =====================================
+
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
 const buttonText = document.getElementById("buttonText");
 const loginMessage = document.getElementById("loginMessage");
 
-// Mostrar mensajes
+// =====================================
+// MOSTRAR MENSAJES
+// =====================================
+
 function showMessage(message, type) {
     loginMessage.textContent = message;
     loginMessage.className = "login-message " + type;
 }
 
-// Inicio de sesión
+// =====================================
+// COMPROBAR SESIÓN EXISTENTE
+// =====================================
+
+async function checkExistingSession() {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+        console.error("Error verificando sesión:", error.message);
+        return;
+    }
+
+    if (data.session) {
+        window.location.replace("./dashboard.html");
+    }
+}
+
+// =====================================
+// INICIO DE SESIÓN
+// =====================================
+
 loginForm.addEventListener("submit", async function(event) {
 
     event.preventDefault();
@@ -27,7 +53,7 @@ loginForm.addEventListener("submit", async function(event) {
 
     try {
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -37,22 +63,20 @@ loginForm.addEventListener("submit", async function(event) {
         }
 
         showMessage(
-            "Autenticación correcta. Próximamente ingresaremos al dashboard.",
+            "Acceso correcto. Entrando a la plataforma...",
             "success"
         );
 
-        console.log("Sesión iniciada correctamente.");
+        window.location.replace("./dashboard.html");
 
     } catch (error) {
 
         showMessage(
-    "Error: " + error.message,
-    "error"
-);
+            "No fue posible iniciar sesión. Verifica tus credenciales.",
+            "error"
+        );
 
         console.error("Error de autenticación:", error.message);
-
-    } finally {
 
         loginButton.disabled = false;
         buttonText.textContent = "Ingresar a la plataforma";
@@ -60,3 +84,9 @@ loginForm.addEventListener("submit", async function(event) {
     }
 
 });
+
+// =====================================
+// INICIAR COMPROBACIÓN
+// =====================================
+
+checkExistingSession();
