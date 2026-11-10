@@ -2,1014 +2,1184 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Plataforma de Transportes</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --primary: #172B4D;
-            --primary-light: #243F68;
-            --background: #F4F6FA;
-            --white: #FFFFFF;
-            --text: #202B3C;
-            --muted: #8490A3;
-            --border: #E8ECF2;
-            --orange: #E88A35;
-            --green: #249B70;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--background);
-            color: var(--text);
-        }
-
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* MENÚ LATERAL */
-
-        .sidebar {
-            width: 260px;
-            background: var(--primary);
-            color: white;
-            padding: 28px 20px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 8px 35px;
-            border-bottom: 1px solid rgba(255,255,255,.12);
-        }
-
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: var(--orange);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 17px;
-        }
-
-        .brand-name {
-            font-size: 13px;
-            font-weight: 800;
-            line-height: 1.5;
-            letter-spacing: .5px;
-        }
-
-        .menu-label {
-            color: #91A3BC;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            margin: 30px 10px 15px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            padding: 13px 12px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            color: #D0D9E7;
-            font-size: 13px;
-            font-weight: 500;
-            width: 100%;
-            border: 0;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .menu-item.active {
-            background: var(--primary-light);
-            color: white;
-        }
-
-        .side-navigation {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .menu-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 17px;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255,255,255,.12);
-        }
-
-        .sidebar-bottom p {
-            font-size: 11px;
-            color: #91A3BC;
-            line-height: 1.7;
-        }
-
-        /* CONTENIDO PRINCIPAL */
-
-        .main {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .topbar {
-            height: 76px;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 35px;
-        }
-
-        .topbar-title {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-        }
-
-        .user-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #EAF0F8;
-            color: var(--primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 700;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .user-email {
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .user-role {
-            font-size: 10px;
-            color: var(--muted);
-        }
-
-        .logout {
-            border: 1px solid var(--border);
-            background: white;
-            padding: 9px 13px;
-            border-radius: 7px;
-            cursor: pointer;
-            color: #596579;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 15px;
-        }
-
-        .logout:hover {
-            background: #F4F6FA;
-        }
-
-        /* DASHBOARD */
-
-        .content {
-            padding: 35px;
-            max-width: 1450px;
-            margin: auto;
-        }
-
-        .welcome {
-            margin-bottom: 30px;
-        }
-
-        .welcome h1 {
-            font-size: 25px;
-            font-weight: 800;
-            margin-bottom: 9px;
-        }
-
-        .welcome p {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .section-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 18px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 35px;
-        }
-
-        .summary-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 23px;
-        }
-
-        .summary-card span {
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .summary-card h3 {
-            font-size: 19px;
-            margin-top: 13px;
-            font-weight: 700;
-        }
-
-        .summary-card p {
-            font-size: 10px;
-            color: var(--muted);
-            margin-top: 8px;
-        }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-        }
-
-        .module-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 23px;
-            transition: .2s;
-            text-align: left;
-            width: 100%;
-            cursor: pointer;
-            font-family: inherit;
-            color: var(--text);
-        }
-
-        .module-card:hover {
-            border-color: #C4CEDD;
-            transform: translateY(-2px);
-        }
-
-        .module-icon {
-            width: 43px;
-            height: 43px;
-            background: #EDF2F9;
-            color: var(--primary);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 18px;
-        }
-
-        .module-card h3 {
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .module-card p {
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.7;
-        }
-
-        .module-tag {
-            display: inline-block;
-            margin-top: 17px;
-            padding: 6px 9px;
-            background: #F1F4F8;
-            border-radius: 5px;
-            color: #64738A;
-            font-size: 9px;
-            font-weight: 700;
-        }
-
-        .admin-card {
-            border-left: 3px solid var(--orange);
-        }
-
-        .module-message {
-            margin-top: 22px;
-            padding: 14px 16px;
-            border-radius: 8px;
-            background: #FFFFFF;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        #loading {
-            padding: 100px 20px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        /* PANTALLA DE ACCESO DENEGADO */
-
-        #error {
-            min-height: 100vh;
-            padding: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background:
-                radial-gradient(circle at 15% 15%, rgba(232,138,53,.10), transparent 28%),
-                radial-gradient(circle at 90% 85%, rgba(23,43,77,.08), transparent 30%),
-                #F4F6FA;
-        }
-
-        .access-card {
-            width: min(100%, 490px);
-            padding: 48px 42px 42px;
-            text-align: center;
-            background: #FFFFFF;
-            border: 1px solid #E8ECF2;
-            border-radius: 20px;
-            box-shadow: 0 22px 65px rgba(23,43,77,.09);
-            animation: accessAppear .45s ease both;
-        }
-
-        .access-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 38px;
-            color: #172B4D;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-        }
-
-        .access-brand-mark {
-            display: grid;
-            place-items: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            background: #172B4D;
-            color: #FFFFFF;
-            font-size: 12px;
-            letter-spacing: 0;
-        }
-
-        .access-icon {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 25px;
-            display: grid;
-            place-items: center;
-            border-radius: 22px;
-            color: #B96A25;
-            background: #FFF3E8;
-        }
-
-        .access-icon svg {
-            width: 35px;
-            height: 35px;
-        }
-
-        .access-eyebrow {
-            margin-bottom: 10px;
-            color: #B96A25;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.7px;
-            text-transform: uppercase;
-        }
-
-        .access-card h1 {
-            margin-bottom: 13px;
-            color: #172B4D;
-            font-size: clamp(24px, 5vw, 30px);
-            line-height: 1.2;
-            letter-spacing: -.8px;
-        }
-
-        .access-description {
-            max-width: 350px;
-            margin: 0 auto;
-            color: #778398;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .access-divider {
-            width: 44px;
-            height: 3px;
-            margin: 28px auto;
-            border-radius: 5px;
-            background: #E88A35;
-        }
-
-        .access-button {
-            display: inline-flex;
-            min-height: 48px;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 0 20px;
-            border: 0;
-            border-radius: 9px;
-            background: #172B4D;
-            color: #FFFFFF;
-            font: inherit;
-            font-size: 12px;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
-        }
-
-        .access-button:hover {
-            background: #243F68;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(23,43,77,.16);
-        }
-
-        .access-button svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .access-footer {
-            margin-top: 25px;
-            color: #A1AABA;
-            font-size: 10px;
-            letter-spacing: .3px;
-        }
-
-        @keyframes accessAppear {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media(max-width: 520px) {
-            #error {
-                padding: 18px;
-            }
-
-            .access-card {
-                padding: 36px 24px 30px;
-                border-radius: 16px;
-            }
-
-            .access-brand {
-                margin-bottom: 30px;
-            }
-        }
-
-        @media(max-width: 1000px) {
-            .sidebar {
-                width: 220px;
-            }
-
-            .modules-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media(max-width: 700px) {
-            .sidebar {
-                display: none;
-            }
-
-            .content {
-                padding: 22px 16px;
-            }
-
-            .topbar {
-                padding: 0 16px;
-            }
-
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .modules-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .user-email {
-                max-width: 125px;
-                overflow-wrap: anywhere;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administración | Transportes</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --navy: #14243A;
+    --navy-light: #203B59;
+    --orange: #F28C28;
+    --bg: #F4F6F9;
+    --white: #FFFFFF;
+    --text: #263548;
+    --muted: #8290A2;
+    --border: #E8ECF1;
+    --green: #16834A;
+    --red: #C0392B;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Inter, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loading {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    color: var(--navy);
+}
+
+#error {
+    margin: 30px;
+    padding: 20px;
+    background: #FFF0EE;
+    color: var(--red);
+    border-radius: 10px;
+    line-height: 1.6;
+}
+
+.layout {
+    min-height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    width: 245px;
+    background: var(--navy);
+    color: white;
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.brand {
+    font-size: 21px;
+    font-weight: 800;
+    padding: 0 12px 35px;
+    letter-spacing: 1px;
+}
+
+.brand span {
+    color: var(--orange);
+}
+
+.sidebar-label {
+    font-size: 10px;
+    color: #8293A9;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    padding: 0 12px;
+    margin-bottom: 14px;
+}
+
+.sidebar-link {
+    display: block;
+    color: #C5D0DE;
+    text-decoration: none;
+    padding: 13px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background: var(--navy-light);
+    color: white;
+}
+
+.sidebar-link.active {
+    border-left: 3px solid var(--orange);
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    border-top: 1px solid #34465C;
+    padding-top: 20px;
+}
+
+.user-email {
+    font-size: 11px;
+    color: #C5D0DE;
+    padding: 10px;
+    overflow-wrap: anywhere;
+}
+
+.logout {
+    width: 100%;
+    background: transparent;
+    color: white;
+    border: 1px solid #43566D;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 32px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.topbar h1 {
+    color: var(--navy);
+    font-size: 25px;
+}
+
+.topbar p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+.admin-badge {
+    background: #FFF1E3;
+    color: #B9630C;
+    padding: 9px 13px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 20px;
+}
+
+.summary-card span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.summary-card strong {
+    display: block;
+    font-size: 25px;
+    color: var(--navy);
+    margin-top: 9px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 23px;
+    margin-bottom: 22px;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.panel-heading h2 {
+    font-size: 15px;
+    color: var(--navy);
+}
+
+.panel-heading p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+.search {
+    width: 100%;
+    max-width: 320px;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+    font-size: 12px;
+}
+
+.search:focus,
+.field input:focus,
+.field select:focus {
+    border-color: var(--orange);
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th {
+    text-align: left;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    padding: 13px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 15px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+    border-bottom: 0;
+}
+
+.user-name {
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.user-id {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.status-active {
+    color: var(--green);
+    background: #E7F6ED;
+}
+
+.status-inactive {
+    color: var(--red);
+    background: #FDECEA;
+}
+
+.action-button {
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--navy);
+    padding: 8px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+}
+
+.action-button:hover {
+    border-color: var(--orange);
+}
+
+.primary-button {
+    background: var(--navy);
+    color: white;
+    border: 0;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.primary-button:hover {
+    background: var(--navy-light);
+}
+
+.primary-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.field label {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+    font-size: 12px;
+    background: white;
+}
+
+.field input:disabled {
+    background: #F4F6F9;
+    color: var(--muted);
+}
+
+.permissions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #F7F8FA;
+    border: 1px solid var(--border);
+    padding: 13px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.permission-item input {
+    accent-color: var(--orange);
+    width: 16px;
+    height: 16px;
+}
+
+.editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+.notice {
+    background: #FFF8EF;
+    color: #895014;
+    border: 1px solid #F8E2C7;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.7;
+    margin-top: 20px;
+}
+
+#feedback {
+    font-size: 12px;
+    margin-top: 14px;
+    line-height: 1.5;
+}
+
+.success {
+    color: var(--green);
+}
+
+.failure {
+    color: var(--red);
+}
+
+.empty {
+    color: var(--muted);
+    padding: 20px 0;
+    font-size: 12px;
+}
+
+@media(max-width: 850px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        padding: 18px;
+    }
+
+    .brand {
+        padding-bottom: 18px;
+    }
+
+    .sidebar-bottom {
+        margin-top: 12px;
+    }
+
+    .main {
+        padding: 22px 16px;
+    }
+
+    .summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 550px) {
+    .topbar,
+    .panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .search {
+        max-width: none;
+    }
+
+    .editor-grid,
+    .permissions {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<div id="loading">
-    Verificando acceso a la plataforma...
-</div>
+<div id="loading">Verificando permisos de administrador...</div>
+<div id="error" class="hidden"></div>
 
-<!-- PANTALLA PARA CUENTAS INACTIVAS O ERRORES DE ACCESO -->
-
-<section id="error" class="hidden" aria-live="polite">
-    <div class="access-card">
-
-        <div class="access-brand">
-            <span class="access-brand-mark">PT</span>
-            <span>PLATAFORMA DE TRANSPORTES</span>
-        </div>
-
-        <div class="access-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="10" width="16" height="11" rx="2.5"></rect>
-                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                <path d="M12 14v3"></path>
-            </svg>
-        </div>
-
-        <p class="access-eyebrow">Acceso restringido</p>
-
-        <h1 id="errorTitle">Acceso suspendido</h1>
-
-        <p class="access-description" id="errorMessage">
-            Tu cuenta se encuentra inactiva. Para recuperar el acceso, comunícate con el administrador de la plataforma.
-        </p>
-
-        <div class="access-divider"></div>
-
-        <a class="access-button" href="./index.html">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m15 18-6-6 6-6"></path>
-                <path d="M9 12h11"></path>
-            </svg>
-            Volver al menú principal
-        </a>
-
-        <p class="access-footer">PLATAFORMA DE TRANSPORTES · 2026</p>
-
-    </div>
-</section>
-
-<!-- DASHBOARD -->
-
-<div class="layout hidden" id="dashboard">
+<div class="layout hidden" id="app">
 
     <aside class="sidebar">
+        <div class="brand">TRANSPORTE<span>.</span></div>
 
-        <div class="brand">
-            <div class="brand-icon">PT</div>
+        <div class="sidebar-label">ADMINISTRACIÓN</div>
 
-            <div class="brand-name">
-                PLATAFORMA<br>
-                DE TRANSPORTES
-            </div>
-        </div>
-
-        <div class="menu-label">MENÚ PRINCIPAL</div>
-
-        <nav id="sideNavigation" class="side-navigation"></nav>
+        <a href="./dashboard.html" class="sidebar-link">← Volver al panel</a>
+        <a href="./administracion.html" class="sidebar-link active">Gestión de usuarios</a>
 
         <div class="sidebar-bottom">
-            <p>PLATAFORMA DE TRANSPORTES</p>
-            <p>Gestión empresarial © 2026</p>
+            <div class="user-email" id="adminEmail"></div>
+            <button class="logout" id="logoutButton">Cerrar sesión</button>
         </div>
-
     </aside>
 
     <main class="main">
 
         <header class="topbar">
-
-            <div class="topbar-title">
-                Panel principal
+            <div>
+                <h1>Gestión de usuarios</h1>
+                <p>Administra las cuentas y los permisos de acceso.</p>
             </div>
-
-            <div class="user-area">
-
-                <div class="user-avatar" id="avatar">U</div>
-
-                <div class="user-info">
-                    <span class="user-email" id="userEmail">Usuario</span>
-                    <span class="user-role" id="userRole">Usuario</span>
-                </div>
-
-                <button class="logout" id="logoutButton">
-                    Cerrar sesión
-                </button>
-
-            </div>
-
+            <div class="admin-badge">SUPERADMINISTRADOR</div>
         </header>
 
-        <section class="content">
-
-            <div class="welcome">
-
-                <h1 id="welcomeTitle">
-                    Bienvenido a la plataforma
-                </h1>
-
-                <p>
-                    Centro de gestión y administración
-                    de operaciones de transporte.
-                </p>
-
+        <section class="summary">
+            <div class="summary-card">
+                <span>Usuarios registrados</span>
+                <strong id="totalUsers">0</strong>
             </div>
-
-            <h2 class="section-title">
-                Resumen general
-            </h2>
-
-            <div class="summary-grid">
-
-                <div class="summary-card">
-                    <span>ESTADO DE LA CUENTA</span>
-                    <h3 id="accountStatus">Activa</h3>
-                    <p>Estado de acceso del usuario</p>
-                </div>
-
-                <div class="summary-card">
-                    <span>TIPO DE ACCESO</span>
-                    <h3 id="accountRole">Usuario</h3>
-                    <p>Rol asignado en la plataforma</p>
-                </div>
-
-                <div class="summary-card">
-                    <span>SESIÓN</span>
-                    <h3>Conectada</h3>
-                    <p>Autenticación mediante Supabase</p>
-                </div>
-
+            <div class="summary-card">
+                <span>Cuentas activas</span>
+                <strong id="activeUsers">0</strong>
             </div>
-
-            <h2 class="section-title">
-                Módulos de la plataforma
-            </h2>
-
-            <div class="modules-grid" id="modulesGrid"></div>
-
-            <div id="moduleMessage" class="module-message" aria-live="polite"></div>
-
+            <div class="summary-card">
+                <span>Cuentas inactivas</span>
+                <strong id="inactiveUsers">0</strong>
+            </div>
         </section>
 
-    </main>
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Crear nuevo usuario</h2>
+                    <p>Registra una cuenta y asígnale posteriormente sus permisos.</p>
+                </div>
+            </div>
 
+            <form id="createUserForm">
+                <div class="editor-grid">
+                    <div class="field">
+                        <label for="newFullName">Nombre completo</label>
+                        <input type="text" id="newFullName" maxlength="120" required>
+                    </div>
+                    <div class="field">
+                        <label for="newEmail">Correo electrónico</label>
+                        <input type="email" id="newEmail" required>
+                    </div>
+                    <div class="field">
+                        <label for="newPassword">Contraseña temporal</label>
+                        <input type="password" id="newPassword" minlength="8" required>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button type="submit" class="primary-button" id="createUserButton">
+                        Crear usuario
+                    </button>
+                </div>
+                <div id="createUserFeedback" role="status" aria-live="polite"></div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Usuarios registrados</h2>
+                    <p>Selecciona una cuenta para administrar sus datos.</p>
+                </div>
+                <input
+                    type="search"
+                    class="search"
+                    id="searchUsers"
+                    placeholder="Buscar por nombre o identificador..."
+                >
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Identificador</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+
+            <p id="emptyUsers" class="empty hidden">
+                No se encontraron usuarios.
+            </p>
+        </section>
+
+        <section class="panel" id="editorPanel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Editar usuario</h2>
+                    <p>Selecciona un usuario de la tabla para comenzar.</p>
+                </div>
+            </div>
+
+            <div id="editorContent" class="hidden">
+
+                <div class="editor-grid">
+                    <div class="field">
+                        <label for="fullName">Nombre completo</label>
+                        <input type="text" id="fullName" maxlength="120">
+                    </div>
+
+                    <div class="field">
+                        <label for="userId">Identificador de cuenta</label>
+                        <input type="text" id="userId" disabled>
+                    </div>
+
+                    <div class="field">
+                        <label for="userRole">Rol de usuario</label>
+                        <input type="text" id="userRole" disabled>
+                    </div>
+
+                    <div class="field">
+                        <label for="userStatus">Estado de la cuenta</label>
+                        <select id="userStatus">
+                            <option value="active">Activa</option>
+                            <option value="inactive">Inactiva</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="editEmail">Nuevo correo electrónico (opcional)</label>
+                        <input type="email" id="editEmail" placeholder="Escribe el nuevo correo">
+                    </div>
+
+                    <div class="field">
+                        <label for="editPassword">Nueva contraseña (opcional)</label>
+                        <input type="password" id="editPassword" minlength="8" placeholder="Mínimo 8 caracteres">
+                    </div>
+                </div>
+
+                <p class="notice" style="margin-top:15px">
+                    Deja estos campos vacíos si no deseas cambiar las credenciales.
+                    Por seguridad, desde esta pantalla no puedes cambiar el correo ni la contraseña
+                    de tu propia cuenta de superadministrador.
+                </p>
+
+                <div style="margin-top:25px">
+                    <h2 style="font-size:14px;color:var(--navy)">
+                        Permisos de acceso
+                    </h2>
+                    <p style="font-size:11px;color:var(--muted);margin-top:6px">
+                        Selecciona los módulos que este usuario podrá utilizar.
+                    </p>
+
+                    <div class="permissions" id="permissionsList"></div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="primary-button" id="saveButton">
+                        Guardar cambios
+                    </button>
+                    <button class="action-button" id="cancelButton">
+                        Cancelar
+                    </button>
+                </div>
+
+                <div id="feedback"></div>
+            </div>
+
+            <p id="editorEmpty" class="empty">
+                Selecciona un usuario de la tabla para editar sus datos y permisos.
+            </p>
+        </section>
+
+        <div class="notice">
+            <strong>Nota de seguridad:</strong>
+            la creación de cuentas y la modificación de correos y contraseñas
+            se realizan mediante funciones seguras del servidor. La Secret Key
+            de Supabase nunca se utiliza en este navegador.
+        </div>
+
+    </main>
 </div>
 
 <script type="module">
+import { supabase } from "./js/config.js";
 
-    import { supabase } from "./js/config.js";
+const loading = document.getElementById("loading");
+const app = document.getElementById("app");
+const errorBox = document.getElementById("error");
 
-    const loading = document.getElementById("loading");
-    const dashboard = document.getElementById("dashboard");
-    const errorBox = document.getElementById("error");
-    const modulesGrid = document.getElementById("modulesGrid");
-    const sideNavigation = document.getElementById("sideNavigation");
+const usersTable = document.getElementById("usersTable");
+const permissionsList = document.getElementById("permissionsList");
+const editorContent = document.getElementById("editorContent");
+const editorEmpty = document.getElementById("editorEmpty");
+const feedback = document.getElementById("feedback");
 
-    const moduleIcons = {
-        inicio: "▦",
-        operaciones: "▤",
-        personal: "♙",
-        flota: "🚚",
-        finanzas: "▣",
-        administracion: "⚙"
-    };
+let currentUser = null;
+let currentProfile = null;
+let users = [];
+let modules = [];
+let selectedUser = null;
 
-    /* MOSTRAR MENSAJES DE ACCESO */
+function showError(message) {
+    loading.classList.add("hidden");
+    app.classList.add("hidden");
+    errorBox.textContent = message;
+    errorBox.classList.remove("hidden");
+}
 
-    function showError(message) {
+function showFeedback(message, success = true) {
+    feedback.textContent = message;
+    feedback.className = success ? "success" : "failure";
+}
+
+async function initialize() {
+    try {
+        const { data: sessionData, error: sessionError } =
+            await supabase.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        const session = sessionData.session;
+
+        if (!session) {
+            window.location.replace("./index.html");
+            return;
+        }
+
+        currentUser = session.user;
+
+        const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("id, full_name, role, status")
+            .eq("id", currentUser.id)
+            .single();
+
+        if (profileError) throw profileError;
+
+        currentProfile = profile;
+
+        if (
+            !profile ||
+            profile.status !== "active" ||
+            profile.role !== "superadmin"
+        ) {
+            showError("No tienes autorización para acceder a esta sección.");
+            return;
+        }
+
+        document.getElementById("adminEmail").textContent =
+            currentUser.email || "Superadministrador";
+
+        await loadData();
 
         loading.classList.add("hidden");
-        dashboard.classList.add("hidden");
+        app.classList.remove("hidden");
 
-        const isInactive = message.toLowerCase().includes("inactiva");
+    } catch (error) {
+        console.error(error);
+        showError(
+            "No se pudo abrir la administración. Detalle: " + error.message
+        );
+    }
+}
 
-        document.getElementById("errorTitle").textContent = isInactive
-            ? "Acceso suspendido"
-            : "No pudimos abrir tu sesión";
+async function loadData() {
+    const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name, role, status, created_at")
+        .order("created_at", { ascending: false });
 
-        document.getElementById("errorMessage").textContent = isInactive
-            ? "Tu cuenta se encuentra inactiva. Para recuperar el acceso, comunícate con el administrador de la plataforma."
-            : message;
+    if (profileError) throw profileError;
 
-        errorBox.classList.remove("hidden");
+    const { data: moduleData, error: moduleError } = await supabase
+        .from("modules")
+        .select("code, name, description")
+        .order("name");
+
+    if (moduleError) throw moduleError;
+
+    users = profileData || [];
+    modules = moduleData || [];
+
+    updateSummary();
+    renderUsers();
+}
+
+function updateSummary() {
+    document.getElementById("totalUsers").textContent = users.length;
+
+    document.getElementById("activeUsers").textContent =
+        users.filter(user => user.status === "active").length;
+
+    document.getElementById("inactiveUsers").textContent =
+        users.filter(user => user.status === "inactive").length;
+}
+
+function renderUsers() {
+    const search = document.getElementById("searchUsers")
+        .value.trim().toLowerCase();
+
+    usersTable.innerHTML = "";
+
+    const filteredUsers = users.filter(user => {
+        return (
+            (user.full_name || "").toLowerCase().includes(search) ||
+            user.id.toLowerCase().includes(search)
+        );
+    });
+
+    document.getElementById("emptyUsers")
+        .classList.toggle("hidden", filteredUsers.length > 0);
+
+    filteredUsers.forEach(user => {
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        const name = document.createElement("div");
+        name.className = "user-name";
+        name.textContent = user.full_name || "Sin nombre";
+        nameCell.appendChild(name);
+
+        const idCell = document.createElement("td");
+        const id = document.createElement("div");
+        id.className = "user-id";
+        id.textContent = user.id.slice(0, 8) + "...";
+        idCell.appendChild(id);
+
+        const roleCell = document.createElement("td");
+        roleCell.textContent =
+            user.role === "superadmin"
+                ? "Superadministrador"
+                : "Usuario";
+
+        const statusCell = document.createElement("td");
+        const status = document.createElement("span");
+        status.className =
+            "status-pill " +
+            (user.status === "active"
+                ? "status-active"
+                : "status-inactive");
+
+        status.textContent =
+            user.status === "active" ? "Activa" : "Inactiva";
+
+        statusCell.appendChild(status);
+
+        const actionCell = document.createElement("td");
+        const button = document.createElement("button");
+        button.className = "action-button";
+        button.textContent = "Administrar";
+        button.addEventListener("click", () => selectUser(user));
+
+        actionCell.appendChild(button);
+
+        row.append(
+            nameCell,
+            idCell,
+            roleCell,
+            statusCell,
+            actionCell
+        );
+
+        usersTable.appendChild(row);
+    });
+}
+
+async function selectUser(user) {
+    selectedUser = user;
+
+    document.getElementById("fullName").value = user.full_name || "";
+    document.getElementById("userId").value = user.id;
+    document.getElementById("userRole").value =
+        user.role === "superadmin"
+            ? "Superadministrador"
+            : "Usuario";
+
+    document.getElementById("userStatus").value = user.status;
+
+    const editEmail = document.getElementById("editEmail");
+    const editPassword = document.getElementById("editPassword");
+    const editingOwnAccount = user.id === currentUser.id;
+
+    editEmail.value = "";
+    editPassword.value = "";
+    editEmail.disabled = editingOwnAccount;
+    editPassword.disabled = editingOwnAccount;
+    editEmail.placeholder = editingOwnAccount
+        ? "No disponible para tu propia cuenta"
+        : "Escribe el nuevo correo";
+    editPassword.placeholder = editingOwnAccount
+        ? "No disponible para tu propia cuenta"
+        : "Mínimo 8 caracteres";
+
+    feedback.textContent = "";
+    editorEmpty.classList.add("hidden");
+    editorContent.classList.remove("hidden");
+
+    await loadPermissions(user.id);
+}
+
+async function loadPermissions(userId) {
+    permissionsList.innerHTML = "Cargando permisos...";
+
+    const { data, error } = await supabase
+        .from("user_module_permissions")
+        .select("module_code, can_access")
+        .eq("user_id", userId);
+
+    if (error) {
+        permissionsList.textContent =
+            "No se pudieron cargar los permisos: " + error.message;
+        return;
     }
 
-    /* NAVEGACIÓN DE MÓDULOS */
+    const permissionMap = new Map(
+        (data || []).map(item => [item.module_code, item.can_access])
+    );
 
-    function showModule(module) {
+    permissionsList.innerHTML = "";
 
-        if (module.code === "administracion") {
-            window.location.href = "./administracion.html";
-            return;
+    modules.forEach(module => {
+        const label = document.createElement("label");
+        label.className = "permission-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.module = module.code;
+
+        checkbox.checked = permissionMap.get(module.code) === true;
+
+        if (selectedUser.role === "superadmin") {
+            checkbox.checked = true;
+            checkbox.disabled = true;
         }
 
-        if (module.code === "inicio") {
-            document.getElementById("moduleMessage").textContent =
-                "Estás en el panel principal de la plataforma.";
-            return;
-        }
+        const text = document.createElement("span");
+        text.textContent = module.name;
 
-        document.getElementById("moduleMessage").textContent =
-            "Has seleccionado: " + module.name +
-            ". Aquí construiremos las herramientas y funciones de este módulo.";
+        label.append(checkbox, text);
+        permissionsList.appendChild(label);
+    });
+}
+
+async function createUser(event) {
+    event.preventDefault();
+
+    const form = document.getElementById("createUserForm");
+    const button = document.getElementById("createUserButton");
+    const message = document.getElementById("createUserFeedback");
+
+    const fullName = document.getElementById("newFullName").value.trim();
+    const email = document.getElementById("newEmail").value.trim().toLowerCase();
+    const password = document.getElementById("newPassword").value;
+
+    message.textContent = "";
+    message.className = "";
+
+    if (!fullName || !email || !password) {
+        message.textContent = "Completa todos los campos.";
+        message.className = "failure";
+        return;
     }
 
-    /* CREAR TARJETAS */
-
-    function createModuleCard(module) {
-
-        const card = document.createElement("button");
-        card.type = "button";
-        card.className = "module-card";
-
-        if (module.code === "administracion") {
-            card.classList.add("admin-card");
-        }
-
-        const icon = document.createElement("div");
-        icon.className = "module-icon";
-        icon.textContent = moduleIcons[module.code] || "•";
-
-        const title = document.createElement("h3");
-        title.textContent = module.name;
-
-        const description = document.createElement("p");
-        description.textContent = module.description ||
-            "Herramientas y funciones de gestión empresarial.";
-
-        const tag = document.createElement("span");
-        tag.className = "module-tag";
-        tag.textContent = module.code === "administracion"
-            ? "SUPERADMINISTRADOR"
-            : "MÓDULO DE GESTIÓN";
-
-        card.append(icon, title, description, tag);
-
-        card.addEventListener("click", () => showModule(module));
-
-        return card;
+    if (password.length < 8) {
+        message.textContent = "La contraseña debe tener al menos 8 caracteres.";
+        message.className = "failure";
+        return;
     }
 
-    /* MOSTRAR MÓDULOS */
+    button.disabled = true;
+    button.textContent = "Creando usuario...";
 
-    function renderModules(modules) {
-
-        modulesGrid.innerHTML = "";
-        sideNavigation.innerHTML = "";
-
-        const homeButton = document.createElement("button");
-        homeButton.type = "button";
-        homeButton.className = "menu-item active";
-        homeButton.innerHTML = '<span class="menu-icon">▦</span> Dashboard';
-
-        homeButton.addEventListener("click", () => {
-
-            document.querySelectorAll(".menu-item").forEach(item =>
-                item.classList.remove("active")
-            );
-
-            homeButton.classList.add("active");
-
-            document.getElementById("moduleMessage").textContent =
-                "Estás en el panel principal de la plataforma.";
-        });
-
-        sideNavigation.appendChild(homeButton);
-
-        modules.forEach(module => {
-
-            if (module.code === "inicio") return;
-
-            const menuButton = document.createElement("button");
-            menuButton.type = "button";
-            menuButton.className = "menu-item";
-
-            const icon = document.createElement("span");
-            icon.className = "menu-icon";
-            icon.textContent = moduleIcons[module.code] || "•";
-
-            menuButton.append(icon, document.createTextNode(module.name));
-
-            menuButton.addEventListener("click", () => {
-
-                document.querySelectorAll(".menu-item").forEach(item =>
-                    item.classList.remove("active")
-                );
-
-                menuButton.classList.add("active");
-
-                showModule(module);
-            });
-
-            sideNavigation.appendChild(menuButton);
-            modulesGrid.appendChild(createModuleCard(module));
-        });
-
-        if (modulesGrid.children.length === 0) {
-
-            const empty = document.createElement("p");
-
-            empty.textContent =
-                "No tienes módulos asignados. Contacta al administrador.";
-
-            modulesGrid.appendChild(empty);
-        }
-    }
-
-    /* INICIALIZAR DASHBOARD */
-
-    async function initializeDashboard() {
-
-        try {
-
-            const { data: sessionData, error: sessionError } =
-                await supabase.auth.getSession();
-
-            if (sessionError) throw sessionError;
-
-            const session = sessionData.session;
-
-            if (!session) {
-                window.location.replace("./index.html");
-                return;
+    try {
+        const { data, error } = await supabase.functions.invoke(
+            "admin-create-user",
+            {
+                body: {
+                    full_name: fullName,
+                    email,
+                    password
+                }
             }
+        );
 
-            const user = session.user;
-
-            const { data: profile, error: profileError } = await supabase
-                .from("profiles")
-                .select("full_name, role, status")
-                .eq("id", user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            /* VALIDAR ESTADO DE LA CUENTA */
-
-            if (!profile || profile.status !== "active") {
-
-                await supabase.auth.signOut();
-
-                showError(
-                    "Tu cuenta está inactiva. Contacta al superadministrador."
-                );
-
-                return;
+        if (error) {
+            let detail = error.message || "No se pudo conectar con la función.";
+            try {
+                const response = await error.context.json();
+                if (response?.error) detail = response.error;
+                else if (response?.message) detail = response.message;
+            } catch (_) {
+                // Se conserva el mensaje original si la respuesta no es JSON.
             }
+            throw new Error(detail);
+        }
 
-            /* OBTENER MÓDULOS */
+        if (!data?.success) {
+            throw new Error(data?.error || "Supabase no confirmó la creación del usuario.");
+        }
 
-            const { data: allModules, error: modulesError } = await supabase
-                .from("modules")
-                .select("code, name, description")
-                .order("name");
+        form.reset();
+        message.textContent = "Usuario creado correctamente. Ya puedes buscarlo en la lista y asignarle permisos.";
+        message.className = "success";
 
-            if (modulesError) throw modulesError;
+        await loadData();
 
-            let allowedModules = allModules || [];
+    } catch (error) {
+        console.error("Error creando usuario:", error);
+        message.textContent = "No se pudo crear el usuario: " + error.message;
+        message.className = "failure";
+    } finally {
+        button.disabled = false;
+        button.textContent = "Crear usuario";
+    }
+}
 
-            /* VALIDAR PERMISOS */
+async function saveChanges() {
+    if (!selectedUser) return;
 
-            if (profile.role !== "superadmin") {
+    const saveButton = document.getElementById("saveButton");
 
-                const { data: permissions, error: permissionError } =
-                    await supabase
-                        .from("user_module_permissions")
-                        .select("module_code, can_access")
-                        .eq("user_id", user.id)
-                        .eq("can_access", true);
+    if (
+        selectedUser.id === currentUser.id &&
+        document.getElementById("userStatus").value === "inactive"
+    ) {
+        showFeedback(
+            "No puedes desactivar tu propia cuenta desde esta pantalla.",
+            false
+        );
+        return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
+
+    try {
+        const fullName = document.getElementById("fullName")
+            .value.trim();
+
+        const status = document.getElementById("userStatus").value;
+
+        const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+                full_name: fullName,
+                status: status
+            })
+            .eq("id", selectedUser.id);
+
+        if (updateError) throw updateError;
+
+        if (selectedUser.role !== "superadmin") {
+            const permissionRows = [];
+
+            document
+                .querySelectorAll("[data-module]")
+                .forEach(checkbox => {
+                    permissionRows.push({
+                        user_id: selectedUser.id,
+                        module_code: checkbox.dataset.module,
+                        can_access: checkbox.checked
+                    });
+                });
+
+            if (permissionRows.length > 0) {
+                const { error: permissionError } = await supabase
+                    .from("user_module_permissions")
+                    .upsert(permissionRows, {
+                        onConflict: "user_id,module_code"
+                    });
 
                 if (permissionError) throw permissionError;
+            }
+        }
 
-                const allowedCodes = new Set(
-                    (permissions || []).map(item => item.module_code)
-                );
+        // Actualizar correo y/o contraseña mediante la función segura del servidor.
+        const newEmail = document.getElementById("editEmail").value.trim().toLowerCase();
+        const newPassword = document.getElementById("editPassword").value;
 
-                allowedModules = allowedModules.filter(module =>
-                    allowedCodes.has(module.code) &&
-                    module.code !== "administracion"
+        if (newEmail || newPassword) {
+            if (selectedUser.id === currentUser.id) {
+                throw new Error(
+                    "No puedes modificar las credenciales de tu propia cuenta desde aquí."
                 );
             }
 
-            /* DATOS DEL USUARIO */
+            if (newEmail && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(newEmail)) {
+                throw new Error("Escribe un correo electrónico válido.");
+            }
 
-            const displayName = profile.full_name ||
-                user.email?.split("@")[0] || "Usuario";
+            if (newPassword && newPassword.length < 8) {
+                throw new Error("La nueva contraseña debe tener al menos 8 caracteres.");
+            }
 
-            document.getElementById("welcomeTitle").textContent =
-                "Bienvenido, " + displayName;
+            const credentialChanges = {};
+            if (newEmail) credentialChanges.email = newEmail;
+            if (newPassword) credentialChanges.password = newPassword;
 
-            document.getElementById("userEmail").textContent =
-                user.email || "Usuario";
+            const { data: credentialData, error: credentialError } =
+                await supabase.functions.invoke("admin-update-user", {
+                    body: {
+                        user_id: selectedUser.id,
+                        ...credentialChanges
+                    }
+                });
 
-            document.getElementById("userRole").textContent =
-                profile.role === "superadmin"
-                    ? "Superadministrador"
-                    : "Usuario";
+            if (credentialError) {
+                let detail = credentialError.message || "No se pudo conectar con la función.";
+                try {
+                    const response = await credentialError.context.json();
+                    if (response?.error) detail = response.error;
+                    else if (response?.message) detail = response.message;
+                } catch (_) {
+                    // Se conserva el mensaje original.
+                }
+                throw new Error(detail);
+            }
 
-            document.getElementById("avatar").textContent =
-                displayName.trim().charAt(0).toUpperCase() || "U";
-
-            document.getElementById("accountStatus").textContent = "Activa";
-
-            document.getElementById("accountRole").textContent =
-                profile.role === "superadmin"
-                    ? "Superadministrador"
-                    : "Usuario";
-
-            /* CARGAR MÓDULOS */
-
-            renderModules(allowedModules);
-
-            loading.classList.add("hidden");
-            dashboard.classList.remove("hidden");
-
-        } catch (error) {
-
-            console.error("Error cargando dashboard:", error);
-
-            showError(
-                "No se pudo cargar la plataforma. Verifica tu conexión e inténtalo nuevamente. Detalle: " +
-                error.message
-            );
+            if (!credentialData?.success) {
+                throw new Error(
+                    credentialData?.error ||
+                    "Supabase no confirmó la actualización de las credenciales."
+                );
+            }
         }
+
+        await loadData();
+
+        const updatedUser = users.find(
+            user => user.id === selectedUser.id
+        );
+
+        if (updatedUser) {
+            await selectUser(updatedUser);
+        }
+
+        showFeedback(
+            "Los cambios se guardaron correctamente" +
+            ((newEmail || newPassword)
+                ? ", incluidas las credenciales de acceso."
+                : ".")
+        );
+
+    } catch (error) {
+        console.error(error);
+        showFeedback(
+            "No se pudieron guardar los cambios: " + error.message,
+            false
+        );
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar cambios";
     }
+}
 
-    /* CERRAR SESIÓN */
+document.getElementById("createUserForm")
+    .addEventListener("submit", createUser);
 
-    document.getElementById("logoutButton").addEventListener("click", async () => {
+document.getElementById("searchUsers")
+    .addEventListener("input", renderUsers);
 
-        const button = document.getElementById("logoutButton");
+document.getElementById("saveButton")
+    .addEventListener("click", saveChanges);
 
-        button.disabled = true;
-        button.textContent = "Cerrando sesión...";
+document.getElementById("cancelButton")
+    .addEventListener("click", () => {
+        if (selectedUser) {
+            selectUser(selectedUser);
+        } else {
+            editorContent.classList.add("hidden");
+            editorEmpty.classList.remove("hidden");
+        }
+    });
 
+document.getElementById("logoutButton")
+    .addEventListener("click", async () => {
         const { error } = await supabase.auth.signOut();
 
         if (error) {
-
-            button.disabled = false;
-            button.textContent = "Cerrar sesión";
-
             alert("No se pudo cerrar la sesión: " + error.message);
-
             return;
         }
 
         window.location.replace("./index.html");
     });
 
-    initializeDashboard();
-
+initialize();
 </script>
 
 </body>
