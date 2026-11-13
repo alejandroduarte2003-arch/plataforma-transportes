@@ -645,12 +645,6 @@
                             <button data-go="finanzas">Ingresar</button>
                         </div>
 
-                        <div class="module-card">
-                            <h3>Administración</h3>
-                            <p>Consulta las opciones de configuración y permisos.</p>
-                            <button data-go="administracion">Ingresar</button>
-                        </div>
-
                     </div>
 
                 </div>
@@ -829,39 +823,6 @@
 
             </section>
 
-
-            <!-- ================================= -->
-            <!-- ADMINISTRACIÓN -->
-            <!-- ================================= -->
-
-            <section class="view" id="view-administracion">
-
-                <div class="page-heading">
-                    <h1>Administración</h1>
-                    <p>Configuración y control de acceso a la plataforma.</p>
-                </div>
-
-                <div class="module-items">
-
-                    <div class="module-item">
-                        <h3>Usuarios</h3>
-                        <p>Consulta de usuarios y sus accesos al sistema. La creación de usuarios se mantiene bajo el control del Superadmin.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Permisos</h3>
-                        <p>Control de las funciones y módulos disponibles según el tipo de usuario.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Configuración</h3>
-                        <p>Parámetros generales y preferencias de funcionamiento de la plataforma.</p>
-                    </div>
-
-                </div>
-
-            </section>
-
         </div>
 
     </main>
@@ -1018,6 +979,12 @@
     function openView(viewName) {
         if (!accessReady || !allowedModules.has(viewName)) {
             console.warn("Acceso denegado al módulo:", viewName);
+            return;
+        }
+
+        // Administración es un panel independiente con su propia validación de superadmin.
+        if (viewName === "administracion") {
+            window.location.href = "./administracion.html";
             return;
         }
 
