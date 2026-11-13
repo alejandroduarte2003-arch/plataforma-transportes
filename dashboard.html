@@ -2404,7 +2404,7 @@
     function financeInPeriod(date,period){return !period||String(date||"").startsWith(period);}
     function renderFinanceSummary(){
         const income=financialCollections.reduce((s,x)=>s+Number(x.amount||0),0);
-        const fleet=financeFuel.reduce((s,x)=>s+Number(x.total_cost||0),0)+financeMaintenance.reduce((s,x)=>s+Number(x.cost||0),0)+financeParts.reduce((s,x)=>s+Number(x.total_cost||0),0);
+        const fleet=financeFuel.reduce((s,x)=>s+Number(x.total_cost||0),0)+financeMaintenance.filter(x=>x.status==="Completado").reduce((s,x)=>s+Number(x.cost||0),0)+financeParts.reduce((s,x)=>s+Number(x.total_cost||0),0);
         const payroll=financePayroll.filter(x=>x.status==="Pagada").reduce((s,x)=>s+Number(x.net_pay||0),0);
         const other=financialExpenses.filter(x=>x.status==="Pagado").reduce((s,x)=>s+Number(x.amount||0),0);
         const outstanding=financialReceivables.filter(x=>x.status!=="Cancelada").reduce((s,x)=>s+receivableBalance(x),0);
