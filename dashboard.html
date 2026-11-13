@@ -6,7 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>INCOROVA | Plataforma de Transportes</title>
+    <title>INCOROVA | Transportes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -18,103 +22,451 @@
         :root {
             --negro: #111827;
             --azul: #172554;
+            --azul-hover: #243b70;
             --blanco: #ffffff;
-            --gris: #f3f4f6;
-            --gris-texto: #6b7280;
+            --fondo: #f3f4f6;
+            --gris: #e5e7eb;
+            --texto: #6b7280;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: var(--gris);
+            font-family: 'Inter', sans-serif;
+            background: var(--fondo);
             color: var(--negro);
             min-height: 100vh;
         }
 
-        header {
-            background: var(--azul);
-            color: var(--blanco);
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        button {
+            font-family: inherit;
         }
 
-        .brand {
+        /* ESTRUCTURA */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 255px;
+            background: var(--azul);
+            color: var(--blanco);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 27px 23px;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+
+        .sidebar-brand h2 {
             font-size: 20px;
-            font-weight: bold;
+            letter-spacing: 1.5px;
+        }
+
+        .sidebar-brand p {
+            font-size: 10px;
+            margin-top: 6px;
+            opacity: .65;
             letter-spacing: 1px;
         }
 
-        .header-right {
+        .menu-label {
+            padding: 25px 23px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            opacity: .55;
+        }
+
+        .sidebar-nav {
+            padding: 0 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-button {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,.75);
+            padding: 13px 14px;
+            margin-bottom: 5px;
+            border-radius: 7px;
             display: flex;
             align-items: center;
-            gap: 20px;
-        }
-
-        #userEmail {
-            font-size: 13px;
-        }
-
-        #logoutButton {
-            background: var(--blanco);
-            color: var(--azul);
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
+            gap: 13px;
+            text-align: left;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 500;
+            transition: .2s;
         }
 
-        #logoutButton:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .nav-button:hover,
+        .nav-button.active {
+            background: rgba(255,255,255,.13);
+            color: var(--blanco);
         }
 
-        main {
-            padding: 35px;
+        .nav-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 16px;
         }
 
-        .welcome {
+        .sidebar-footer {
+            padding: 18px;
+            border-top: 1px solid rgba(255,255,255,.12);
+            font-size: 11px;
+            opacity: .65;
+        }
+
+        /* CONTENIDO */
+
+        .main {
+            width: calc(100% - 255px);
+            margin-left: 255px;
+            min-width: 0;
+        }
+
+        .topbar {
+            height: 75px;
+            background: var(--blanco);
+            border-bottom: 1px solid var(--gris);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar h2 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info strong {
+            font-size: 12px;
+            display: block;
+        }
+
+        .user-info span {
+            font-size: 10px;
+            color: var(--texto);
+        }
+
+        .logout-button {
+            background: var(--blanco);
+            border: 1px solid var(--gris);
+            color: var(--negro);
+            border-radius: 6px;
+            padding: 9px 13px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            background: var(--fondo);
+        }
+
+        .content {
+            padding: 30px;
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        /* VISTAS */
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .page-heading {
             margin-bottom: 25px;
         }
 
-        .welcome h1 {
-            font-size: 25px;
+        .page-heading h1 {
+            font-size: 24px;
+            margin-bottom: 7px;
+        }
+
+        .page-heading p {
+            font-size: 13px;
+            color: var(--texto);
+        }
+
+        /* TARJETAS */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 17px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--blanco);
+            border: 1px solid var(--gris);
+            border-radius: 9px;
+            padding: 21px;
+        }
+
+        .stat-card span {
+            color: var(--texto);
+            font-size: 12px;
+        }
+
+        .stat-card h2 {
+            font-size: 27px;
+            margin-top: 13px;
+        }
+
+        .stat-card p {
+            font-size: 10px;
+            color: var(--texto);
+            margin-top: 7px;
+        }
+
+        /* PANELES */
+
+        .panel {
+            background: var(--blanco);
+            border: 1px solid var(--gris);
+            border-radius: 9px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .panel-heading h3 {
+            font-size: 14px;
+        }
+
+        .panel-heading span {
+            color: var(--texto);
+            font-size: 11px;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 17px;
+        }
+
+        .module-card {
+            background: var(--blanco);
+            border: 1px solid var(--gris);
+            padding: 22px;
+            border-radius: 9px;
+        }
+
+        .module-card h3 {
+            font-size: 14px;
+            margin-bottom: 9px;
+        }
+
+        .module-card p {
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--texto);
+        }
+
+        .module-card button {
+            margin-top: 18px;
+            background: var(--azul);
+            color: var(--blanco);
+            border: none;
+            border-radius: 5px;
+            padding: 10px 13px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .module-card button:hover {
+            background: var(--azul-hover);
+        }
+
+        /* TABLAS */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th {
+            background: #f9fafb;
+            color: var(--texto);
+            font-size: 10px;
+            text-align: left;
+            padding: 13px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px 13px;
+            border-top: 1px solid var(--gris);
+            font-size: 11px;
+        }
+
+        .empty-state {
+            padding: 35px 15px;
+            text-align: center;
+            color: var(--texto);
+            font-size: 12px;
+        }
+
+        .module-description {
+            background: var(--blanco);
+            padding: 25px;
+            border: 1px solid var(--gris);
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+
+        .module-description h3 {
+            font-size: 15px;
             margin-bottom: 8px;
         }
 
-        .welcome p {
-            color: var(--gris-texto);
+        .module-description p {
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--texto);
         }
 
-        .dashboard-content {
+        .module-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .module-item {
             background: var(--blanco);
-            padding: 30px;
-            border-radius: 10px;
-            min-height: 250px;
+            border: 1px solid var(--gris);
+            padding: 22px;
+            border-radius: 8px;
         }
 
-        #loadingMessage {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--gris-texto);
+        .module-item h3 {
+            font-size: 13px;
+            margin-bottom: 8px;
         }
 
-        @media (max-width: 600px) {
-            header {
-                padding: 15px;
+        .module-item p {
+            font-size: 11px;
+            color: var(--texto);
+            line-height: 1.6;
+        }
+
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--azul);
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width: 1000px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            main {
-                padding: 20px;
+            .module-grid,
+            .module-items {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 700px) {
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: .25s;
             }
 
-            .header-right {
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 0 17px;
+                height: 65px;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .stats-grid {
                 gap: 10px;
             }
 
-            #userEmail {
-                display: none;
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-card h2 {
+                font-size: 22px;
+            }
+
+            .module-grid,
+            .module-items {
+                grid-template-columns: 1fr;
+            }
+
+            .page-heading h1 {
+                font-size: 21px;
             }
         }
     </style>
@@ -122,130 +474,552 @@
 
 <body>
 
-    <header>
-        <div class="brand">INCOROVA</div>
+<div class="app">
 
-        <div class="header-right">
-            <span id="userEmail"></span>
-            <button id="logoutButton">Cerrar sesión</button>
+    <!-- BARRA LATERAL -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <h2>INCOROVA</h2>
+            <p>GESTIÓN DE TRANSPORTES</p>
         </div>
-    </header>
 
-    <main>
+        <div class="menu-label">MENÚ PRINCIPAL</div>
 
-        <section class="welcome">
-            <h1>Panel principal</h1>
-            <p>Plataforma de gestión de transportes</p>
-        </section>
+        <nav class="sidebar-nav">
 
-        <section class="dashboard-content">
+            <button class="nav-button active" data-view="inicio">
+                <span class="nav-icon">⌂</span>
+                Inicio
+            </button>
 
-            <div id="loadingMessage">
-                Verificando sesión...
+            <button class="nav-button" data-view="operaciones">
+                <span class="nav-icon">▣</span>
+                Operaciones
+            </button>
+
+            <button class="nav-button" data-view="personal">
+                <span class="nav-icon">♙</span>
+                Personal
+            </button>
+
+            <button class="nav-button" data-view="flota">
+                <span class="nav-icon">▤</span>
+                Flota y gastos
+            </button>
+
+            <button class="nav-button" data-view="finanzas">
+                <span class="nav-icon">▥</span>
+                Finanzas
+            </button>
+
+            <div class="menu-label">GESTIÓN DEL SISTEMA</div>
+
+            <button class="nav-button" data-view="administracion">
+                <span class="nav-icon">⚙</span>
+                Administración
+            </button>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            INCOROVA © 2026<br>
+            Plataforma de Transportes
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div style="display:flex;align-items:center;gap:15px;">
+                <button class="mobile-menu" id="mobileMenu">☰</button>
+                <h2 id="pageTitle">Inicio</h2>
             </div>
 
-            <div id="dashboardContent" hidden>
-                <h2>Bienvenido a INCOROVA</h2>
-                <p>Tu sesión está activa.</p>
+            <div class="user-area">
+
+                <div class="user-info">
+                    <strong id="userEmail">Usuario</strong>
+                    <span>Sesión activa</span>
+                </div>
+
+                <button class="logout-button" id="logoutButton">
+                    Cerrar sesión
+                </button>
+
             </div>
 
-        </section>
+        </header>
+
+
+        <div class="content">
+
+            <!-- ================================= -->
+            <!-- INICIO -->
+            <!-- ================================= -->
+
+            <section class="view active" id="view-inicio">
+
+                <div class="page-heading">
+                    <h1>Panel principal</h1>
+                    <p>Resumen general de las operaciones de transporte.</p>
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span>Vehículos registrados</span>
+                        <h2>0</h2>
+                        <p>Flota total</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Trabajadores</span>
+                        <h2>0</h2>
+                        <p>Personal registrado</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Viajes registrados</span>
+                        <h2>0</h2>
+                        <p>Operaciones de transporte</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Alertas pendientes</span>
+                        <h2>0</h2>
+                        <p>Recordatorios y pendientes</p>
+                    </div>
+
+                </div>
+
+                <div class="panel">
+
+                    <div class="panel-heading">
+                        <h3>Actividad reciente</h3>
+                        <span>Últimos movimientos</span>
+                    </div>
+
+                    <div class="empty-state">
+                        Todavía no hay movimientos registrados.
+                    </div>
+
+                </div>
+
+                <div class="panel">
+
+                    <div class="panel-heading">
+                        <h3>Accesos a módulos</h3>
+                        <span>Gestión empresarial</span>
+                    </div>
+
+                    <div class="module-grid">
+
+                        <div class="module-card">
+                            <h3>Operaciones</h3>
+                            <p>Administra vehículos, viajes y personas abordadas.</p>
+                            <button data-go="operaciones">Ingresar</button>
+                        </div>
+
+                        <div class="module-card">
+                            <h3>Personal</h3>
+                            <p>Controla trabajadores, préstamos y planillas.</p>
+                            <button data-go="personal">Ingresar</button>
+                        </div>
+
+                        <div class="module-card">
+                            <h3>Flota y gastos</h3>
+                            <p>Registra combustible, mantenimiento y repuestos.</p>
+                            <button data-go="flota">Ingresar</button>
+                        </div>
+
+                        <div class="module-card">
+                            <h3>Finanzas</h3>
+                            <p>Controla cobros, pagos y reportes financieros.</p>
+                            <button data-go="finanzas">Ingresar</button>
+                        </div>
+
+                        <div class="module-card">
+                            <h3>Administración</h3>
+                            <p>Consulta las opciones de configuración y permisos.</p>
+                            <button data-go="administracion">Ingresar</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================= -->
+            <!-- OPERACIONES -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-operaciones">
+
+                <div class="page-heading">
+                    <h1>Operaciones</h1>
+                    <p>Control y seguimiento de las actividades de transporte.</p>
+                </div>
+
+                <div class="module-items">
+
+                    <div class="module-item">
+                        <h3>Vehículos</h3>
+                        <p>Registro de buses y microbuses, placas, características, estado y disponibilidad.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Viajes</h3>
+                        <p>Control de recorridos, fechas, responsables, contratos e ingresos por viaje.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Abordajes</h3>
+                        <p>Registro de cada persona que aborda cada vehículo y control de pasajeros.</p>
+                    </div>
+
+                </div>
+
+                <div class="panel" style="margin-top:20px;">
+                    <div class="panel-heading">
+                        <h3>Registro de operaciones</h3>
+                        <span>Información de viajes</span>
+                    </div>
+                    <div class="empty-state">
+                        No hay operaciones registradas todavía.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ================================= -->
+            <!-- PERSONAL -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-personal">
+
+                <div class="page-heading">
+                    <h1>Personal</h1>
+                    <p>Administración de trabajadores y obligaciones laborales.</p>
+                </div>
+
+                <div class="module-items">
+
+                    <div class="module-item">
+                        <h3>Trabajadores</h3>
+                        <p>Información personal, puestos, contactos y estado laboral.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Préstamos</h3>
+                        <p>Registro de préstamos, saldos pendientes y descuentos por cuotas.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Planilla</h3>
+                        <p>Control de salarios, deducciones, préstamos y pagos al personal.</p>
+                    </div>
+
+                </div>
+
+                <div class="panel" style="margin-top:20px;">
+                    <div class="panel-heading">
+                        <h3>Personal registrado</h3>
+                        <span>Trabajadores</span>
+                    </div>
+                    <div class="empty-state">
+                        No hay trabajadores registrados todavía.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ================================= -->
+            <!-- FLOTA Y GASTOS -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-flota">
+
+                <div class="page-heading">
+                    <h1>Flota y gastos</h1>
+                    <p>Control de costos y mantenimiento de los vehículos.</p>
+                </div>
+
+                <div class="module-items">
+
+                    <div class="module-item">
+                        <h3>Combustible</h3>
+                        <p>Registro de cargas, cantidades, costos y consumo por vehículo.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Mantenimiento</h3>
+                        <p>Control de servicios, fechas, reparaciones y próximos mantenimientos.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Repuestos</h3>
+                        <p>Registro de piezas reemplazadas, dañadas, costos y observaciones.</p>
+                    </div>
+
+                </div>
+
+                <div class="panel" style="margin-top:20px;">
+                    <div class="panel-heading">
+                        <h3>Historial de gastos</h3>
+                        <span>Control de flota</span>
+                    </div>
+                    <div class="empty-state">
+                        No hay gastos registrados todavía.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ================================= -->
+            <!-- FINANZAS -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-finanzas">
+
+                <div class="page-heading">
+                    <h1>Finanzas</h1>
+                    <p>Control de ingresos, egresos y movimientos económicos.</p>
+                </div>
+
+                <div class="module-items">
+
+                    <div class="module-item">
+                        <h3>Cobros</h3>
+                        <p>Control de cuentas por cobrar, clientes, contratos y viajes pendientes de pago.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Pagos</h3>
+                        <p>Registro de pagos a proveedores, gastos y obligaciones de la empresa.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Reportes</h3>
+                        <p>Informes de ingresos, gastos, balances y resultados financieros.</p>
+                    </div>
+
+                </div>
+
+                <div class="panel" style="margin-top:20px;">
+                    <div class="panel-heading">
+                        <h3>Resumen financiero</h3>
+                        <span>Movimientos económicos</span>
+                    </div>
+                    <div class="empty-state">
+                        Los datos financieros aparecerán cuando se conecte el módulo.
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ================================= -->
+            <!-- ADMINISTRACIÓN -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-administracion">
+
+                <div class="page-heading">
+                    <h1>Administración</h1>
+                    <p>Configuración y control de acceso a la plataforma.</p>
+                </div>
+
+                <div class="module-items">
+
+                    <div class="module-item">
+                        <h3>Usuarios</h3>
+                        <p>Consulta de usuarios y sus accesos al sistema. La creación de usuarios se mantiene bajo el control del Superadmin.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Permisos</h3>
+                        <p>Control de las funciones y módulos disponibles según el tipo de usuario.</p>
+                    </div>
+
+                    <div class="module-item">
+                        <h3>Configuración</h3>
+                        <p>Parámetros generales y preferencias de funcionamiento de la plataforma.</p>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
 
     </main>
 
-    <script type="module">
+</div>
 
-        import { supabase } from "./js/config.js";
 
-        const userEmail = document.getElementById("userEmail");
-        const logoutButton = document.getElementById("logoutButton");
-        const loadingMessage = document.getElementById("loadingMessage");
-        const dashboardContent = document.getElementById("dashboardContent");
+<!-- ================================= -->
+<!-- JAVASCRIPT -->
+<!-- ================================= -->
 
-        let redirecting = false;
+<script type="module">
 
-        // =====================================
-        // VERIFICAR SESIÓN
-        // =====================================
+    import { supabase } from "./js/config.js";
 
-        async function verifySession() {
+    const userEmail = document.getElementById("userEmail");
+    const logoutButton = document.getElementById("logoutButton");
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const pageTitle = document.getElementById("pageTitle");
 
-            try {
+    let redirecting = false;
 
-                const { data, error } = await supabase.auth.getSession();
+    // =====================================
+    // VERIFICAR SESIÓN
+    // =====================================
 
-                if (error) {
-                    throw error;
-                }
+    async function verifySession() {
 
-                if (!data.session) {
+        try {
 
-                    redirecting = true;
+            const { data, error } = await supabase.auth.getSession();
 
-                    window.location.replace("./index.html");
+            if (error) throw error;
 
-                    return;
-                }
+            if (!data.session) {
 
-                userEmail.textContent = data.session.user.email;
+                redirecting = true;
+                window.location.replace("./index.html");
 
-                loadingMessage.hidden = true;
-                dashboardContent.hidden = false;
-
-            } catch (error) {
-
-                console.error("Error verificando sesión:", error);
-
-                loadingMessage.textContent =
-                    "No fue posible verificar la sesión. Recarga la página.";
-
+                return;
             }
+
+            userEmail.textContent = data.session.user.email;
+
+        } catch (error) {
+
+            console.error("Error verificando sesión:", error);
+
+            document.querySelector(".content").innerHTML =
+                "<p>No fue posible verificar tu sesión. Recarga la página.</p>";
 
         }
 
-        // =====================================
-        // CERRAR SESIÓN
-        // =====================================
+    }
 
-        logoutButton.addEventListener("click", async () => {
+    // =====================================
+    // NAVEGACIÓN ENTRE MÓDULOS
+    // =====================================
 
-            if (redirecting) return;
+    function openView(viewName) {
 
-            logoutButton.disabled = true;
-            logoutButton.textContent = "Cerrando sesión...";
+        const target = document.getElementById("view-" + viewName);
 
-            try {
+        if (!target) return;
 
-                const { error } = await supabase.auth.signOut();
-
-                if (error) {
-                    throw error;
-                }
-
-                redirecting = true;
-
-                window.location.replace("./index.html");
-
-            } catch (error) {
-
-                console.error("Error cerrando sesión:", error);
-
-                alert("No fue posible cerrar la sesión.");
-
-                logoutButton.disabled = false;
-                logoutButton.textContent = "Cerrar sesión";
-
-            }
-
+        document.querySelectorAll(".view").forEach(view => {
+            view.classList.remove("active");
         });
 
-        // =====================================
-        // INICIAR DASHBOARD
-        // =====================================
+        target.classList.add("active");
 
-        verifySession();
+        document.querySelectorAll(".nav-button").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.view === viewName
+            );
+        });
 
-    </script>
+        const activeButton = document.querySelector(
+            '.nav-button[data-view="' + viewName + '"]'
+        );
+
+        pageTitle.textContent = activeButton
+            ? activeButton.textContent.trim()
+            : "Inicio";
+
+        sidebar.classList.remove("open");
+
+    }
+
+    document.querySelectorAll(".nav-button").forEach(button => {
+
+        button.addEventListener("click", () => {
+            openView(button.dataset.view);
+        });
+
+    });
+
+    // ACCESOS DESDE TARJETAS
+
+    document.querySelectorAll("[data-go]").forEach(button => {
+
+        button.addEventListener("click", () => {
+            openView(button.dataset.go);
+        });
+
+    });
+
+    // =====================================
+    // MENÚ MÓVIL
+    // =====================================
+
+    mobileMenu.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+    });
+
+    // =====================================
+    // CERRAR SESIÓN
+    // =====================================
+
+    logoutButton.addEventListener("click", async () => {
+
+        if (redirecting) return;
+
+        logoutButton.disabled = true;
+        logoutButton.textContent = "Cerrando sesión...";
+
+        try {
+
+            const { error } = await supabase.auth.signOut();
+
+            if (error) throw error;
+
+            redirecting = true;
+
+            window.location.replace("./index.html");
+
+        } catch (error) {
+
+            console.error("Error cerrando sesión:", error);
+
+            alert("No fue posible cerrar la sesión.");
+
+            logoutButton.disabled = false;
+            logoutButton.textContent = "Cerrar sesión";
+
+        }
+
+    });
+
+    // =====================================
+    // INICIAR
+    // =====================================
+
+    verifySession();
+
+</script>
 
 </body>
 </html>
