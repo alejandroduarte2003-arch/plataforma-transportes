@@ -1,1016 +1,127 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Plataforma de Transportes</title>
+
+    <title>Plataforma de Transportes</title>
+
+    <link rel="stylesheet" href="css/style.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --primary: #172B4D;
-            --primary-light: #243F68;
-            --background: #F4F6FA;
-            --white: #FFFFFF;
-            --text: #202B3C;
-            --muted: #8490A3;
-            --border: #E8ECF2;
-            --orange: #E88A35;
-            --green: #249B70;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--background);
-            color: var(--text);
-        }
-
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* MENÚ LATERAL */
-
-        .sidebar {
-            width: 260px;
-            background: var(--primary);
-            color: white;
-            padding: 28px 20px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 8px 35px;
-            border-bottom: 1px solid rgba(255,255,255,.12);
-        }
-
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: var(--orange);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 17px;
-        }
-
-        .brand-name {
-            font-size: 13px;
-            font-weight: 800;
-            line-height: 1.5;
-            letter-spacing: .5px;
-        }
-
-        .menu-label {
-            color: #91A3BC;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            margin: 30px 10px 15px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            padding: 13px 12px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            color: #D0D9E7;
-            font-size: 13px;
-            font-weight: 500;
-            width: 100%;
-            border: 0;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .menu-item.active {
-            background: var(--primary-light);
-            color: white;
-        }
-
-        .side-navigation {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .menu-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 17px;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255,255,255,.12);
-        }
-
-        .sidebar-bottom p {
-            font-size: 11px;
-            color: #91A3BC;
-            line-height: 1.7;
-        }
-
-        /* CONTENIDO PRINCIPAL */
-
-        .main {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .topbar {
-            height: 76px;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 35px;
-        }
-
-        .topbar-title {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-        }
-
-        .user-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #EAF0F8;
-            color: var(--primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 700;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .user-email {
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .user-role {
-            font-size: 10px;
-            color: var(--muted);
-        }
-
-        .logout {
-            border: 1px solid var(--border);
-            background: white;
-            padding: 9px 13px;
-            border-radius: 7px;
-            cursor: pointer;
-            color: #596579;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 15px;
-        }
-
-        .logout:hover {
-            background: #F4F6FA;
-        }
-
-        /* DASHBOARD */
-
-        .content {
-            padding: 35px;
-            max-width: 1450px;
-            margin: auto;
-        }
-
-        .welcome {
-            margin-bottom: 30px;
-        }
-
-        .welcome h1 {
-            font-size: 25px;
-            font-weight: 800;
-            margin-bottom: 9px;
-        }
-
-        .welcome p {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .section-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 18px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 35px;
-        }
-
-        .summary-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 23px;
-        }
-
-        .summary-card span {
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .summary-card h3 {
-            font-size: 19px;
-            margin-top: 13px;
-            font-weight: 700;
-        }
-
-        .summary-card p {
-            font-size: 10px;
-            color: var(--muted);
-            margin-top: 8px;
-        }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-        }
-
-        .module-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 23px;
-            transition: .2s;
-            text-align: left;
-            width: 100%;
-            cursor: pointer;
-            font-family: inherit;
-            color: var(--text);
-        }
-
-        .module-card:hover {
-            border-color: #C4CEDD;
-            transform: translateY(-2px);
-        }
-
-        .module-icon {
-            width: 43px;
-            height: 43px;
-            background: #EDF2F9;
-            color: var(--primary);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 18px;
-        }
-
-        .module-card h3 {
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .module-card p {
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.7;
-        }
-
-        .module-tag {
-            display: inline-block;
-            margin-top: 17px;
-            padding: 6px 9px;
-            background: #F1F4F8;
-            border-radius: 5px;
-            color: #64738A;
-            font-size: 9px;
-            font-weight: 700;
-        }
-
-        .admin-card {
-            border-left: 3px solid var(--orange);
-        }
-
-        .module-message {
-            margin-top: 22px;
-            padding: 14px 16px;
-            border-radius: 8px;
-            background: #FFFFFF;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        #loading {
-            padding: 100px 20px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        /* PANTALLA DE ACCESO DENEGADO */
-
-        #error {
-            min-height: 100vh;
-            padding: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background:
-                radial-gradient(circle at 15% 15%, rgba(232,138,53,.10), transparent 28%),
-                radial-gradient(circle at 90% 85%, rgba(23,43,77,.08), transparent 30%),
-                #F4F6FA;
-        }
-
-        .access-card {
-            width: min(100%, 490px);
-            padding: 48px 42px 42px;
-            text-align: center;
-            background: #FFFFFF;
-            border: 1px solid #E8ECF2;
-            border-radius: 20px;
-            box-shadow: 0 22px 65px rgba(23,43,77,.09);
-            animation: accessAppear .45s ease both;
-        }
-
-        .access-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 38px;
-            color: #172B4D;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-        }
-
-        .access-brand-mark {
-            display: grid;
-            place-items: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            background: #172B4D;
-            color: #FFFFFF;
-            font-size: 12px;
-            letter-spacing: 0;
-        }
-
-        .access-icon {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 25px;
-            display: grid;
-            place-items: center;
-            border-radius: 22px;
-            color: #B96A25;
-            background: #FFF3E8;
-        }
-
-        .access-icon svg {
-            width: 35px;
-            height: 35px;
-        }
-
-        .access-eyebrow {
-            margin-bottom: 10px;
-            color: #B96A25;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.7px;
-            text-transform: uppercase;
-        }
-
-        .access-card h1 {
-            margin-bottom: 13px;
-            color: #172B4D;
-            font-size: clamp(24px, 5vw, 30px);
-            line-height: 1.2;
-            letter-spacing: -.8px;
-        }
-
-        .access-description {
-            max-width: 350px;
-            margin: 0 auto;
-            color: #778398;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .access-divider {
-            width: 44px;
-            height: 3px;
-            margin: 28px auto;
-            border-radius: 5px;
-            background: #E88A35;
-        }
-
-        .access-button {
-            display: inline-flex;
-            min-height: 48px;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 0 20px;
-            border: 0;
-            border-radius: 9px;
-            background: #172B4D;
-            color: #FFFFFF;
-            font: inherit;
-            font-size: 12px;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
-        }
-
-        .access-button:hover {
-            background: #243F68;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(23,43,77,.16);
-        }
-
-        .access-button svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .access-footer {
-            margin-top: 25px;
-            color: #A1AABA;
-            font-size: 10px;
-            letter-spacing: .3px;
-        }
-
-        @keyframes accessAppear {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media(max-width: 520px) {
-            #error {
-                padding: 18px;
-            }
-
-            .access-card {
-                padding: 36px 24px 30px;
-                border-radius: 16px;
-            }
-
-            .access-brand {
-                margin-bottom: 30px;
-            }
-        }
-
-        @media(max-width: 1000px) {
-            .sidebar {
-                width: 220px;
-            }
-
-            .modules-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media(max-width: 700px) {
-            .sidebar {
-                display: none;
-            }
-
-            .content {
-                padding: 22px 16px;
-            }
-
-            .topbar {
-                padding: 0 16px;
-            }
-
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .modules-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .user-email {
-                max-width: 125px;
-                overflow-wrap: anywhere;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-<div id="loading">
-    Verificando acceso a la plataforma...
-</div>
+    <main class="login-container">
 
-<!-- PANTALLA PARA CUENTAS INACTIVAS O ERRORES DE ACCESO -->
+        <section class="login-brand">
 
-<section id="error" class="hidden" aria-live="polite">
-    <div class="access-card">
+            <div class="brand-content">
 
-        <div class="access-brand">
-            <span class="access-brand-mark">PT</span>
-            <span>PLATAFORMA DE TRANSPORTES</span>
-        </div>
+                <div class="brand-symbol">PT</div>
 
-        <div class="access-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="10" width="16" height="11" rx="2.5"></rect>
-                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                <path d="M12 14v3"></path>
-            </svg>
-        </div>
-
-        <p class="access-eyebrow">Acceso restringido</p>
-
-        <h1 id="errorTitle">Acceso suspendido</h1>
-
-        <p class="access-description" id="errorMessage">
-            Tu cuenta se encuentra inactiva. Para recuperar el acceso, comunícate con el administrador de la plataforma.
-        </p>
-
-        <div class="access-divider"></div>
-
-        <a class="access-button" href="./index.html">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m15 18-6-6 6-6"></path>
-                <path d="M9 12h11"></path>
-            </svg>
-            Volver al menú principal
-        </a>
-
-        <p class="access-footer">PLATAFORMA DE TRANSPORTES · 2026</p>
-
-    </div>
-</section>
-
-<!-- DASHBOARD -->
-
-<div class="layout hidden" id="dashboard">
-
-    <aside class="sidebar">
-
-        <div class="brand">
-            <div class="brand-icon">PT</div>
-
-            <div class="brand-name">
-                PLATAFORMA<br>
-                DE TRANSPORTES
-            </div>
-        </div>
-
-        <div class="menu-label">MENÚ PRINCIPAL</div>
-
-        <nav id="sideNavigation" class="side-navigation"></nav>
-
-        <div class="sidebar-bottom">
-            <p>PLATAFORMA DE TRANSPORTES</p>
-            <p>Gestión empresarial © 2026</p>
-        </div>
-
-    </aside>
-
-    <main class="main">
-
-        <header class="topbar">
-
-            <div class="topbar-title">
-                Panel principal
-            </div>
-
-            <div class="user-area">
-
-                <div class="user-avatar" id="avatar">U</div>
-
-                <div class="user-info">
-                    <span class="user-email" id="userEmail">Usuario</span>
-                    <span class="user-role" id="userRole">Usuario</span>
-                </div>
-
-                <button class="logout" id="logoutButton">
-                    Cerrar sesión
-                </button>
-
-            </div>
-
-        </header>
-
-        <section class="content">
-
-            <div class="welcome">
-
-                <h1 id="welcomeTitle">
-                    Bienvenido a la plataforma
-                </h1>
+                <h1>PLATAFORMA<br>DE TRANSPORTES</h1>
 
                 <p>
-                    Centro de gestión y administración
-                    de operaciones de transporte.
+                    Gestión, control y administración
+                    de operaciones en un solo lugar.
                 </p>
 
-            </div>
+                <div class="brand-line"></div>
 
-            <h2 class="section-title">
-                Resumen general
-            </h2>
-
-            <div class="summary-grid">
-
-                <div class="summary-card">
-                    <span>ESTADO DE LA CUENTA</span>
-                    <h3 id="accountStatus">Activa</h3>
-                    <p>Estado de acceso del usuario</p>
-                </div>
-
-                <div class="summary-card">
-                    <span>TIPO DE ACCESO</span>
-                    <h3 id="accountRole">Usuario</h3>
-                    <p>Rol asignado en la plataforma</p>
-                </div>
-
-                <div class="summary-card">
-                    <span>SESIÓN</span>
-                    <h3>Conectada</h3>
-                    <p>Autenticación mediante Supabase</p>
-                </div>
+                <span>SISTEMA DE GESTIÓN EMPRESARIAL</span>
 
             </div>
 
-            <h2 class="section-title">
-                Módulos de la plataforma
-            </h2>
+        </section>
 
-            <div class="modules-grid" id="modulesGrid"></div>
+        <section class="login-section">
 
-            <div id="moduleMessage" class="module-message" aria-live="polite"></div>
+            <div class="login-box">
+
+                <div class="login-heading">
+
+                    <span class="welcome-label">
+                        BIENVENIDO
+                    </span>
+
+                    <h2>Iniciar sesión</h2>
+
+                    <p>
+                        Ingresa tus credenciales para acceder
+                        a la plataforma.
+                    </p>
+
+                </div>
+
+                <form id="loginForm">
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Correo electrónico
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="nombre@empresa.com"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Ingresa tu contraseña"
+                            required
+                        >
+
+                    </div>
+
+                    <div id="loginMessage" class="login-message"></div>
+
+                    <button type="submit" id="loginButton">
+
+                        <span id="buttonText">
+                            Ingresar a la plataforma
+                        </span>
+
+                    </button>
+
+                </form>
+
+                <div class="login-footer">
+
+                    <span>
+                        Acceso exclusivo para personal autorizado
+                    </span>
+
+                    <p>
+                        Plataforma de Transportes © 2026
+                    </p>
+
+                </div>
+
+            </div>
 
         </section>
 
     </main>
 
-</div>
-
-<script type="module">
-
-    import { supabase } from "./js/config.js";
-
-    const loading = document.getElementById("loading");
-    const dashboard = document.getElementById("dashboard");
-    const errorBox = document.getElementById("error");
-    const modulesGrid = document.getElementById("modulesGrid");
-    const sideNavigation = document.getElementById("sideNavigation");
-
-    const moduleIcons = {
-        inicio: "▦",
-        operaciones: "▤",
-        personal: "♙",
-        flota: "🚚",
-        finanzas: "▣",
-        administracion: "⚙"
-    };
-
-    /* MOSTRAR MENSAJES DE ACCESO */
-
-    function showError(message) {
-
-        loading.classList.add("hidden");
-        dashboard.classList.add("hidden");
-
-        const isInactive = message.toLowerCase().includes("inactiva");
-
-        document.getElementById("errorTitle").textContent = isInactive
-            ? "Acceso suspendido"
-            : "No pudimos abrir tu sesión";
-
-        document.getElementById("errorMessage").textContent = isInactive
-            ? "Tu cuenta se encuentra inactiva. Para recuperar el acceso, comunícate con el administrador de la plataforma."
-            : message;
-
-        errorBox.classList.remove("hidden");
-    }
-
-    /* NAVEGACIÓN DE MÓDULOS */
-
-    function showModule(module) {
-
-        if (module.code === "administracion") {
-            window.location.href = "./administracion.html";
-            return;
-        }
-
-        if (module.code === "inicio") {
-            document.getElementById("moduleMessage").textContent =
-                "Estás en el panel principal de la plataforma.";
-            return;
-        }
-
-        document.getElementById("moduleMessage").textContent =
-            "Has seleccionado: " + module.name +
-            ". Aquí construiremos las herramientas y funciones de este módulo.";
-    }
-
-    /* CREAR TARJETAS */
-
-    function createModuleCard(module) {
-
-        const card = document.createElement("button");
-        card.type = "button";
-        card.className = "module-card";
-
-        if (module.code === "administracion") {
-            card.classList.add("admin-card");
-        }
-
-        const icon = document.createElement("div");
-        icon.className = "module-icon";
-        icon.textContent = moduleIcons[module.code] || "•";
-
-        const title = document.createElement("h3");
-        title.textContent = module.name;
-
-        const description = document.createElement("p");
-        description.textContent = module.description ||
-            "Herramientas y funciones de gestión empresarial.";
-
-        const tag = document.createElement("span");
-        tag.className = "module-tag";
-        tag.textContent = module.code === "administracion"
-            ? "SUPERADMINISTRADOR"
-            : "MÓDULO DE GESTIÓN";
-
-        card.append(icon, title, description, tag);
-
-        card.addEventListener("click", () => showModule(module));
-
-        return card;
-    }
-
-    /* MOSTRAR MÓDULOS */
-
-    function renderModules(modules) {
-
-        modulesGrid.innerHTML = "";
-        sideNavigation.innerHTML = "";
-
-        const homeButton = document.createElement("button");
-        homeButton.type = "button";
-        homeButton.className = "menu-item active";
-        homeButton.innerHTML = '<span class="menu-icon">▦</span> Dashboard';
-
-        homeButton.addEventListener("click", () => {
-
-            document.querySelectorAll(".menu-item").forEach(item =>
-                item.classList.remove("active")
-            );
-
-            homeButton.classList.add("active");
-
-            document.getElementById("moduleMessage").textContent =
-                "Estás en el panel principal de la plataforma.";
-        });
-
-        sideNavigation.appendChild(homeButton);
-
-        modules.forEach(module => {
-
-            if (module.code === "inicio") return;
-
-            const menuButton = document.createElement("button");
-            menuButton.type = "button";
-            menuButton.className = "menu-item";
-
-            const icon = document.createElement("span");
-            icon.className = "menu-icon";
-            icon.textContent = moduleIcons[module.code] || "•";
-
-            menuButton.append(icon, document.createTextNode(module.name));
-
-            menuButton.addEventListener("click", () => {
-
-                document.querySelectorAll(".menu-item").forEach(item =>
-                    item.classList.remove("active")
-                );
-
-                menuButton.classList.add("active");
-
-                showModule(module);
-            });
-
-            sideNavigation.appendChild(menuButton);
-            modulesGrid.appendChild(createModuleCard(module));
-        });
-
-        if (modulesGrid.children.length === 0) {
-
-            const empty = document.createElement("p");
-
-            empty.textContent =
-                "No tienes módulos asignados. Contacta al administrador.";
-
-            modulesGrid.appendChild(empty);
-        }
-    }
-
-    /* INICIALIZAR DASHBOARD */
-
-    async function initializeDashboard() {
-
-        try {
-
-            const { data: sessionData, error: sessionError } =
-                await supabase.auth.getSession();
-
-            if (sessionError) throw sessionError;
-
-            const session = sessionData.session;
-
-            if (!session) {
-                window.location.replace("./index.html");
-                return;
-            }
-
-            const user = session.user;
-
-            const { data: profile, error: profileError } = await supabase
-                .from("profiles")
-                .select("full_name, role, status")
-                .eq("id", user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            /* VALIDAR ESTADO DE LA CUENTA */
-
-            if (!profile || profile.status !== "active") {
-
-                await supabase.auth.signOut();
-
-                showError(
-                    "Tu cuenta está inactiva. Contacta al superadministrador."
-                );
-
-                return;
-            }
-
-            /* OBTENER MÓDULOS */
-
-            const { data: allModules, error: modulesError } = await supabase
-                .from("modules")
-                .select("code, name, description")
-                .order("name");
-
-            if (modulesError) throw modulesError;
-
-            let allowedModules = allModules || [];
-
-            /* VALIDAR PERMISOS */
-
-            if (profile.role !== "superadmin") {
-
-                const { data: permissions, error: permissionError } =
-                    await supabase
-                        .from("user_module_permissions")
-                        .select("module_code, can_access")
-                        .eq("user_id", user.id)
-                        .eq("can_access", true);
-
-                if (permissionError) throw permissionError;
-
-                const allowedCodes = new Set(
-                    (permissions || []).map(item => item.module_code)
-                );
-
-                allowedModules = allowedModules.filter(module =>
-                    allowedCodes.has(module.code) &&
-                    module.code !== "administracion"
-                );
-            }
-
-            /* DATOS DEL USUARIO */
-
-            const displayName = profile.full_name ||
-                user.email?.split("@")[0] || "Usuario";
-
-            document.getElementById("welcomeTitle").textContent =
-                "Bienvenido, " + displayName;
-
-            document.getElementById("userEmail").textContent =
-                user.email || "Usuario";
-
-            document.getElementById("userRole").textContent =
-                profile.role === "superadmin"
-                    ? "Superadministrador"
-                    : "Usuario";
-
-            document.getElementById("avatar").textContent =
-                displayName.trim().charAt(0).toUpperCase() || "U";
-
-            document.getElementById("accountStatus").textContent = "Activa";
-
-            document.getElementById("accountRole").textContent =
-                profile.role === "superadmin"
-                    ? "Superadministrador"
-                    : "Usuario";
-
-            /* CARGAR MÓDULOS */
-
-            renderModules(allowedModules);
-
-            loading.classList.add("hidden");
-            dashboard.classList.remove("hidden");
-
-        } catch (error) {
-
-            console.error("Error cargando dashboard:", error);
-
-            showError(
-                "No se pudo cargar la plataforma. Verifica tu conexión e inténtalo nuevamente. Detalle: " +
-                error.message
-            );
-        }
-    }
-
-    /* CERRAR SESIÓN */
-
-    document.getElementById("logoutButton").addEventListener("click", async () => {
-
-        const button = document.getElementById("logoutButton");
-
-        button.disabled = true;
-        button.textContent = "Cerrando sesión...";
-
-        const { error } = await supabase.auth.signOut();
-
-        if (error) {
-
-            button.disabled = false;
-            button.textContent = "Cerrar sesión";
-
-            alert("No se pudo cerrar la sesión: " + error.message);
-
-            return;
-        }
-
-        window.location.replace("./index.html");
-    });
-
-    initializeDashboard();
-
-</script>
+    <script type="module" src="js/app.js"></script>
 
 </body>
 </html>
