@@ -579,6 +579,33 @@
         #view-finanzas .stats-grid{margin-top:18px}
         #view-finanzas .stat-card h2{font-size:23px}
 
+
+        /* INICIO - CENTRO DE CONTROL */
+        .home-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:25px}
+        .home-welcome h1{font-size:25px;margin:5px 0 7px}
+        .home-welcome p{font-size:12px;color:var(--texto)}
+        .home-eyebrow{font-size:10px!important;font-weight:700;letter-spacing:1.5px;color:var(--azul)!important}
+        .home-date{font-size:11px;color:var(--texto);text-align:right;max-width:220px;line-height:1.5}
+        .home-stats .stat-card h2{font-size:25px}
+        .home-panels{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+        .home-panel{min-width:0}
+        .home-panel .panel-heading{align-items:flex-start}
+        .home-panel-hint{font-size:11px;color:var(--texto);margin-top:5px}
+        .home-count{font-size:10px;color:var(--texto);white-space:nowrap}
+        .home-list{display:flex;flex-direction:column}
+        .home-list-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--gris)}
+        .home-list-item:last-child{border-bottom:0}
+        .home-item-main{min-width:0}
+        .home-item-title{font-size:12px;font-weight:600;color:var(--negro);line-height:1.45}
+        .home-item-detail{font-size:10px;color:var(--texto);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
+        .home-item-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+        .home-item-date{font-size:10px;color:var(--texto);white-space:nowrap}
+        .home-item-action{border:0;background:transparent;color:var(--azul);font-size:10px;font-weight:700;cursor:pointer;padding:2px 0}
+        .home-item-status{font-size:9px;border:1px solid var(--gris);border-radius:20px;padding:4px 7px;white-space:nowrap;color:var(--texto)}
+        .home-empty{font-size:11px;color:var(--texto);padding:18px 0}
+        @media(max-width:900px){.home-panels{grid-template-columns:1fr}}
+        @media(max-width:700px){.home-welcome{align-items:flex-start;flex-direction:column;gap:8px}.home-date{text-align:left}.home-welcome h1{font-size:22px}.home-list-item{gap:8px}}
+
         /* RESPONSIVE */
 
         @media(max-width: 1000px) {
@@ -742,60 +769,60 @@
             <!-- ================================= -->
 
             <section class="view active" id="view-inicio">
-
-                <div class="page-heading">
-                    <h1>Panel principal</h1>
-                    <p>Resumen general de las operaciones de transporte.</p>
+                <div class="home-welcome">
+                    <div>
+                        <p class="home-eyebrow">CENTRO DE CONTROL</p>
+                        <h1 id="homeGreeting">Bienvenido a INCOROVA</h1>
+                        <p>Resumen de la operación y pendientes importantes de la empresa.</p>
+                    </div>
+                    <div class="home-date" id="homeDate"></div>
                 </div>
 
-                <div class="stats-grid">
-
-                    <div class="stat-card">
+                <div class="stats-grid home-stats">
+                    <div class="stat-card" id="homeVehicleCard">
                         <span>Vehículos registrados</span>
-                        <h2>0</h2>
-                        <p>Flota total</p>
+                        <h2 id="homeVehicleTotal">—</h2>
+                        <p id="homeVehicleCaption">Estado de la flota</p>
                     </div>
-
-                    <div class="stat-card">
-                        <span>Trabajadores</span>
-                        <h2>0</h2>
+                    <div class="stat-card" id="homeTripCard">
+                        <span>Viajes del mes</span>
+                        <h2 id="homeTripTotal">—</h2>
+                        <p id="homeTripCaption">Actividad operativa</p>
+                    </div>
+                    <div class="stat-card" id="homeEmployeeCard">
+                        <span>Trabajadores activos</span>
+                        <h2 id="homeEmployeeTotal">—</h2>
                         <p>Personal registrado</p>
                     </div>
-
-                    <div class="stat-card">
-                        <span>Viajes registrados</span>
-                        <h2>0</h2>
-                        <p>Operaciones de transporte</p>
+                    <div class="stat-card" id="homeIncomeCard">
+                        <span>Cobros recibidos este mes</span>
+                        <h2 id="homeIncomeTotal">—</h2>
+                        <p>Dinero efectivamente recibido</p>
                     </div>
-
-                    <div class="stat-card">
-                        <span>Alertas pendientes</span>
-                        <h2>0</h2>
-                        <p>Recordatorios y pendientes</p>
-                    </div>
-
                 </div>
 
-                <div class="panel">
-
-                    <div class="panel-heading">
-                        <h3>Actividad reciente</h3>
-                        <span>Últimos movimientos</span>
+                <div class="home-panels">
+                    <div class="panel home-panel">
+                        <div class="panel-heading">
+                            <div><h3>Alertas y pendientes</h3><p class="home-panel-hint">Situaciones que requieren seguimiento.</p></div>
+                            <span class="home-count" id="homeAlertCount">0 pendientes</span>
+                        </div>
+                        <div id="homeAlertsList" class="home-list"><div class="empty-state">Cargando alertas...</div></div>
                     </div>
-
-                    <div class="empty-state">
-                        Todavía no hay movimientos registrados.
+                    <div class="panel home-panel">
+                        <div class="panel-heading">
+                            <div><h3>Actividad reciente</h3><p class="home-panel-hint">Últimos movimientos registrados.</p></div>
+                            <span>Movimientos</span>
+                        </div>
+                        <div id="homeActivityList" class="home-list"><div class="empty-state">Cargando actividad...</div></div>
                     </div>
-
                 </div>
 
-                <div class="panel">
-
+                <div class="panel home-shortcuts">
                     <div class="panel-heading">
-                        <h3>Accesos a módulos</h3>
+                        <div><h3>Accesos a módulos</h3><p class="home-panel-hint">Entra directamente a las herramientas habilitadas.</p></div>
                         <span>Gestión empresarial</span>
                     </div>
-
                     <div class="module-grid">
 
                         <div class="module-card">
@@ -1410,6 +1437,8 @@
             if (allowedModules.has("finanzas")) {
                 await loadFinanceData();
             }
+
+            renderHomeDashboard();
 
         } catch (error) {
             console.error("Error verificando acceso:", error);
@@ -2540,6 +2569,122 @@
         const description=document.getElementById("receivableDescription"),amount=document.getElementById("receivableAmount");
         if(!description.value.trim())description.value="Transporte: "+trip.origin+" → "+trip.destination;
         if(!amount.value&&Number(trip.income)>0)amount.value=Number(trip.income).toFixed(2);
+    });
+
+
+    // =====================================
+    // INICIO - CENTRO DE CONTROL
+    // =====================================
+    function homeLocalDate(){
+        const d=new Date();
+        return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    }
+    function homeDateLabel(value){
+        if(!value)return "—";
+        const d=new Date(value+"T12:00:00");
+        return new Intl.DateTimeFormat("es-GT",{day:"2-digit",month:"short",year:"numeric"}).format(d);
+    }
+    function renderHomeDashboard(){
+        const today=homeLocalDate(),month=today.slice(0,7);
+        const greeting=(userEmail.textContent||"").trim();
+        document.getElementById("homeGreeting").textContent=greeting?"Bienvenido, "+greeting:"Bienvenido a INCOROVA";
+        document.getElementById("homeDate").textContent=new Intl.DateTimeFormat("es-GT",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
+
+        const hasOperations=allowedModules.has("operaciones");
+        const hasFleet=allowedModules.has("flota");
+        const hasPersonal=allowedModules.has("personal");
+        const hasFinance=allowedModules.has("finanzas");
+        document.getElementById("homeVehicleCard").hidden=!(hasOperations||hasFleet);
+        document.getElementById("homeTripCard").hidden=!hasOperations;
+        document.getElementById("homeEmployeeCard").hidden=!hasPersonal;
+        document.getElementById("homeIncomeCard").hidden=!hasFinance;
+
+        if(hasOperations||hasFleet){
+            const activeVehicles=vehicles.filter(v=>v.status!=="Inactivo").length;
+            document.getElementById("homeVehicleTotal").textContent=vehicles.length;
+            document.getElementById("homeVehicleCaption").textContent=activeVehicles+" habilitados · "+vehicles.filter(v=>v.status==="Mantenimiento").length+" en mantenimiento";
+        }
+        if(hasOperations){
+            const monthlyTrips=trips.filter(t=>String(t.date||"").startsWith(month));
+            document.getElementById("homeTripTotal").textContent=monthlyTrips.length;
+            document.getElementById("homeTripCaption").textContent=trips.filter(t=>t.status==="Programado").length+" programados · "+trips.filter(t=>t.status==="En curso").length+" en curso";
+        }
+        if(hasPersonal){
+            document.getElementById("homeEmployeeTotal").textContent=employees.filter(e=>e.status==="Activo").length;
+        }
+        if(hasFinance){
+            const received=financialCollections.filter(x=>String(x.payment_date||"").startsWith(month)).reduce((s,x)=>s+Number(x.amount||0),0);
+            document.getElementById("homeIncomeTotal").textContent=formatQuetzales(received);
+        }
+
+        const alerts=[];
+        if(hasOperations){
+            trips.filter(t=>t.status==="Programado"&&t.date<today).forEach(t=>alerts.push({
+                title:"Viaje programado pendiente",
+                detail:t.origin+" → "+t.destination+" · "+(t.responsible||"Sin responsable"),
+                date:t.date,action:"operaciones",actionLabel:"Ver operaciones"
+            }));
+        }
+        if(hasFleet){
+            maintenanceRecords.filter(x=>x.nextServiceDate&&x.status!=="Cancelado"&&x.status!=="Completado"&&x.nextServiceDate<=new Date(Date.now()+30*86400000).toISOString().slice(0,10)).forEach(x=>alerts.push({
+                title:x.nextServiceDate<today?"Mantenimiento vencido":"Mantenimiento próximo",
+                detail:x.maintenanceType+" · "+fleetVehicleLabel(x.vehicleId),
+                date:x.nextServiceDate,action:"flota",actionLabel:"Ver flota"
+            }));
+            vehicles.filter(v=>v.status==="Mantenimiento").forEach(v=>alerts.push({
+                title:"Vehículo en mantenimiento",
+                detail:v.code+" · "+v.plate,date:today,action:"flota",actionLabel:"Ver flota"
+            }));
+        }
+        if(hasFinance){
+            financialReceivables.filter(x=>x.status!=="Cancelada"&&x.due_date&&x.due_date<today&&receivableBalance(x)>0.009).forEach(x=>alerts.push({
+                title:"Cuenta por cobrar vencida",
+                detail:x.client_name+" · Saldo "+financeMoney(receivableBalance(x)),
+                date:x.due_date,action:"finanzas",actionLabel:"Ver cobros"
+            }));
+        }
+        if(hasPersonal){
+            payrollRecords.filter(x=>x.status==="Pendiente").forEach(x=>alerts.push({
+                title:"Planilla pendiente de pago",
+                detail:employeeName(x.employeeId)+" · "+x.period.slice(0,7)+" · "+money(x.netPay),
+                date:x.period,action:"personal",actionLabel:"Ver planilla"
+            }));
+        }
+        alerts.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+        document.getElementById("homeAlertCount").textContent=alerts.length+" pendientes";
+        document.getElementById("homeAlertsList").innerHTML=alerts.length?alerts.slice(0,7).map(x=>`
+            <div class="home-list-item">
+                <div class="home-item-main"><div class="home-item-title">${escapeHtml(x.title)}</div><div class="home-item-detail">${escapeHtml(x.detail)}</div></div>
+                <div class="home-item-meta"><span class="home-item-date">${homeDateLabel(x.date)}</span><button class="home-item-action" type="button" data-home-go="${x.action}">${x.actionLabel}</button></div>
+            </div>`).join(""):'<div class="home-empty">No hay alertas pendientes en los módulos habilitados.</div>';
+
+        const activity=[];
+        if(hasOperations){
+            trips.forEach(x=>activity.push({date:x.date,title:"Viaje registrado",detail:x.origin+" → "+x.destination,status:x.status,action:"operaciones"}));
+            boardings.forEach(x=>activity.push({date:x.date,title:"Abordaje registrado",detail:x.name,status:"Registrado",action:"operaciones"}));
+        }
+        if(hasFleet){
+            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+fleetMoney(x.totalCost),status:"Registrado",action:"flota"}));
+            maintenanceRecords.forEach(x=>activity.push({date:x.serviceDate,title:"Mantenimiento",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.maintenanceType,status:x.status,action:"flota"}));
+            vehicleParts.forEach(x=>activity.push({date:x.replacementDate,title:"Movimiento de repuesto",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.partName,status:x.action,action:"flota"}));
+        }
+        if(hasFinance){
+            financialCollections.forEach(x=>{
+                const account=financialReceivables.find(r=>r.id===x.receivable_id);
+                activity.push({date:x.payment_date,title:"Cobro recibido",detail:(account?.client_name||"Cliente")+" · "+financeMoney(x.amount),status:"Recibido",action:"finanzas"});
+            });
+            financialExpenses.filter(x=>x.status==="Pagado").forEach(x=>activity.push({date:x.payment_date||x.expense_date,title:"Gasto pagado",detail:x.concept+" · "+financeMoney(x.amount),status:"Pagado",action:"finanzas"}));
+        }
+        activity.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+        document.getElementById("homeActivityList").innerHTML=activity.length?activity.slice(0,8).map(x=>`
+            <div class="home-list-item">
+                <div class="home-item-main"><div class="home-item-title">${escapeHtml(x.title)}</div><div class="home-item-detail">${escapeHtml(x.detail)}</div></div>
+                <div class="home-item-meta"><span class="home-item-date">${homeDateLabel(x.date)}</span><span class="home-item-status">${escapeHtml(x.status||"Registrado")}</span></div>
+            </div>`).join(""):'<div class="home-empty">Todavía no hay movimientos registrados en los módulos habilitados.</div>';
+    }
+    document.getElementById("homeAlertsList").addEventListener("click",e=>{
+        const button=e.target.closest("[data-home-go]");
+        if(button)openView(button.dataset.homeGo);
     });
 
     // =====================================
