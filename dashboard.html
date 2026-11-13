@@ -574,6 +574,11 @@
         .fleet-panel .table-panel{margin-top:16px;padding:0;overflow:hidden}.fleet-panel .table-panel table{min-width:920px}
         .fleet-panel .table-actions{display:flex;gap:5px;flex-wrap:wrap}
 
+
+        .finance-note{font-size:11px;color:var(--texto);line-height:1.6;margin-top:12px}
+        #view-finanzas .stats-grid{margin-top:18px}
+        #view-finanzas .stat-card h2{font-size:23px}
+
         /* RESPONSIVE */
 
         @media(max-width: 1000px) {
@@ -1169,41 +1174,50 @@
             <!-- ================================= -->
 
             <section class="view" id="view-finanzas">
-
                 <div class="page-heading">
                     <h1>Finanzas</h1>
-                    <p>Control de ingresos, egresos y movimientos económicos.</p>
+                    <p>Controla cuentas por cobrar, pagos y resultados de la operación.</p>
                 </div>
-
-                <div class="module-items">
-
-                    <div class="module-item">
-                        <h3>Cobros</h3>
-                        <p>Control de cuentas por cobrar, clientes, contratos y viajes pendientes de pago.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Pagos</h3>
-                        <p>Registro de pagos a proveedores, gastos y obligaciones de la empresa.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Reportes</h3>
-                        <p>Informes de ingresos, gastos, balances y resultados financieros.</p>
-                    </div>
-
+                <div class="stats-grid">
+                    <div class="stat-card"><span>Ingresos recibidos</span><h2 id="finIncome">Q0.00</h2><p>Abonos registrados</p></div>
+                    <div class="stat-card"><span>Gastos pagados</span><h2 id="finExpenses">Q0.00</h2><p>Flota, planilla y otros pagos</p></div>
+                    <div class="stat-card"><span>Saldo operativo</span><h2 id="finBalance">Q0.00</h2><p>Ingresos recibidos menos egresos</p></div>
+                    <div class="stat-card"><span>Por cobrar</span><h2 id="finReceivable">Q0.00</h2><p>Saldo pendiente de clientes</p></div>
                 </div>
-
-                <div class="panel" style="margin-top:20px;">
-                    <div class="panel-heading">
-                        <h3>Resumen financiero</h3>
-                        <span>Movimientos económicos</span>
+                <div class="panel">
+                    <div class="personal-tabs">
+                        <button class="personal-tab active" data-finance-tab="cobros">Cobros</button>
+                        <button class="personal-tab" data-finance-tab="pagos">Pagos</button>
+                        <button class="personal-tab" data-finance-tab="reportes">Reportes</button>
                     </div>
-                    <div class="empty-state">
-                        Los datos financieros aparecerán cuando se conecte el módulo.
+                    <div class="personal-panel active" id="finance-cobros">
+                        <div class="section-toolbar">
+                            <div><h3>Cuentas por cobrar</h3><p class="personal-hint">Registra clientes, servicios, fechas de vencimiento y abonos recibidos.</p></div>
+                            <button class="primary-button" id="addReceivableButton" type="button">+ Nueva cuenta</button>
+                        </div>
+                        <div class="toolbar-filters"><input class="field-control" id="receivableSearch" type="search" placeholder="Buscar cliente o servicio"><select class="field-control" id="receivableStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>Parcial</option><option>Pagada</option><option>Cancelada</option></select></div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Vencimiento</th><th>Total</th><th>Abonado</th><th>Saldo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="receivablesTableBody"><tr><td colspan="9" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    </div>
+                    <div class="personal-panel" id="finance-pagos">
+                        <div class="section-toolbar">
+                            <div><h3>Pagos y obligaciones</h3><p class="personal-hint">Registra gastos y pagos a proveedores que no estén incluidos en Flota o Planilla.</p></div>
+                            <button class="primary-button" id="addExpenseButton" type="button">+ Registrar gasto</button>
+                        </div>
+                        <div class="toolbar-filters"><input class="field-control" id="expenseSearch" type="search" placeholder="Buscar concepto o proveedor"><select class="field-control" id="expenseStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>Pagado</option><option>Cancelado</option></select></div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Proveedor</th><th>Monto</th><th>Estado</th><th>Fecha de pago</th><th>Acciones</th></tr></thead><tbody id="expensesTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                        <p class="personal-hint">Los gastos de combustible, mantenimiento y repuestos se toman automáticamente de Flota y gastos. No los registres otra vez aquí.</p>
+                    </div>
+                    <div class="personal-panel" id="finance-reportes">
+                        <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><input class="field-control" id="financePeriodFilter" type="month"></div>
+                        <div class="stats-grid">
+                            <div class="stat-card"><span>Combustible</span><h2 id="reportFuel">Q0.00</h2></div>
+                            <div class="stat-card"><span>Mantenimiento</span><h2 id="reportMaintenance">Q0.00</h2></div>
+                            <div class="stat-card"><span>Repuestos</span><h2 id="reportParts">Q0.00</h2></div>
+                            <div class="stat-card"><span>Planilla pagada</span><h2 id="reportPayroll">Q0.00</h2></div>
+                        </div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Concepto</th><th>Total del período</th></tr></thead><tbody id="financeReportBody"></tbody></table></div></div>
                     </div>
                 </div>
-
             </section>
 
         </div>
@@ -1216,6 +1230,57 @@
 <!-- ================================= -->
 <!-- JAVASCRIPT -->
 <!-- ================================= -->
+
+
+<!-- MODALES DE FINANZAS -->
+<div class="modal-backdrop" id="receivableModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2 id="receivableModalTitle">Nueva cuenta por cobrar</h2><button class="modal-close" type="button" data-close-finance="receivableModal">×</button></div>
+    <form id="receivableForm">
+        <div class="form-grid">
+            <div class="form-field"><label for="receivableClient">Cliente *</label><input id="receivableClient" name="clientName" required maxlength="120"></div>
+            <div class="form-field"><label for="receivableAmount">Monto total (Q) *</label><input id="receivableAmount" name="amount" type="number" min="0.01" step="0.01" required></div>
+            <div class="form-field full"><label for="receivableDescription">Servicio / descripción *</label><input id="receivableDescription" name="description" required maxlength="180" placeholder="Ej. Transporte contratado / viaje"></div>
+            <div class="form-field"><label for="receivableIssueDate">Fecha de emisión *</label><input id="receivableIssueDate" name="issueDate" type="date" required></div>
+            <div class="form-field"><label for="receivableDueDate">Fecha de vencimiento</label><input id="receivableDueDate" name="dueDate" type="date"></div>
+            <div class="form-field"><label for="receivableStatus">Estado</label><select id="receivableStatus" name="status"><option>Pendiente</option><option>Parcial</option><option>Pagada</option><option>Cancelada</option></select></div>
+            <div class="form-field full"><label for="receivableNotes">Observaciones</label><textarea id="receivableNotes" name="notes" maxlength="500"></textarea></div>
+        </div>
+        <p class="form-message">Los abonos se registran por separado para conservar el historial de cobros.</p>
+        <div class="form-actions"><button class="secondary-button" type="button" data-close-finance="receivableModal">Cancelar</button><button class="primary-button" type="submit">Guardar cuenta</button></div>
+    </form>
+</div></div>
+<div class="modal-backdrop" id="collectionModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2>Registrar cobro / abono</h2><button class="modal-close" type="button" data-close-finance="collectionModal">×</button></div>
+    <form id="collectionForm">
+        <div class="form-grid">
+            <div class="form-field full"><label for="collectionReceivable">Cuenta por cobrar *</label><select id="collectionReceivable" name="receivableId" required></select></div>
+            <div class="form-field"><label for="collectionAmount">Monto recibido (Q) *</label><input id="collectionAmount" name="amount" type="number" min="0.01" step="0.01" required></div>
+            <div class="form-field"><label for="collectionDate">Fecha de cobro *</label><input id="collectionDate" name="paymentDate" type="date" required></div>
+            <div class="form-field"><label for="collectionMethod">Método</label><select id="collectionMethod" name="paymentMethod"><option>Transferencia</option><option>Efectivo</option><option>Cheque</option><option>Tarjeta</option><option>Otro</option></select></div>
+            <div class="form-field"><label for="collectionReference">Referencia</label><input id="collectionReference" name="reference" maxlength="100"></div>
+            <div class="form-field full"><label for="collectionNotes">Observaciones</label><textarea id="collectionNotes" name="notes" maxlength="500"></textarea></div>
+        </div>
+        <div class="form-actions"><button class="secondary-button" type="button" data-close-finance="collectionModal">Cancelar</button><button class="primary-button" type="submit">Guardar cobro</button></div>
+    </form>
+</div></div>
+<div class="modal-backdrop" id="expenseModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2 id="expenseModalTitle">Registrar gasto</h2><button class="modal-close" type="button" data-close-finance="expenseModal">×</button></div>
+    <form id="expenseForm">
+        <div class="form-grid">
+            <div class="form-field"><label for="expenseDate">Fecha *</label><input id="expenseDate" name="expenseDate" type="date" required></div>
+            <div class="form-field"><label for="expenseCategory">Categoría *</label><select id="expenseCategory" name="category" required><option value="">Seleccionar</option><option>Servicios</option><option>Administración</option><option>Impuestos</option><option>Seguros</option><option>Alquiler</option><option>Servicios profesionales</option><option>Otros</option></select></div>
+            <div class="form-field full"><label for="expenseConcept">Concepto *</label><input id="expenseConcept" name="concept" required maxlength="180"></div>
+            <div class="form-field"><label for="expenseSupplier">Proveedor / beneficiario</label><input id="expenseSupplier" name="supplier" maxlength="120"></div>
+            <div class="form-field"><label for="expenseAmount">Monto (Q) *</label><input id="expenseAmount" name="amount" type="number" min="0.01" step="0.01" required></div>
+            <div class="form-field"><label for="expenseStatus">Estado *</label><select id="expenseStatus" name="status"><option>Pendiente</option><option>Pagado</option><option>Cancelado</option></select></div>
+            <div class="form-field"><label for="expensePaymentDate">Fecha de pago</label><input id="expensePaymentDate" name="paymentDate" type="date"></div>
+            <div class="form-field"><label for="expensePaymentMethod">Método de pago</label><select id="expensePaymentMethod" name="paymentMethod"><option value="">No definido</option><option>Transferencia</option><option>Efectivo</option><option>Cheque</option><option>Tarjeta</option><option>Otro</option></select></div>
+            <div class="form-field"><label for="expenseReference">Referencia</label><input id="expenseReference" name="reference" maxlength="100"></div>
+            <div class="form-field full"><label for="expenseNotes">Observaciones</label><textarea id="expenseNotes" name="notes" maxlength="500"></textarea></div>
+        </div>
+        <div class="form-actions"><button class="secondary-button" type="button" data-close-finance="expenseModal">Cancelar</button><button class="primary-button" type="submit">Guardar gasto</button></div>
+    </form>
+</div></div>
 
 <script type="module">
 
@@ -1340,6 +1405,9 @@
             }
             if (allowedModules.has("flota")) {
                 await loadFlotaData();
+            }
+            if (allowedModules.has("finanzas")) {
+                await loadFinanceData();
             }
 
         } catch (error) {
@@ -2294,6 +2362,173 @@
             logoutButton.textContent = "Cerrar sesión";
         }
     });
+
+
+    // =====================================
+    // FINANZAS
+    // =====================================
+    let financialReceivables=[], financialCollections=[], financialExpenses=[];
+    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[];
+    let editingReceivableId=null, editingExpenseId=null;
+    const financeToday=()=>new Date().toISOString().slice(0,10);
+    const financeMoney=value=>formatQuetzales(Number(value||0));
+    const financeModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
+    const financeModalClose=id=>{const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");};
+    document.querySelectorAll("[data-close-finance]").forEach(b=>b.addEventListener("click",()=>financeModalClose(b.dataset.closeFinance)));
+    ["receivableModal","collectionModal","expenseModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)financeModalClose(id);}));
+    document.querySelectorAll("[data-finance-tab]").forEach(b=>b.addEventListener("click",()=>{
+        document.querySelectorAll("[data-finance-tab]").forEach(x=>x.classList.toggle("active",x===b));
+        document.querySelectorAll("#view-finanzas .personal-panel").forEach(x=>x.classList.toggle("active",x.id==="finance-"+b.dataset.financeTab));
+        if(b.dataset.financeTab==="reportes")renderFinanceReport();
+    }));
+    const collectionTotal=id=>financialCollections.filter(x=>x.receivable_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
+    const receivableBalance=x=>Math.max(0,Number(x.amount)-collectionTotal(x.id));
+    const receivableComputedStatus=x=>x.status==="Cancelada"?"Cancelada":receivableBalance(x)<=0.009?"Pagada":collectionTotal(x.id)>0?"Parcial":"Pendiente";
+    function renderReceivables(){
+        const q=document.getElementById("receivableSearch").value.trim().toLowerCase(),st=document.getElementById("receivableStatusFilter").value;
+        const rows=financialReceivables.filter(x=>(x.client_name+" "+x.description).toLowerCase().includes(q)&&(!st||receivableComputedStatus(x)===st));
+        document.getElementById("receivablesTableBody").innerHTML=rows.length?rows.map(x=>{
+            const paid=collectionTotal(x.id),balance=receivableBalance(x),status=receivableComputedStatus(x);
+            return `<tr><td><strong>${escapeHtml(x.client_name)}</strong></td><td>${escapeHtml(x.description)}</td><td>${x.issue_date}</td><td>${x.due_date||"—"}</td><td>${financeMoney(x.amount)}</td><td>${financeMoney(paid)}</td><td><strong>${financeMoney(balance)}</strong></td><td><span class="status-pill">${status}</span></td><td><div class="table-actions">${status!=="Pagada"&&status!=="Cancelada"?'<button class="table-action" data-add-collection="'+x.id+'">Abonar</button>':""}<button class="table-action" data-edit-receivable="${x.id}">Editar</button><button class="table-action" data-delete-receivable="${x.id}">Eliminar</button></div></td></tr>`;
+        }).join(""):'<tr><td colspan="9" class="empty-state">No hay cuentas por cobrar registradas.</td></tr>';
+        const select=document.getElementById("collectionReceivable");
+        const open=financialReceivables.filter(x=>receivableBalance(x)>0.009&&x.status!=="Cancelada");
+        select.innerHTML='<option value="">Seleccionar cuenta</option>'+open.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.client_name+' · '+x.description+' · Saldo '+financeMoney(receivableBalance(x)))+'</option>').join("");
+    }
+    function renderExpenses(){
+        const q=document.getElementById("expenseSearch").value.trim().toLowerCase(),st=document.getElementById("expenseStatusFilter").value;
+        const rows=financialExpenses.filter(x=>(x.concept+" "+x.supplier+" "+x.category).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("expensesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.expense_date}</td><td>${escapeHtml(x.category)}</td><td><strong>${escapeHtml(x.concept)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td>${financeMoney(x.amount)}</td><td><span class="status-pill">${x.status}</span></td><td>${x.payment_date||"—"}</td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-expense="'+x.id+'">Marcar pagado</button>':""}<button class="table-action" data-edit-expense="${x.id}">Editar</button><button class="table-action" data-delete-expense="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay gastos adicionales registrados.</td></tr>';
+    }
+    function financeInPeriod(date,period){return !period||String(date||"").startsWith(period);}
+    function renderFinanceSummary(){
+        const income=financialCollections.reduce((s,x)=>s+Number(x.amount||0),0);
+        const fleet=financeFuel.reduce((s,x)=>s+Number(x.total_cost||0),0)+financeMaintenance.reduce((s,x)=>s+Number(x.cost||0),0)+financeParts.reduce((s,x)=>s+Number(x.total_cost||0),0);
+        const payroll=financePayroll.filter(x=>x.status==="Pagada").reduce((s,x)=>s+Number(x.net_pay||0),0);
+        const other=financialExpenses.filter(x=>x.status==="Pagado").reduce((s,x)=>s+Number(x.amount||0),0);
+        const outstanding=financialReceivables.filter(x=>x.status!=="Cancelada").reduce((s,x)=>s+receivableBalance(x),0);
+        const totalExpenses=fleet+payroll+other;
+        document.getElementById("finIncome").textContent=financeMoney(income);
+        document.getElementById("finExpenses").textContent=financeMoney(totalExpenses);
+        document.getElementById("finBalance").textContent=financeMoney(income-totalExpenses);
+        document.getElementById("finReceivable").textContent=financeMoney(outstanding);
+    }
+    function renderFinanceReport(){
+        const period=document.getElementById("financePeriodFilter").value;
+        const income=financialCollections.filter(x=>financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
+        const fuel=financeFuel.filter(x=>financeInPeriod(x.entry_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
+        const maintenance=financeMaintenance.filter(x=>financeInPeriod(x.service_date,period)).reduce((s,x)=>s+Number(x.cost||0),0);
+        const parts=financeParts.filter(x=>financeInPeriod(x.replacement_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
+        const payroll=financePayroll.filter(x=>x.status==="Pagada"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.net_pay||0),0);
+        const other=financialExpenses.filter(x=>x.status==="Pagado"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
+        const expenseTotal=fuel+maintenance+parts+payroll+other;
+        document.getElementById("reportFuel").textContent=financeMoney(fuel);
+        document.getElementById("reportMaintenance").textContent=financeMoney(maintenance);
+        document.getElementById("reportParts").textContent=financeMoney(parts);
+        document.getElementById("reportPayroll").textContent=financeMoney(payroll);
+        document.getElementById("financeReportBody").innerHTML=[
+            ["Ingresos cobrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla pagada",payroll],["Otros gastos pagados",other],["Total de egresos",expenseTotal],["Resultado del período",income-expenseTotal]
+        ].map(([name,value])=>'<tr><td>'+name+'</td><td><strong>'+financeMoney(value)+'</strong></td></tr>').join("");
+    }
+    function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
+    async function loadFinanceData(){
+        try{
+            const results=await Promise.all([
+                supabase.from("financial_receivables").select("*").order("issue_date",{ascending:false}),
+                supabase.from("financial_collections").select("*").order("payment_date",{ascending:false}),
+                supabase.from("financial_expenses").select("*").order("expense_date",{ascending:false}),
+                supabase.from("fuel_entries").select("entry_date,total_cost"),
+                supabase.from("maintenance_records").select("service_date,cost"),
+                supabase.from("vehicle_parts").select("replacement_date,total_cost"),
+                supabase.from("payroll_records").select("payment_date,net_pay,status")
+            ]);
+            for(const r of results)if(r.error)throw r.error;
+            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll]=results.map(r=>r.data||[]);
+            renderFinance();
+        }catch(error){showOperationError(error,"cargar la información financiera");}
+    }
+    function openReceivableModal(item=null){
+        editingReceivableId=item?.id||null;
+        const form=document.getElementById("receivableForm");form.reset();
+        document.getElementById("receivableModalTitle").textContent=item?"Editar cuenta por cobrar":"Nueva cuenta por cobrar";
+        document.getElementById("receivableClient").value=item?.client_name||"";
+        document.getElementById("receivableDescription").value=item?.description||"";
+        document.getElementById("receivableAmount").value=item?.amount??"";
+        document.getElementById("receivableIssueDate").value=item?.issue_date||financeToday();
+        document.getElementById("receivableDueDate").value=item?.due_date||"";
+        document.getElementById("receivableStatus").value=item?receivableComputedStatus(item):"Pendiente";
+        document.getElementById("receivableStatus").disabled=!!item&&collectionTotal(item.id)>0;
+        document.getElementById("receivableNotes").value=item?.notes||"";
+        financeModalOpen("receivableModal");
+    }
+    function openExpenseModal(item=null){
+        editingExpenseId=item?.id||null;
+        const form=document.getElementById("expenseForm");form.reset();
+        document.getElementById("expenseModalTitle").textContent=item?"Editar gasto":"Registrar gasto";
+        document.getElementById("expenseDate").value=item?.expense_date||financeToday();
+        document.getElementById("expenseCategory").value=item?.category||"";
+        document.getElementById("expenseConcept").value=item?.concept||"";
+        document.getElementById("expenseSupplier").value=item?.supplier||"";
+        document.getElementById("expenseAmount").value=item?.amount??"";
+        document.getElementById("expenseStatus").value=item?.status||"Pendiente";
+        document.getElementById("expensePaymentDate").value=item?.payment_date||"";
+        document.getElementById("expensePaymentMethod").value=item?.payment_method||"";
+        document.getElementById("expenseReference").value=item?.reference||"";
+        document.getElementById("expenseNotes").value=item?.notes||"";
+        financeModalOpen("expenseModal");
+    }
+    document.getElementById("addReceivableButton").addEventListener("click",()=>openReceivableModal());
+    document.getElementById("addExpenseButton").addEventListener("click",()=>openExpenseModal());
+    document.getElementById("receivableForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
+            if(p.due_date&&p.due_date<p.issue_date)throw Error("El vencimiento no puede ser anterior a la fecha de emisión.");
+            if(editingReceivableId){if(collectionTotal(editingReceivableId)>0&&p.amount<collectionTotal(editingReceivableId))throw Error("El monto no puede ser menor a los abonos ya recibidos.");const {error}=await supabase.from("financial_receivables").update(p).eq("id",editingReceivableId);if(error)throw error;}
+            else {const {error}=await supabase.from("financial_receivables").insert({...p,created_by:currentUserId});if(error)throw error;}
+            financeModalClose("receivableModal");await loadFinanceData();
+        }catch(error){showOperationError(error,"guardar la cuenta por cobrar");}finally{btn.disabled=false;document.getElementById("receivableStatus").disabled=false;}
+    });
+    document.getElementById("collectionForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const d=new FormData(e.currentTarget),id=String(d.get("receivableId")),item=financialReceivables.find(x=>x.id===id),amount=Number(d.get("amount"));
+            if(!item)throw Error("Selecciona una cuenta válida.");
+            if(amount<=0||amount>receivableBalance(item)+0.009)throw Error("El abono debe ser mayor a cero y no puede superar el saldo pendiente.");
+            const p={receivable_id:id,amount,payment_date:String(d.get("paymentDate")),payment_method:String(d.get("paymentMethod")),reference:String(d.get("reference")||"").trim(),notes:String(d.get("notes")||"").trim(),created_by:currentUserId};
+            const {error}=await supabase.from("financial_collections").insert(p);if(error)throw error;
+            const newBalance=receivableBalance(item)-amount,newStatus=newBalance<=0.009?"Pagada":"Parcial";
+            const update=await supabase.from("financial_receivables").update({status:newStatus}).eq("id",id);if(update.error)throw update.error;
+            financeModalClose("collectionModal");e.currentTarget.reset();await loadFinanceData();
+        }catch(error){showOperationError(error,"registrar el cobro");}finally{btn.disabled=false;}
+    });
+    document.getElementById("expenseForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const d=new FormData(e.currentTarget),status=String(d.get("status")),paymentDate=String(d.get("paymentDate")||"")||(status==="Pagado"?financeToday():null);
+            if(status==="Pagado"&&!paymentDate)throw Error("Indica la fecha de pago.");
+            const p={expense_date:String(d.get("expenseDate")),category:String(d.get("category")),concept:String(d.get("concept")).trim(),supplier:String(d.get("supplier")||"").trim(),amount:Number(d.get("amount")),status,payment_date:status==="Pagado"?paymentDate:null,payment_method:String(d.get("paymentMethod")||""),reference:String(d.get("reference")||"").trim(),notes:String(d.get("notes")||"").trim()};
+            const q=editingExpenseId?supabase.from("financial_expenses").update(p).eq("id",editingExpenseId):supabase.from("financial_expenses").insert({...p,created_by:currentUserId});
+            const {error}=await q;if(error)throw error;financeModalClose("expenseModal");await loadFinanceData();
+        }catch(error){showOperationError(error,"guardar el gasto");}finally{btn.disabled=false;}
+    });
+    document.getElementById("receivablesTableBody").addEventListener("click",async e=>{
+        const ab=e.target.closest("[data-add-collection]"),ed=e.target.closest("[data-edit-receivable]"),del=e.target.closest("[data-delete-receivable]");
+        if(ab){document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
+        if(ed){openReceivableModal(financialReceivables.find(x=>x.id===ed.dataset.editReceivable));return;}
+        if(del&&confirm("¿Eliminar esta cuenta y su historial de abonos?")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
+    });
+    document.getElementById("expensesTableBody").addEventListener("click",async e=>{
+        const ed=e.target.closest("[data-edit-expense]"),del=e.target.closest("[data-delete-expense]"),pay=e.target.closest("[data-pay-expense]");
+        if(ed){openExpenseModal(financialExpenses.find(x=>x.id===ed.dataset.editExpense));return;}
+        if(pay){const {error}=await supabase.from("financial_expenses").update({status:"Pagado",payment_date:financeToday()}).eq("id",pay.dataset.payExpense);if(error)showOperationError(error,"marcar el gasto como pagado");else await loadFinanceData();return;}
+        if(del&&confirm("¿Eliminar este gasto?")){const {error}=await supabase.from("financial_expenses").delete().eq("id",del.dataset.deleteExpense);if(error)showOperationError(error,"eliminar el gasto");else await loadFinanceData();}
+    });
+    document.getElementById("receivableSearch").addEventListener("input",renderReceivables);
+    document.getElementById("receivableStatusFilter").addEventListener("change",renderReceivables);
+    document.getElementById("expenseSearch").addEventListener("input",renderExpenses);
+    document.getElementById("expenseStatusFilter").addEventListener("change",renderExpenses);
+    document.getElementById("financePeriodFilter").addEventListener("change",renderFinanceReport);
 
     // =====================================
     // INICIAR
