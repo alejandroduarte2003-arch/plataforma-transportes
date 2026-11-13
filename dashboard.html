@@ -111,6 +111,14 @@
             transition: .2s;
         }
 
+        /* Respeta el atributo hidden incluso cuando el componente tiene display:flex. */
+        .nav-button[hidden],
+        .menu-label[hidden],
+        .module-card[hidden],
+        [data-go][hidden] {
+            display: none !important;
+        }
+
         .nav-button:hover,
         .nav-button.active {
             background: rgba(255,255,255,.13);
