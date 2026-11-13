@@ -1508,6 +1508,7 @@
 
         pageTitle.textContent = moduleNames[viewName] || "Inicio";
         sidebar.classList.remove("open");
+        if (viewName === "inicio") renderHomeDashboard();
     }
 
     document.querySelectorAll(".nav-button").forEach(button => {
@@ -2579,6 +2580,10 @@
         const d=new Date();
         return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     }
+    function homeDateAfter(days){
+        const d=new Date();d.setDate(d.getDate()+days);
+        return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    }
     function homeDateLabel(value){
         if(!value)return "—";
         const d=new Date(value+"T12:00:00");
@@ -2626,7 +2631,7 @@
             }));
         }
         if(hasFleet){
-            maintenanceRecords.filter(x=>x.nextServiceDate&&x.status!=="Cancelado"&&x.status!=="Completado"&&x.nextServiceDate<=new Date(Date.now()+30*86400000).toISOString().slice(0,10)).forEach(x=>alerts.push({
+            maintenanceRecords.filter(x=>x.nextServiceDate&&x.status!=="Cancelado"&&x.nextServiceDate<=homeDateAfter(30)).forEach(x=>alerts.push({
                 title:x.nextServiceDate<today?"Mantenimiento vencido":"Mantenimiento próximo",
                 detail:x.maintenanceType+" · "+fleetVehicleLabel(x.vehicleId),
                 date:x.nextServiceDate,action:"flota",actionLabel:"Ver flota"
@@ -2637,8 +2642,8 @@
             }));
         }
         if(hasFinance){
-            financialReceivables.filter(x=>x.status!=="Cancelada"&&x.due_date&&x.due_date<today&&receivableBalance(x)>0.009).forEach(x=>alerts.push({
-                title:"Cuenta por cobrar vencida",
+            financialReceivables.filter(x=>x.status!=="Cancelada"&&x.due_date&&x.due_date<=today&&receivableBalance(x)>0.009).forEach(x=>alerts.push({
+                title:x.due_date<today?"Cuenta por cobrar vencida":"Cuenta por cobrar vence hoy",
                 detail:x.client_name+" · Saldo "+financeMoney(receivableBalance(x)),
                 date:x.due_date,action:"finanzas",actionLabel:"Ver cobros"
             }));
@@ -2684,7 +2689,10 @@
     }
     document.getElementById("homeAlertsList").addEventListener("click",e=>{
         const button=e.target.closest("[data-home-go]");
-        if(button)openView(button.dataset.homeGo);
+        if(!button)return;
+        openView(button.dataset.homeGo);
+        if(button.dataset.homeGo==="flota")document.querySelector('[data-fleet-tab="maintenance"]')?.click();
+        if(button.dataset.homeGo==="personal")document.querySelector('[data-personal-tab="payroll"]')?.click();
     });
 
     // =====================================
