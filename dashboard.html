@@ -2183,12 +2183,14 @@
     function renderFleet(){renderFleetSummary();renderFuel();renderMaintenance();renderParts();refreshFleetVehicleOptions();}
     async function loadFlotaData(){
         try{
-            const [fr,mr,pr]=await Promise.all([
+            const [vr,fr,mr,pr]=await Promise.all([
+                supabase.from("vehicles").select("id,code,plate,type,capacity,brand,model,status,notes").order("code"),
                 supabase.from("fuel_entries").select("*").order("entry_date",{ascending:false}),
                 supabase.from("maintenance_records").select("*").order("service_date",{ascending:false}),
                 supabase.from("vehicle_parts").select("*").order("replacement_date",{ascending:false})
             ]);
-            if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
+            if(vr.error)throw vr.error;if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
+            vehicles=(vr.data||[]).map(item=>({id:item.id,code:item.code,plate:item.plate,type:item.type,capacity:item.capacity,brand:item.brand||"",model:item.model||"",status:item.status,notes:item.notes||""}));
             fuelEntries=(fr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,liters:Number(x.liters),pricePerLiter:Number(x.price_per_liter),totalCost:Number(x.total_cost),odometer:x.odometer,supplier:x.supplier||"",notes:x.notes||""}));
             maintenanceRecords=(mr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:Number(x.cost),odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""}));
             vehicleParts=(pr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:Number(x.unit_cost),totalCost:Number(x.total_cost),supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""}));
