@@ -402,6 +402,162 @@
             color: var(--azul);
         }
 
+
+        /* OPERACIONES - VEHICULOS */
+
+        .section-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .primary-button {
+            background: var(--azul);
+            color: var(--blanco);
+            border: 0;
+            border-radius: 6px;
+            padding: 11px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .primary-button:hover { background: var(--azul-hover); }
+
+        .secondary-button {
+            background: var(--blanco);
+            color: var(--negro);
+            border: 1px solid var(--gris);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toolbar-filters {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .field-control {
+            border: 1px solid var(--gris);
+            border-radius: 6px;
+            padding: 10px 11px;
+            background: var(--blanco);
+            color: var(--negro);
+            font: inherit;
+            font-size: 12px;
+            min-width: 170px;
+            outline: none;
+        }
+
+        .field-control:focus { border-color: var(--azul); }
+
+        .vehicle-card {
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .vehicle-card:hover { border-color: var(--azul); }
+
+        .status-pill {
+            display: inline-block;
+            padding: 5px 8px;
+            border: 1px solid var(--gris);
+            border-radius: 20px;
+            font-size: 10px;
+            color: var(--negro);
+            white-space: nowrap;
+        }
+
+        .table-action {
+            border: 1px solid var(--gris);
+            background: var(--blanco);
+            color: var(--azul);
+            border-radius: 5px;
+            padding: 6px 9px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(17,24,39,.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 300;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal {
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--blanco);
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 { font-size: 18px; }
+
+        .modal-close {
+            border: 0;
+            background: transparent;
+            font-size: 23px;
+            cursor: pointer;
+            color: var(--texto);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .form-field { display: flex; flex-direction: column; gap: 7px; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { font-size: 11px; font-weight: 600; }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            border: 1px solid var(--gris);
+            border-radius: 6px;
+            padding: 11px;
+            font: inherit;
+            font-size: 12px;
+            color: var(--negro);
+            background: var(--blanco);
+        }
+
+        .form-field textarea { min-height: 75px; resize: vertical; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+        .form-message { font-size: 11px; color: var(--texto); margin-top: 12px; }
+
+        @media(max-width:700px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .field-control { min-width: 100%; }
+            .toolbar-filters { width: 100%; }
+            .toolbar-filters > * { flex: 1; }
+        }
+
         /* RESPONSIVE */
 
         @media(max-width: 1000px) {
@@ -663,11 +819,12 @@
                     <p>Control y seguimiento de las actividades de transporte.</p>
                 </div>
 
-                <div class="module-items">
+                <div class="module-items" id="operationsMenu">
 
-                    <div class="module-item">
+                    <div class="module-item vehicle-card" data-open-vehicles>
                         <h3>Vehículos</h3>
-                        <p>Registro de buses y microbuses, placas, características, estado y disponibilidad.</p>
+                        <p>Registra buses y microbuses, placas, características, estado y disponibilidad.</p>
+                        <button class="primary-button" type="button" data-open-vehicles>Administrar vehículos</button>
                     </div>
 
                     <div class="module-item">
@@ -694,6 +851,80 @@
 
             </section>
 
+            <section class="view" id="view-vehiculos">
+
+                <div class="page-heading">
+                    <h1>Vehículos</h1>
+                    <p>Registro y control de buses y microbuses de la empresa.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span>Total de vehículos</span>
+                        <h2 id="vehicleTotal">0</h2>
+                        <p>Registrados en el sistema</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Disponibles</span>
+                        <h2 id="vehicleAvailable">0</h2>
+                        <p>Listos para operar</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>En mantenimiento</span>
+                        <h2 id="vehicleMaintenance">0</h2>
+                        <p>Fuera de servicio temporalmente</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Inactivos</span>
+                        <h2 id="vehicleInactive">0</h2>
+                        <p>No disponibles para operar</p>
+                    </div>
+                </div>
+
+                <div class="section-toolbar">
+                    <button class="secondary-button" type="button" id="backToOperations">Volver a Operaciones</button>
+                    <button class="primary-button" type="button" id="addVehicleButton">+ Registrar vehículo</button>
+                </div>
+
+                <div class="panel">
+                    <div class="section-toolbar">
+                        <div>
+                            <h3 style="font-size:14px;margin-bottom:5px;">Flota registrada</h3>
+                            <p style="font-size:11px;color:var(--texto);">Consulta y administra los vehículos.</p>
+                        </div>
+                        <div class="toolbar-filters">
+                            <input class="field-control" id="vehicleSearch" type="search" placeholder="Buscar por placa o código">
+                            <select class="field-control" id="vehicleStatusFilter">
+                                <option value="">Todos los estados</option>
+                                <option value="Disponible">Disponible</option>
+                                <option value="En ruta">En ruta</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                                <option value="Inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>CÓDIGO</th>
+                                    <th>PLACA</th>
+                                    <th>TIPO</th>
+                                    <th>MARCA / MODELO</th>
+                                    <th>CAPACIDAD</th>
+                                    <th>ESTADO</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehiclesTableBody">
+                                <tr><td colspan="7" class="empty-state">No hay vehículos registrados todavía.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
 
             <!-- ================================= -->
             <!-- PERSONAL -->
@@ -851,6 +1082,7 @@
         personal: "Personal",
         flota: "Flota y gastos",
         finanzas: "Finanzas",
+        vehiculos: "Vehículos",
         administracion: "Administración"
     };
 
@@ -977,7 +1209,8 @@
     // =====================================
 
     function openView(viewName) {
-        if (!accessReady || !allowedModules.has(viewName)) {
+        const isOperationsSubview = viewName === "vehiculos" && allowedModules.has("operaciones");
+        if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
         }
@@ -1021,6 +1254,134 @@
     });
 
     // =====================================
+    // VEHÍCULOS - INTERFAZ PREPARADA
+    // =====================================
+
+    const vehicleModal = document.getElementById("vehicleModal");
+    const vehicleForm = document.getElementById("vehicleForm");
+    const vehiclesTableBody = document.getElementById("vehiclesTableBody");
+    const vehicleSearch = document.getElementById("vehicleSearch");
+    const vehicleStatusFilter = document.getElementById("vehicleStatusFilter");
+
+    // Datos temporales para probar la interfaz. Se reemplazarán por Supabase.
+    let vehicles = [];
+
+    function openVehicleModal() {
+        vehicleForm.reset();
+        document.getElementById("vehicleModalTitle").textContent = "Registrar vehículo";
+        vehicleModal.classList.add("open");
+        vehicleModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeVehicleModal() {
+        vehicleModal.classList.remove("open");
+        vehicleModal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderVehicles() {
+        const search = vehicleSearch.value.trim().toLowerCase();
+        const status = vehicleStatusFilter.value;
+
+        const filtered = vehicles.filter(vehicle => {
+            const matchesSearch =
+                vehicle.plate.toLowerCase().includes(search) ||
+                vehicle.code.toLowerCase().includes(search);
+            const matchesStatus = !status || vehicle.status === status;
+            return matchesSearch && matchesStatus;
+        });
+
+        document.getElementById("vehicleTotal").textContent = vehicles.length;
+        document.getElementById("vehicleAvailable").textContent =
+            vehicles.filter(vehicle => vehicle.status === "Disponible").length;
+        document.getElementById("vehicleMaintenance").textContent =
+            vehicles.filter(vehicle => vehicle.status === "Mantenimiento").length;
+        document.getElementById("vehicleInactive").textContent =
+            vehicles.filter(vehicle => vehicle.status === "Inactivo").length;
+
+        if (!filtered.length) {
+            vehiclesTableBody.innerHTML =
+                '<tr><td colspan="7" class="empty-state">No se encontraron vehículos.</td></tr>';
+            return;
+        }
+
+        vehiclesTableBody.innerHTML = filtered.map(vehicle => `
+            <tr>
+                <td>${escapeHtml(vehicle.code)}</td>
+                <td><strong>${escapeHtml(vehicle.plate)}</strong></td>
+                <td>${escapeHtml(vehicle.type)}</td>
+                <td>${escapeHtml([vehicle.brand, vehicle.model].filter(Boolean).join(" ") || "—")}</td>
+                <td>${vehicle.capacity} pasajeros</td>
+                <td><span class="status-pill">${escapeHtml(vehicle.status)}</span></td>
+                <td><button class="table-action" type="button" data-delete-vehicle="${vehicle.id}">Eliminar</button></td>
+            </tr>
+        `).join("");
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[character]);
+    }
+
+    document.querySelectorAll("[data-open-vehicles]").forEach(button => {
+        button.addEventListener("click", () => openView("vehiculos"));
+    });
+
+    document.getElementById("backToOperations").addEventListener("click", () => {
+        openView("operaciones");
+    });
+
+    document.getElementById("addVehicleButton").addEventListener("click", openVehicleModal);
+    document.getElementById("closeVehicleModal").addEventListener("click", closeVehicleModal);
+    document.getElementById("cancelVehicle").addEventListener("click", closeVehicleModal);
+
+    vehicleModal.addEventListener("click", event => {
+        if (event.target === vehicleModal) closeVehicleModal();
+    });
+
+    vehicleSearch.addEventListener("input", renderVehicles);
+    vehicleStatusFilter.addEventListener("change", renderVehicles);
+
+    vehicleForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const formData = new FormData(vehicleForm);
+        const code = String(formData.get("code")).trim().toUpperCase();
+        const plate = String(formData.get("plate")).trim().toUpperCase();
+
+        if (vehicles.some(vehicle => vehicle.code === code || vehicle.plate === plate)) {
+            alert("Ya existe un vehículo con ese código o número de placa.");
+            return;
+        }
+
+        vehicles.push({
+            id: Date.now().toString(),
+            code,
+            plate,
+            type: String(formData.get("type")),
+            capacity: Number(formData.get("capacity")),
+            brand: String(formData.get("brand")).trim(),
+            model: String(formData.get("model")).trim(),
+            status: String(formData.get("status")),
+            notes: String(formData.get("notes")).trim()
+        });
+
+        renderVehicles();
+        closeVehicleModal();
+    });
+
+    vehiclesTableBody.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-vehicle]");
+        if (!button) return;
+
+        const vehicleId = button.dataset.deleteVehicle;
+        vehicles = vehicles.filter(vehicle => vehicle.id !== vehicleId);
+        renderVehicles();
+    });
+
+    renderVehicles();
+
+    // =====================================
     // MENÚ MÓVIL
     // =====================================
 
@@ -1060,6 +1421,68 @@
     verifySession();
 
 </script>
+
+
+    <div class="modal-backdrop" id="vehicleModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vehicleModalTitle">
+            <div class="modal-header">
+                <h2 id="vehicleModalTitle">Registrar vehículo</h2>
+                <button class="modal-close" type="button" id="closeVehicleModal" aria-label="Cerrar">×</button>
+            </div>
+
+            <form id="vehicleForm">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="vehicleCode">Código interno *</label>
+                        <input id="vehicleCode" name="code" required maxlength="20" placeholder="Ej. BUS-001">
+                    </div>
+                    <div class="form-field">
+                        <label for="vehiclePlate">Número de placa *</label>
+                        <input id="vehiclePlate" name="plate" required maxlength="15" placeholder="Ej. P-123ABC">
+                    </div>
+                    <div class="form-field">
+                        <label for="vehicleType">Tipo de vehículo *</label>
+                        <select id="vehicleType" name="type" required>
+                            <option value="">Seleccionar</option>
+                            <option value="Bus">Bus</option>
+                            <option value="Microbús">Microbús</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="vehicleCapacity">Capacidad de pasajeros *</label>
+                        <input id="vehicleCapacity" name="capacity" type="number" min="1" max="100" required placeholder="Ej. 30">
+                    </div>
+                    <div class="form-field">
+                        <label for="vehicleBrand">Marca</label>
+                        <input id="vehicleBrand" name="brand" maxlength="40" placeholder="Ej. Toyota">
+                    </div>
+                    <div class="form-field">
+                        <label for="vehicleModel">Modelo / año</label>
+                        <input id="vehicleModel" name="model" maxlength="40" placeholder="Ej. Coaster 2018">
+                    </div>
+                    <div class="form-field">
+                        <label for="vehicleStatus">Estado *</label>
+                        <select id="vehicleStatus" name="status" required>
+                            <option value="Disponible">Disponible</option>
+                            <option value="En ruta">En ruta</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="form-field full">
+                        <label for="vehicleNotes">Observaciones</label>
+                        <textarea id="vehicleNotes" name="notes" maxlength="500" placeholder="Información adicional del vehículo"></textarea>
+                    </div>
+                </div>
+                <p class="form-message">Esta primera versión permite revisar el formulario y la interfaz. Los registros aún no se guardan en Supabase.</p>
+                <div class="form-actions">
+                    <button class="secondary-button" type="button" id="cancelVehicle">Cancelar</button>
+                    <button class="primary-button" type="submit">Guardar vehículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
 </body>
 </html>
