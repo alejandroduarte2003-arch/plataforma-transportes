@@ -566,6 +566,14 @@
         .table-panel{margin-top:16px;padding:0;overflow:hidden}.table-panel table{min-width:780px}
         .table-actions{display:flex;gap:5px;flex-wrap:wrap}
 
+        .fleet-tabs{display:flex;gap:8px;border-bottom:1px solid var(--gris);margin-bottom:20px}
+        .fleet-tab{border:0;border-bottom:2px solid transparent;background:transparent;color:var(--texto);padding:12px 16px;cursor:pointer;font-size:12px;font-weight:600}
+        .fleet-tab.active{color:var(--azul);border-bottom-color:var(--azul)}
+        .fleet-panel{display:none}.fleet-panel.active{display:block}
+        .fleet-panel h3{font-size:15px}.fleet-hint{color:var(--texto);font-size:11px;margin-top:5px}
+        .fleet-panel .table-panel{margin-top:16px;padding:0;overflow:hidden}.fleet-panel .table-panel table{min-width:920px}
+        .fleet-panel .table-actions{display:flex;gap:5px;flex-wrap:wrap}
+
         /* RESPONSIVE */
 
         @media(max-width: 1000px) {
@@ -1127,43 +1135,34 @@
             <!-- ================================= -->
 
             <section class="view" id="view-flota">
-
-                <div class="page-heading">
-                    <h1>Flota y gastos</h1>
-                    <p>Control de costos y mantenimiento de los vehículos.</p>
+                <div class="page-heading"><h1>Flota y gastos</h1><p>Controla combustible, mantenimiento y repuestos de cada vehículo.</p></div>
+                <div class="stats-grid">
+                    <div class="stat-card"><span>Gasto en combustible</span><h2 id="fuelTotalCost">Q0.00</h2><p>Registros acumulados</p></div>
+                    <div class="stat-card"><span>Mantenimiento</span><h2 id="maintenanceTotalCost">Q0.00</h2><p>Servicios registrados</p></div>
+                    <div class="stat-card"><span>Repuestos</span><h2 id="partsTotalCost">Q0.00</h2><p>Piezas y reemplazos</p></div>
+                    <div class="stat-card"><span>Gasto total de flota</span><h2 id="fleetTotalCost">Q0.00</h2><p>Combustible + mantenimiento + repuestos</p></div>
                 </div>
-
-                <div class="module-items">
-
-                    <div class="module-item">
-                        <h3>Combustible</h3>
-                        <p>Registro de cargas, cantidades, costos y consumo por vehículo.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Mantenimiento</h3>
-                        <p>Control de servicios, fechas, reparaciones y próximos mantenimientos.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Repuestos</h3>
-                        <p>Registro de piezas reemplazadas, dañadas, costos y observaciones.</p>
-                    </div>
-
+                <div class="fleet-tabs">
+                    <button class="fleet-tab active" type="button" data-fleet-tab="fuel">Combustible</button>
+                    <button class="fleet-tab" type="button" data-fleet-tab="maintenance">Mantenimiento</button>
+                    <button class="fleet-tab" type="button" data-fleet-tab="parts">Repuestos</button>
                 </div>
-
-                <div class="panel" style="margin-top:20px;">
-                    <div class="panel-heading">
-                        <h3>Historial de gastos</h3>
-                        <span>Control de flota</span>
-                    </div>
-                    <div class="empty-state">
-                        No hay gastos registrados todavía.
-                    </div>
+                <div class="fleet-panel active" id="fleet-fuel">
+                    <div class="section-toolbar"><div><h3>Control de combustible</h3><p class="fleet-hint">Cargas, litros, precio y kilometraje.</p></div><button class="primary-button" id="addFuelButton" type="button">+ Registrar combustible</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="fuelSearch" type="search" placeholder="Buscar vehículo o proveedor"><input class="field-control" id="fuelPeriodFilter" type="month" aria-label="Filtrar período"></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Vehículo</th><th>Litros</th><th>Precio / litro</th><th>Total</th><th>Odómetro</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody id="fuelTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
-
+                <div class="fleet-panel" id="fleet-maintenance">
+                    <div class="section-toolbar"><div><h3>Mantenimiento</h3><p class="fleet-hint">Servicios, reparaciones y próximos mantenimientos.</p></div><button class="primary-button" id="addMaintenanceButton" type="button">+ Registrar mantenimiento</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="maintenanceSearch" type="search" placeholder="Buscar vehículo o servicio"><select class="field-control" id="maintenanceStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>En proceso</option><option>Completado</option><option>Cancelado</option></select></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Vehículo</th><th>Servicio</th><th>Proveedor</th><th>Costo</th><th>Próximo servicio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="maintenanceTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                </div>
+                <div class="fleet-panel" id="fleet-parts">
+                    <div class="section-toolbar"><div><h3>Repuestos y piezas</h3><p class="fleet-hint">Control de piezas dañadas, instaladas y reemplazadas.</p></div><button class="primary-button" id="addPartButton" type="button">+ Registrar repuesto</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="partsSearch" type="search" placeholder="Buscar pieza o vehículo"><select class="field-control" id="partsActionFilter"><option value="">Todas las acciones</option><option>Reemplazo</option><option>Daño</option><option>Instalación</option></select></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Vehículo</th><th>Repuesto</th><th>Acción</th><th>Cantidad</th><th>Costo total</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody id="partsTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                </div>
             </section>
-
 
             <!-- ================================= -->
             <!-- FINANZAS -->
@@ -1338,6 +1337,9 @@
             }
             if (allowedModules.has("personal")) {
                 await loadPersonalData();
+            }
+            if (allowedModules.has("flota")) {
+                await loadFlotaData();
             }
 
         } catch (error) {
@@ -2138,6 +2140,126 @@
     document.getElementById("payrollStatusFilter").addEventListener("change",renderPayroll);
 
 
+    // FLOTA Y GASTOS: COMBUSTIBLE, MANTENIMIENTO Y REPUESTOS
+    let fuelEntries=[], maintenanceRecords=[], vehicleParts=[];
+    let editingFuelId=null, editingMaintenanceId=null, editingPartId=null;
+    const fleetMoney=value=>formatQuetzales(Number(value||0));
+    const fleetVehicleLabel=id=>{const v=vehicles.find(x=>x.id===id);return v?v.code+" · "+v.plate:"Vehículo no disponible";};
+    const fleetToday=()=>new Date().toISOString().slice(0,10);
+    function openFleetModal(id){const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");}
+    function closeFleetModal(id){const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");}
+    document.querySelectorAll("[data-close-fleet]").forEach(btn=>btn.addEventListener("click",()=>closeFleetModal(btn.dataset.closeFleet)));
+    ["fuelModal","maintenanceModal","partsModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)closeFleetModal(id);}));
+    document.querySelectorAll("[data-fleet-tab]").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelectorAll("[data-fleet-tab]").forEach(x=>x.classList.toggle("active",x===btn));
+        document.querySelectorAll(".fleet-panel").forEach(x=>x.classList.toggle("active",x.id==="fleet-"+btn.dataset.fleetTab));
+    }));
+    function refreshFleetVehicleOptions(){
+        const opts=vehicles.map(v=>'<option value="'+v.id+'">'+escapeHtml(v.code+" · "+v.plate)+'</option>').join("");
+        ["fuelVehicle","maintenanceVehicle","partsVehicle"].forEach(id=>document.getElementById(id).innerHTML='<option value="">Seleccionar vehículo</option>'+opts);
+    }
+    function renderFleetSummary(){
+        const fuel=fuelEntries.reduce((s,x)=>s+x.totalCost,0),maint=maintenanceRecords.reduce((s,x)=>s+x.cost,0),parts=vehicleParts.reduce((s,x)=>s+x.totalCost,0);
+        document.getElementById("fuelTotalCost").textContent=fleetMoney(fuel);
+        document.getElementById("maintenanceTotalCost").textContent=fleetMoney(maint);
+        document.getElementById("partsTotalCost").textContent=fleetMoney(parts);
+        document.getElementById("fleetTotalCost").textContent=fleetMoney(fuel+maint+parts);
+    }
+    function renderFuel(){
+        const q=document.getElementById("fuelSearch").value.trim().toLowerCase(),period=document.getElementById("fuelPeriodFilter").value;
+        const rows=fuelEntries.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.supplier).toLowerCase().includes(q)&&(!period||x.entryDate.startsWith(period)));
+        document.getElementById("fuelTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.entryDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td>${x.liters.toFixed(2)}</td><td>${fleetMoney(x.pricePerLiter)}</td><td><strong>${fleetMoney(x.totalCost)}</strong></td><td>${x.odometer??"—"}</td><td>${escapeHtml(x.supplier||"—")}</td><td><div class="table-actions"><button class="table-action" data-edit-fuel="${x.id}">Editar</button><button class="table-action" data-delete-fuel="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay cargas de combustible registradas.</td></tr>';
+    }
+    function renderMaintenance(){
+        const q=document.getElementById("maintenanceSearch").value.trim().toLowerCase(),st=document.getElementById("maintenanceStatusFilter").value;
+        const rows=maintenanceRecords.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.maintenanceType+" "+x.description+" "+x.provider).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("maintenanceTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.serviceDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td><strong>${escapeHtml(x.maintenanceType)}</strong><br><small>${escapeHtml(x.description)}</small></td><td>${escapeHtml(x.provider||"—")}</td><td>${fleetMoney(x.cost)}</td><td>${x.nextServiceDate||"—"}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-maintenance="${x.id}">Editar</button><button class="table-action" data-delete-maintenance="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay mantenimientos registrados.</td></tr>';
+    }
+    function renderParts(){
+        const q=document.getElementById("partsSearch").value.trim().toLowerCase(),action=document.getElementById("partsActionFilter").value;
+        const rows=vehicleParts.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.partName+" "+x.supplier).toLowerCase().includes(q)&&(!action||x.action===action));
+        document.getElementById("partsTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.replacementDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td>${escapeHtml(x.partName)}</td><td>${x.action}</td><td>${x.quantity}</td><td><strong>${fleetMoney(x.totalCost)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td><div class="table-actions"><button class="table-action" data-edit-part="${x.id}">Editar</button><button class="table-action" data-delete-part="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay repuestos registrados.</td></tr>';
+    }
+    function renderFleet(){renderFleetSummary();renderFuel();renderMaintenance();renderParts();refreshFleetVehicleOptions();}
+    async function loadFlotaData(){
+        try{
+            const [fr,mr,pr]=await Promise.all([
+                supabase.from("fuel_entries").select("*").order("entry_date",{ascending:false}),
+                supabase.from("maintenance_records").select("*").order("service_date",{ascending:false}),
+                supabase.from("vehicle_parts").select("*").order("replacement_date",{ascending:false})
+            ]);
+            if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
+            fuelEntries=(fr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,liters:Number(x.liters),pricePerLiter:Number(x.price_per_liter),totalCost:Number(x.total_cost),odometer:x.odometer,supplier:x.supplier||"",notes:x.notes||""}));
+            maintenanceRecords=(mr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:Number(x.cost),odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""}));
+            vehicleParts=(pr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:Number(x.unit_cost),totalCost:Number(x.total_cost),supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""}));
+            renderFleet();
+        }catch(error){showOperationError(error,"cargar los registros de Flota y gastos");}
+    }
+    function setFleetForm(id,values){Object.entries(values).forEach(([key,value])=>{const el=document.getElementById(key);if(el)el.value=value??"";});}
+    function openFuelModal(x=null){
+        editingFuelId=x?.id||null;document.getElementById("fuelForm").reset();refreshFleetVehicleOptions();
+        document.getElementById("fuelModalTitle").textContent=x?"Editar combustible":"Registrar combustible";
+        setFleetForm("fuelForm",{fuelVehicle:x?.vehicleId,fuelDate:x?.entryDate||fleetToday(),fuelLiters:x?.liters??"",fuelPrice:x?.pricePerLiter??"",fuelCost:x?.totalCost??"",fuelOdometer:x?.odometer,fuelSupplier:x?.supplier,fuelNotes:x?.notes});
+        openFleetModal("fuelModal");
+    }
+    function calculateFuel(){const cost=Number(document.getElementById("fuelLiters").value||0)*Number(document.getElementById("fuelPrice").value||0);document.getElementById("fuelCost").value=cost.toFixed(2);}
+    function openMaintenanceModal(x=null){
+        editingMaintenanceId=x?.id||null;document.getElementById("maintenanceForm").reset();refreshFleetVehicleOptions();
+        document.getElementById("maintenanceModalTitle").textContent=x?"Editar mantenimiento":"Registrar mantenimiento";
+        setFleetForm("maintenanceForm",{maintenanceVehicle:x?.vehicleId,maintenanceDate:x?.serviceDate||fleetToday(),maintenanceType:x?.maintenanceType,maintenanceDescription:x?.description,maintenanceProvider:x?.provider,maintenanceCost:x?.cost??0,maintenanceOdometer:x?.odometer,maintenanceNextDate:x?.nextServiceDate,maintenanceStatus:x?.status||"Completado",maintenanceNotes:x?.notes});
+        openFleetModal("maintenanceModal");
+    }
+    function openPartModal(x=null){
+        editingPartId=x?.id||null;document.getElementById("partsForm").reset();refreshFleetVehicleOptions();
+        document.getElementById("partsModalTitle").textContent=x?"Editar repuesto":"Registrar repuesto";
+        setFleetForm("partsForm",{partsVehicle:x?.vehicleId,partsDate:x?.replacementDate||fleetToday(),partsName:x?.partName,partsAction:x?.action||"Reemplazo",partsQuantity:x?.quantity??1,partsUnitCost:x?.unitCost??0,partsTotalCost:x?.totalCost??0,partsSupplier:x?.supplier,partsOdometer:x?.odometer,partsNotes:x?.notes});
+        openFleetModal("partsModal");
+    }
+    function calculateParts(){document.getElementById("partsTotalCost").value=(Number(document.getElementById("partsQuantity").value||0)*Number(document.getElementById("partsUnitCost").value||0)).toFixed(2);}
+    ["fuelLiters","fuelPrice"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
+    ["partsQuantity","partsUnitCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateParts));
+    document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Operaciones."));
+    document.getElementById("addMaintenanceButton").addEventListener("click",()=>vehicles.length?openMaintenanceModal():alert("Primero registra un vehículo en Operaciones."));
+    document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Operaciones."));
+    async function saveFleetRecord(formId,table,payload,id,action){
+        const form=document.getElementById(formId),btn=form.querySelector('[type="submit"]');btn.disabled=true;
+        try{const query=id?supabase.from(table).update(payload).eq("id",id):supabase.from(table).insert({...payload,created_by:currentUserId});const {error}=await query;if(error)throw error;
+            const modal={fuel_entries:"fuelModal",maintenance_records:"maintenanceModal",vehicle_parts:"partsModal"}[table];closeFleetModal(modal);await loadFlotaData();
+        }catch(error){showOperationError(error,action);}finally{btn.disabled=false;}
+    }
+    document.getElementById("fuelForm").addEventListener("submit",async e=>{
+        e.preventDefault();const liters=Number(document.getElementById("fuelLiters").value),price=Number(document.getElementById("fuelPrice").value),cost=Number((liters*price).toFixed(2));
+        await saveFleetRecord("fuelForm","fuel_entries",{vehicle_id:document.getElementById("fuelVehicle").value,entry_date:document.getElementById("fuelDate").value,liters,price_per_liter:price,total_cost:cost,odometer:document.getElementById("fuelOdometer").value?Number(document.getElementById("fuelOdometer").value):null,supplier:document.getElementById("fuelSupplier").value.trim(),notes:document.getElementById("fuelNotes").value.trim()},editingFuelId,"guardar el registro de combustible");
+    });
+    document.getElementById("maintenanceForm").addEventListener("submit",async e=>{
+        e.preventDefault();const date=document.getElementById("maintenanceDate").value,next=document.getElementById("maintenanceNextDate").value;if(next&&next<date){alert("La fecha del próximo mantenimiento no puede ser anterior al servicio.");return;}
+        await saveFleetRecord("maintenanceForm","maintenance_records",{vehicle_id:document.getElementById("maintenanceVehicle").value,service_date:date,maintenance_type:document.getElementById("maintenanceType").value.trim(),description:document.getElementById("maintenanceDescription").value.trim(),provider:document.getElementById("maintenanceProvider").value.trim(),cost:Number(document.getElementById("maintenanceCost").value),odometer:document.getElementById("maintenanceOdometer").value?Number(document.getElementById("maintenanceOdometer").value):null,next_service_date:next||null,status:document.getElementById("maintenanceStatus").value,notes:document.getElementById("maintenanceNotes").value.trim()},editingMaintenanceId,"guardar el mantenimiento");
+    });
+    document.getElementById("partsForm").addEventListener("submit",async e=>{
+        e.preventDefault();const quantity=Number(document.getElementById("partsQuantity").value),unit=Number(document.getElementById("partsUnitCost").value);
+        await saveFleetRecord("partsForm","vehicle_parts",{vehicle_id:document.getElementById("partsVehicle").value,replacement_date:document.getElementById("partsDate").value,part_name:document.getElementById("partsName").value.trim(),action:document.getElementById("partsAction").value,quantity,unit_cost:unit,total_cost:Number((quantity*unit).toFixed(2)),supplier:document.getElementById("partsSupplier").value.trim(),odometer:document.getElementById("partsOdometer").value?Number(document.getElementById("partsOdometer").value):null,notes:document.getElementById("partsNotes").value.trim()},editingPartId,"guardar el repuesto");
+    });
+    document.getElementById("fuelTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-fuel]"),del=e.target.closest("[data-delete-fuel]");
+        if(edit){openFuelModal(fuelEntries.find(x=>x.id===edit.dataset.editFuel));return;}
+        if(del&&confirm("¿Eliminar este registro de combustible?")){const {error}=await supabase.from("fuel_entries").delete().eq("id",del.dataset.deleteFuel);if(error)showOperationError(error,"eliminar el combustible");else await loadFlotaData();}
+    });
+    document.getElementById("maintenanceTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-maintenance]"),del=e.target.closest("[data-delete-maintenance]");
+        if(edit){openMaintenanceModal(maintenanceRecords.find(x=>x.id===edit.dataset.editMaintenance));return;}
+        if(del&&confirm("¿Eliminar este mantenimiento?")){const {error}=await supabase.from("maintenance_records").delete().eq("id",del.dataset.deleteMaintenance);if(error)showOperationError(error,"eliminar el mantenimiento");else await loadFlotaData();}
+    });
+    document.getElementById("partsTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-part]"),del=e.target.closest("[data-delete-part]");
+        if(edit){openPartModal(vehicleParts.find(x=>x.id===edit.dataset.editPart));return;}
+        if(del&&confirm("¿Eliminar este repuesto?")){const {error}=await supabase.from("vehicle_parts").delete().eq("id",del.dataset.deletePart);if(error)showOperationError(error,"eliminar el repuesto");else await loadFlotaData();}
+    });
+    ["fuelSearch","maintenanceSearch","partsSearch"].forEach(id=>document.getElementById(id).addEventListener("input",()=>({fuelSearch:renderFuel,maintenanceSearch:renderMaintenance,partsSearch:renderParts}[id])()));
+    document.getElementById("fuelPeriodFilter").addEventListener("change",renderFuel);
+    document.getElementById("maintenanceStatusFilter").addEventListener("change",renderMaintenance);
+    document.getElementById("partsActionFilter").addEventListener("change",renderParts);
+
+
     // =====================================
     // MENÚ MÓVIL
     // =====================================
@@ -2320,6 +2442,30 @@
             </form>
         </div>
     </div>
+
+    <div class="modal-backdrop" id="fuelModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="fuelModalTitle">Registrar combustible</h2><button class="modal-close" type="button" data-close-fleet="fuelModal">×</button></div><form id="fuelForm"><div class="form-grid">
+        <div class="form-field full"><label>Vehículo *</label><select id="fuelVehicle" required></select></div>
+        <div class="form-field"><label>Fecha *</label><input id="fuelDate" type="date" required></div><div class="form-field"><label>Litros *</label><input id="fuelLiters" type="number" min=".01" step=".01" required></div>
+        <div class="form-field"><label>Precio por litro (Q) *</label><input id="fuelPrice" type="number" min="0" step=".001" required></div><div class="form-field"><label>Costo total (Q)</label><input id="fuelCost" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Odómetro (km)</label><input id="fuelOdometer" type="number" min="0" step="1"></div><div class="form-field"><label>Proveedor / gasolinera</label><input id="fuelSupplier" maxlength="150"></div>
+        <div class="form-field full"><label>Observaciones</label><textarea id="fuelNotes" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="secondary-button" type="button" data-close-fleet="fuelModal">Cancelar</button><button class="primary-button" type="submit">Guardar registro</button></div></form></div></div>
+
+    <div class="modal-backdrop" id="maintenanceModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="maintenanceModalTitle">Registrar mantenimiento</h2><button class="modal-close" type="button" data-close-fleet="maintenanceModal">×</button></div><form id="maintenanceForm"><div class="form-grid">
+        <div class="form-field full"><label>Vehículo *</label><select id="maintenanceVehicle" required></select></div>
+        <div class="form-field"><label>Fecha del servicio *</label><input id="maintenanceDate" type="date" required></div><div class="form-field"><label>Tipo de mantenimiento *</label><input id="maintenanceType" maxlength="100" required placeholder="Ej. Servicio preventivo"></div>
+        <div class="form-field full"><label>Descripción</label><input id="maintenanceDescription" maxlength="250"></div>
+        <div class="form-field"><label>Taller / proveedor</label><input id="maintenanceProvider" maxlength="150"></div><div class="form-field"><label>Costo (Q) *</label><input id="maintenanceCost" type="number" min="0" step=".01" required></div>
+        <div class="form-field"><label>Odómetro (km)</label><input id="maintenanceOdometer" type="number" min="0"></div><div class="form-field"><label>Próximo mantenimiento</label><input id="maintenanceNextDate" type="date"></div>
+        <div class="form-field"><label>Estado</label><select id="maintenanceStatus"><option>Pendiente</option><option>En proceso</option><option selected>Completado</option><option>Cancelado</option></select></div>
+        <div class="form-field full"><label>Observaciones</label><textarea id="maintenanceNotes" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="secondary-button" type="button" data-close-fleet="maintenanceModal">Cancelar</button><button class="primary-button" type="submit">Guardar mantenimiento</button></div></form></div></div>
+
+    <div class="modal-backdrop" id="partsModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="partsModalTitle">Registrar repuesto</h2><button class="modal-close" type="button" data-close-fleet="partsModal">×</button></div><form id="partsForm"><div class="form-grid">
+        <div class="form-field full"><label>Vehículo *</label><select id="partsVehicle" required></select></div>
+        <div class="form-field"><label>Fecha *</label><input id="partsDate" type="date" required></div><div class="form-field"><label>Nombre del repuesto *</label><input id="partsName" maxlength="150" required></div>
+        <div class="form-field"><label>Acción *</label><select id="partsAction"><option>Reemplazo</option><option>Daño</option><option>Instalación</option></select></div><div class="form-field"><label>Cantidad *</label><input id="partsQuantity" type="number" min="1" step="1" value="1" required></div>
+        <div class="form-field"><label>Costo unitario (Q) *</label><input id="partsUnitCost" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Costo total (Q)</label><input id="partsTotalCost" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Proveedor</label><input id="partsSupplier" maxlength="150"></div><div class="form-field"><label>Odómetro (km)</label><input id="partsOdometer" type="number" min="0"></div>
+        <div class="form-field full"><label>Observaciones</label><textarea id="partsNotes" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="secondary-button" type="button" data-close-fleet="partsModal">Cancelar</button><button class="primary-button" type="submit">Guardar repuesto</button></div></form></div></div>
 
     <div class="modal-backdrop" id="vehicleModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vehicleModalTitle">
