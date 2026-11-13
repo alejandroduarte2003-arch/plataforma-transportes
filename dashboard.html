@@ -833,9 +833,10 @@
                         <button class="primary-button" type="button" data-open-trips>Administrar viajes</button>
                     </div>
 
-                    <div class="module-item">
+                    <div class="module-item vehicle-card" data-open-boardings>
                         <h3>Abordajes</h3>
-                        <p>Registro de cada persona que aborda cada vehículo y control de pasajeros.</p>
+                        <p>Registra pasajeros por viaje y consulta las personas asignadas a cada recorrido.</p>
+                        <button class="primary-button" type="button" data-open-boardings>Administrar abordajes</button>
                     </div>
 
                 </div>
@@ -1009,6 +1010,77 @@
             </section>
 
             <!-- ================================= -->
+            <!-- ABORDAJES -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-abordajes">
+
+                <div class="page-heading">
+                    <h1>Abordajes</h1>
+                    <p>Registro y control de las personas que utilizan cada servicio de transporte.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span>Personas registradas</span>
+                        <h2 id="boardingTotal">0</h2>
+                        <p>Registros de abordaje</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Viajes con pasajeros</span>
+                        <h2 id="boardingTrips">0</h2>
+                        <p>Viajes con abordajes registrados</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Abordajes de hoy</span>
+                        <h2 id="boardingToday">0</h2>
+                        <p>Personas registradas hoy</p>
+                    </div>
+                </div>
+
+                <div class="section-toolbar">
+                    <button class="secondary-button" type="button" id="backFromBoardings">Volver a Operaciones</button>
+                    <button class="primary-button" type="button" id="addBoardingButton">+ Registrar abordaje</button>
+                </div>
+
+                <div class="panel">
+                    <div class="section-toolbar">
+                        <div>
+                            <h3 style="font-size:14px;margin-bottom:5px;">Personas registradas</h3>
+                            <p style="font-size:11px;color:var(--texto);">Cada persona queda vinculada al viaje seleccionado y a su vehículo asignado.</p>
+                        </div>
+                        <div class="toolbar-filters">
+                            <input class="field-control" id="boardingSearch" type="search" placeholder="Buscar nombre o destino">
+                            <select class="field-control" id="boardingTripFilter">
+                                <option value="">Todos los viajes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>FECHA</th>
+                                    <th>PERSONA</th>
+                                    <th>VIAJE</th>
+                                    <th>VEHÍCULO</th>
+                                    <th>HORA</th>
+                                    <th>PUNTO DE ABORDAJE</th>
+                                    <th>CONTACTO</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="boardingsTableBody">
+                                <tr><td colspan="8" class="empty-state">No hay abordajes registrados todavía.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ================================= -->
             <!-- PERSONAL -->
             <!-- ================================= -->
 
@@ -1166,6 +1238,7 @@
         finanzas: "Finanzas",
         vehiculos: "Vehículos",
         viajes: "Viajes",
+        abordajes: "Abordajes",
         administracion: "Administración"
     };
 
@@ -1292,7 +1365,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
+        const isOperationsSubview = ["vehiculos", "viajes", "abordajes"].includes(viewName) && allowedModules.has("operaciones");
         if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
@@ -1503,7 +1576,10 @@
         if (!button) return;
 
         trips = trips.filter(trip => trip.id !== button.dataset.deleteTrip);
+        boardings = boardings.filter(boarding => boarding.tripId !== button.dataset.deleteTrip);
         renderTrips();
+        refreshBoardingTripOptions();
+        renderBoardings();
     });
 
     renderTrips();
@@ -1632,13 +1708,188 @@
 
         const vehicleId = button.dataset.deleteVehicle;
         vehicles = vehicles.filter(vehicle => vehicle.id !== vehicleId);
+        const removedTripIds = trips.filter(trip => trip.vehicleId === vehicleId).map(trip => trip.id);
         trips = trips.filter(trip => trip.vehicleId !== vehicleId);
+        boardings = boardings.filter(boarding => !removedTripIds.includes(boarding.tripId));
         renderVehicles();
         renderTrips();
         refreshTripVehicleOptions();
+        refreshBoardingTripOptions();
+        renderBoardings();
     });
 
     renderVehicles();
+
+    // =====================================
+    // ABORDAJES - INTERFAZ PREPARADA
+    // =====================================
+
+    const boardingModal = document.getElementById("boardingModal");
+    const boardingForm = document.getElementById("boardingForm");
+    const boardingsTableBody = document.getElementById("boardingsTableBody");
+    const boardingSearch = document.getElementById("boardingSearch");
+    const boardingTripFilter = document.getElementById("boardingTripFilter");
+
+    // Registros temporales. La persistencia se conectará después con Supabase.
+    let boardings = [];
+
+    function refreshBoardingTripOptions() {
+        const select = document.getElementById("boardingTrip");
+        const previousValue = select.value;
+        select.innerHTML = '<option value="">Seleccionar viaje</option>';
+
+        trips.forEach(trip => {
+            const vehicle = vehicles.find(item => item.id === trip.vehicleId);
+            const option = document.createElement("option");
+            option.value = trip.id;
+            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination +
+                " · " + (vehicle ? vehicle.code + " / " + vehicle.plate : "Sin vehículo");
+            select.appendChild(option);
+        });
+
+        if (previousValue && trips.some(trip => trip.id === previousValue)) {
+            select.value = previousValue;
+        }
+
+        select.disabled = trips.length === 0;
+        if (!trips.length) {
+            select.innerHTML = '<option value="">Primero registra un viaje</option>';
+        }
+
+        const filterValue = boardingTripFilter.value;
+        boardingTripFilter.innerHTML = '<option value="">Todos los viajes</option>';
+        trips.forEach(trip => {
+            const option = document.createElement("option");
+            option.value = trip.id;
+            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination;
+            boardingTripFilter.appendChild(option);
+        });
+        if (trips.some(trip => trip.id === filterValue)) {
+            boardingTripFilter.value = filterValue;
+        }
+    }
+
+    function openBoardingModal() {
+        refreshBoardingTripOptions();
+        if (!trips.length) {
+            alert("Primero registra un viaje para poder agregar personas a sus abordajes.");
+            return;
+        }
+        boardingForm.reset();
+        document.getElementById("boardingDate").value = new Date().toISOString().slice(0, 10);
+        refreshBoardingTripOptions();
+        boardingModal.classList.add("open");
+        boardingModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeBoardingModal() {
+        boardingModal.classList.remove("open");
+        boardingModal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderBoardings() {
+        const search = boardingSearch.value.trim().toLowerCase();
+        const tripId = boardingTripFilter.value;
+
+        const filtered = boardings.filter(boarding => {
+            const trip = trips.find(item => item.id === boarding.tripId);
+            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
+            const tripLabel = trip ? trip.origin + " " + trip.destination : "";
+            const vehicleLabel = vehicle ? vehicle.code + " " + vehicle.plate : "";
+            const matchesSearch = [boarding.name, boarding.contact, boarding.boardingPoint, tripLabel, vehicleLabel]
+                .join(" ").toLowerCase().includes(search);
+            return matchesSearch && (!tripId || boarding.tripId === tripId);
+        });
+
+        document.getElementById("boardingTotal").textContent = boardings.length;
+        document.getElementById("boardingTrips").textContent =
+            new Set(boardings.map(item => item.tripId)).size;
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById("boardingToday").textContent =
+            boardings.filter(item => item.date === today).length;
+
+        if (!filtered.length) {
+            boardingsTableBody.innerHTML =
+                '<tr><td colspan="8" class="empty-state">No se encontraron abordajes.</td></tr>';
+            return;
+        }
+
+        boardingsTableBody.innerHTML = filtered.map(boarding => {
+            const trip = trips.find(item => item.id === boarding.tripId);
+            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
+            return `
+                <tr>
+                    <td>${escapeHtml(boarding.date)}</td>
+                    <td>${escapeHtml(boarding.name)}</td>
+                    <td>${escapeHtml(trip ? trip.origin + " → " + trip.destination : "—")}</td>
+                    <td>${escapeHtml(vehicle ? vehicle.code + " · " + vehicle.plate : "—")}</td>
+                    <td>${escapeHtml(boarding.time || "—")}</td>
+                    <td>${escapeHtml(boarding.boardingPoint || "—")}</td>
+                    <td>${escapeHtml(boarding.contact || "—")}</td>
+                    <td><button class="table-action" type="button" data-delete-boarding="${boarding.id}">Eliminar</button></td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    document.querySelectorAll("[data-open-boardings]").forEach(button => {
+        button.addEventListener("click", () => openView("abordajes"));
+    });
+
+    document.getElementById("backFromBoardings").addEventListener("click", () => {
+        openView("operaciones");
+    });
+
+    document.getElementById("addBoardingButton").addEventListener("click", openBoardingModal);
+    document.getElementById("closeBoardingModal").addEventListener("click", closeBoardingModal);
+    document.getElementById("cancelBoarding").addEventListener("click", closeBoardingModal);
+
+    boardingModal.addEventListener("click", event => {
+        if (event.target === boardingModal) closeBoardingModal();
+    });
+
+    boardingSearch.addEventListener("input", renderBoardings);
+    boardingTripFilter.addEventListener("change", renderBoardings);
+
+    boardingForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const formData = new FormData(boardingForm);
+        const tripId = String(formData.get("tripId"));
+        if (!trips.some(trip => trip.id === tripId)) {
+            alert("Selecciona un viaje válido.");
+            return;
+        }
+
+        const name = String(formData.get("name") || "").trim();
+        if (!name) {
+            alert("Ingresa el nombre de la persona.");
+            return;
+        }
+
+        boardings.push({
+            id: Date.now().toString(),
+            tripId,
+            name,
+            date: String(formData.get("date")),
+            time: String(formData.get("time") || ""),
+            boardingPoint: String(formData.get("boardingPoint") || "").trim(),
+            contact: String(formData.get("contact") || "").trim(),
+            notes: String(formData.get("notes") || "").trim()
+        });
+
+        renderBoardings();
+        closeBoardingModal();
+    });
+
+    boardingsTableBody.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-boarding]");
+        if (!button) return;
+        boardings = boardings.filter(item => item.id !== button.dataset.deleteBoarding);
+        renderBoardings();
+    });
+
+    renderBoardings();
 
     // =====================================
     // MENÚ MÓVIL
@@ -1743,6 +1994,55 @@
                 <div class="form-actions">
                     <button class="secondary-button" type="button" id="cancelTrip">Cancelar</button>
                     <button class="primary-button" type="submit">Guardar viaje</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="boardingModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="boardingModalTitle">
+            <div class="modal-header">
+                <h2 id="boardingModalTitle">Registrar abordaje</h2>
+                <button class="modal-close" type="button" id="closeBoardingModal" aria-label="Cerrar">×</button>
+            </div>
+
+            <form id="boardingForm">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="boardingName">Nombre completo *</label>
+                        <input id="boardingName" name="name" required maxlength="120" placeholder="Nombre de la persona">
+                    </div>
+                    <div class="form-field">
+                        <label for="boardingTrip">Viaje asignado *</label>
+                        <select id="boardingTrip" name="tripId" required>
+                            <option value="">Seleccionar viaje</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="boardingDate">Fecha de abordaje *</label>
+                        <input id="boardingDate" name="date" type="date" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="boardingTime">Hora</label>
+                        <input id="boardingTime" name="time" type="time">
+                    </div>
+                    <div class="form-field">
+                        <label for="boardingPoint">Punto de abordaje</label>
+                        <input id="boardingPoint" name="boardingPoint" maxlength="100" placeholder="Lugar donde aborda">
+                    </div>
+                    <div class="form-field">
+                        <label for="boardingContact">Contacto (opcional)</label>
+                        <input id="boardingContact" name="contact" maxlength="40" placeholder="Teléfono">
+                    </div>
+                    <div class="form-field full-width">
+                        <label for="boardingNotes">Observaciones</label>
+                        <textarea id="boardingNotes" name="notes" rows="3" maxlength="500" placeholder="Información adicional (opcional)"></textarea>
+                    </div>
+                </div>
+                <p class="form-message">Los abordajes se guardan temporalmente en esta pantalla. La conexión con Supabase queda pendiente.</p>
+                <div class="form-actions">
+                    <button class="secondary-button" type="button" id="cancelBoarding">Cancelar</button>
+                    <button class="primary-button" type="submit">Guardar abordaje</button>
                 </div>
             </form>
         </div>
