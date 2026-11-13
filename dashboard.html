@@ -1243,7 +1243,7 @@
             <div class="form-field full"><label for="receivableDescription">Servicio / descripción *</label><input id="receivableDescription" name="description" required maxlength="180" placeholder="Ej. Transporte contratado / viaje"></div>
             <div class="form-field"><label for="receivableIssueDate">Fecha de emisión *</label><input id="receivableIssueDate" name="issueDate" type="date" required></div>
             <div class="form-field"><label for="receivableDueDate">Fecha de vencimiento</label><input id="receivableDueDate" name="dueDate" type="date"></div>
-            <div class="form-field"><label for="receivableStatus">Estado</label><select id="receivableStatus" name="status"><option>Pendiente</option><option>Parcial</option><option>Pagada</option><option>Cancelada</option></select></div>
+            <div class="form-field"><label for="receivableStatus">Estado</label><select id="receivableStatus" name="status"><option>Pendiente</option><option>Cancelada</option></select></div>
             <div class="form-field full"><label for="receivableNotes">Observaciones</label><textarea id="receivableNotes" name="notes" maxlength="500"></textarea></div>
         </div>
         <p class="form-message">Los abonos se registran por separado para conservar el historial de cobros.</p>
@@ -2371,7 +2371,7 @@
     let financialReceivables=[], financialCollections=[], financialExpenses=[];
     let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[];
     let editingReceivableId=null, editingExpenseId=null;
-    const financeToday=()=>new Date().toISOString().slice(0,10);
+    const financeToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
     const financeMoney=value=>formatQuetzales(Number(value||0));
     const financeModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
     const financeModalClose=id=>{const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");};
