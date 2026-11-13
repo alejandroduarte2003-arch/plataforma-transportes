@@ -558,6 +558,14 @@
             .toolbar-filters > * { flex: 1; }
         }
 
+        .personal-tabs{display:flex;gap:8px;border-bottom:1px solid var(--gris);margin-bottom:20px}
+        .personal-tab{border:0;border-bottom:2px solid transparent;background:transparent;color:var(--texto);padding:12px 16px;cursor:pointer;font-size:12px;font-weight:600}
+        .personal-tab.active{color:var(--azul);border-bottom-color:var(--azul)}
+        .personal-panel{display:none}.personal-panel.active{display:block}
+        .personal-panel h3{font-size:15px}.personal-hint{color:var(--texto);font-size:11px;margin-top:5px}
+        .table-panel{margin-top:16px;padding:0;overflow:hidden}.table-panel table{min-width:780px}
+        .table-actions{display:flex;gap:5px;flex-wrap:wrap}
+
         /* RESPONSIVE */
 
         @media(max-width: 1000px) {
@@ -1085,43 +1093,34 @@
             <!-- ================================= -->
 
             <section class="view" id="view-personal">
-
-                <div class="page-heading">
-                    <h1>Personal</h1>
-                    <p>Administración de trabajadores y obligaciones laborales.</p>
+                <div class="page-heading"><h1>Personal</h1><p>Administra trabajadores, préstamos y pagos de planilla.</p></div>
+                <div class="stats-grid">
+                    <div class="stat-card"><span>Trabajadores activos</span><h2 id="employeeActiveTotal">0</h2><p>Personal vigente</p></div>
+                    <div class="stat-card"><span>Préstamos activos</span><h2 id="loanActiveTotal">0</h2><p>Obligaciones pendientes</p></div>
+                    <div class="stat-card"><span>Saldo de préstamos</span><h2 id="loanBalanceTotal">Q0.00</h2><p>Saldo por recuperar</p></div>
+                    <div class="stat-card"><span>Planilla pendiente</span><h2 id="payrollPendingTotal">Q0.00</h2><p>Pagos por realizar</p></div>
                 </div>
-
-                <div class="module-items">
-
-                    <div class="module-item">
-                        <h3>Trabajadores</h3>
-                        <p>Información personal, puestos, contactos y estado laboral.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Préstamos</h3>
-                        <p>Registro de préstamos, saldos pendientes y descuentos por cuotas.</p>
-                    </div>
-
-                    <div class="module-item">
-                        <h3>Planilla</h3>
-                        <p>Control de salarios, deducciones, préstamos y pagos al personal.</p>
-                    </div>
-
+                <div class="personal-tabs">
+                    <button class="personal-tab active" data-personal-tab="employees" type="button">Trabajadores</button>
+                    <button class="personal-tab" data-personal-tab="loans" type="button">Préstamos</button>
+                    <button class="personal-tab" data-personal-tab="payroll" type="button">Planilla</button>
                 </div>
-
-                <div class="panel" style="margin-top:20px;">
-                    <div class="panel-heading">
-                        <h3>Personal registrado</h3>
-                        <span>Trabajadores</span>
-                    </div>
-                    <div class="empty-state">
-                        No hay trabajadores registrados todavía.
-                    </div>
+                <div class="personal-panel active" id="personal-employees">
+                    <div class="section-toolbar"><div><h3>Trabajadores</h3><p class="personal-hint">Datos y estado del personal.</p></div><button class="primary-button" id="addEmployeeButton" type="button">+ Registrar trabajador</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="employeeSearch" type="search" placeholder="Buscar trabajador..."><select class="field-control" id="employeeStatusFilter"><option value="">Todos los estados</option><option>Activo</option><option>Inactivo</option></select></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Salario base</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="employeesTableBody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
-
+                <div class="personal-panel" id="personal-loans">
+                    <div class="section-toolbar"><div><h3>Préstamos al personal</h3><p class="personal-hint">Control de montos, cuotas y saldos.</p></div><button class="primary-button" id="addLoanButton" type="button">+ Registrar préstamo</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="loanSearch" type="search" placeholder="Buscar por trabajador..."><select class="field-control" id="loanStatusFilter"><option value="">Todos los estados</option><option>Activo</option><option>Pagado</option><option>Cancelado</option></select></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Trabajador</th><th>Motivo</th><th>Monto inicial</th><th>Saldo</th><th>Cuota</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="loansTableBody"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                </div>
+                <div class="personal-panel" id="personal-payroll">
+                    <div class="section-toolbar"><div><h3>Planilla</h3><p class="personal-hint">Salarios, bonificaciones, descuentos y pagos.</p></div><button class="primary-button" id="addPayrollButton" type="button">+ Crear registro de planilla</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="payrollSearch" type="search" placeholder="Buscar trabajador..."><input class="field-control" id="payrollPeriodFilter" type="month" aria-label="Filtrar período"><select class="field-control" id="payrollStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>Pagada</option></select></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Período</th><th>Trabajador</th><th>Salario</th><th>Bonos</th><th>Otras deducciones</th><th>Préstamo</th><th>Neto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="payrollTableBody"><tr><td colspan="9" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                </div>
             </section>
-
 
             <!-- ================================= -->
             <!-- FLOTA Y GASTOS -->
@@ -1336,6 +1335,9 @@
 
             if (allowedModules.has("operaciones")) {
                 await loadOperationalData();
+            }
+            if (allowedModules.has("personal")) {
+                await loadPersonalData();
             }
 
         } catch (error) {
@@ -1999,6 +2001,143 @@
 
     renderBoardings();
 
+    // PERSONAL: DATOS Y OPERACIONES
+    let employees=[], employeeLoans=[], payrollRecords=[];
+    let editingEmployeeId=null, editingLoanId=null, editingPayrollId=null;
+    const employeeForm=document.getElementById("employeeForm");
+    const loanForm=document.getElementById("loanForm");
+    const payrollForm=document.getElementById("payrollForm");
+    const money=value=>formatQuetzales(Number(value||0));
+    const openPersonalModal=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
+    const closePersonalModal=id=>{const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");};
+    document.querySelectorAll("[data-close-modal]").forEach(btn=>btn.addEventListener("click",()=>closePersonalModal(btn.dataset.closeModal)));
+    ["employeeModal","loanModal","payrollModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)closePersonalModal(id);}));
+    document.querySelectorAll("[data-personal-tab]").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelectorAll("[data-personal-tab]").forEach(x=>x.classList.toggle("active",x===btn));
+        document.querySelectorAll(".personal-panel").forEach(x=>x.classList.toggle("active",x.id==="personal-"+btn.dataset.personalTab));
+    }));
+    const employeeName=id=>employees.find(x=>x.id===id)?.fullName||"Trabajador no disponible";
+    function refreshPersonalSelects(){
+        const options=employees.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.fullName)+(x.status==="Activo"?"":" · Inactivo")+'</option>').join("");
+        document.getElementById("loanEmployee").innerHTML='<option value="">Seleccionar trabajador</option>'+options;
+        document.getElementById("payrollEmployee").innerHTML='<option value="">Seleccionar trabajador</option>'+options;
+    }
+    function renderPersonalSummary(){
+        document.getElementById("employeeActiveTotal").textContent=employees.filter(x=>x.status==="Activo").length;
+        document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo"&&x.balance>0).length;
+        document.getElementById("loanBalanceTotal").textContent=money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+x.balance,0));
+        document.getElementById("payrollPendingTotal").textContent=money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+x.netPay,0));
+    }
+    function renderEmployees(){
+        const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
+        const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
+    }
+    function renderLoans(){
+        const q=document.getElementById("loanSearch").value.trim().toLowerCase(),st=document.getElementById("loanStatusFilter").value;
+        const rows=employeeLoans.filter(x=>(employeeName(x.employeeId)+" "+x.reason).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("loansTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${escapeHtml(x.reason||"—")}</td><td>${money(x.amount)}</td><td>${money(x.balance)}</td><td>${money(x.installmentAmount)}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-loan="${x.id}">Editar</button><button class="table-action" data-delete-loan="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron préstamos.</td></tr>';
+    }
+    function renderPayroll(){
+        const q=document.getElementById("payrollSearch").value.trim().toLowerCase(),period=document.getElementById("payrollPeriodFilter").value,st=document.getElementById("payrollStatusFilter").value;
+        const rows=payrollRecords.filter(x=>employeeName(x.employeeId).toLowerCase().includes(q)&&(!period||x.period.startsWith(period))&&(!st||x.status===st));
+        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.period.slice(0,7)}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${money(x.baseSalary)}</td><td>${money(x.bonuses)}</td><td>${money(x.otherDeductions)}</td><td>${money(x.loanDeduction)}</td><td><strong>${money(x.netPay)}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button>':""}<button class="table-action" data-edit-payroll="${x.id}">Editar</button><button class="table-action" data-delete-payroll="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="9" class="empty-state">No se encontraron registros de planilla.</td></tr>';
+    }
+    function renderPersonal(){renderPersonalSummary();renderEmployees();renderLoans();renderPayroll();refreshPersonalSelects();}
+    async function loadPersonalData(){
+        try{
+            const [er,lr,pr]=await Promise.all([
+                supabase.from("employees").select("*").order("full_name"),
+                supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
+                supabase.from("payroll_records").select("*").order("period",{ascending:false})
+            ]);
+            if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
+            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(x.base_salary||0),status:x.status,notes:x.notes||""}));
+            employeeLoans=(lr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:Number(x.amount),balance:Number(x.balance),installmentAmount:Number(x.installment_amount),installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""}));
+            payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
+            renderPersonal();
+        }catch(error){showOperationError(error,"cargar los registros de Personal");}
+    }
+    function openEmployeeModal(x=null){
+        editingEmployeeId=x?.id||null;employeeForm.reset();
+        document.getElementById("employeeModalTitle").textContent=x?"Editar trabajador":"Registrar trabajador";
+        [["employeeFullName",x?.fullName],["employeeDpi",x?.dpi],["employeePosition",x?.position],["employeePhone",x?.phone],["employeeHireDate",x?.hireDate],["employeeBaseSalary",x?.baseSalary??0],["employeeStatus",x?.status||"Activo"],["employeeNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v||"");
+        if(!x)document.getElementById("employeeBaseSalary").value=0;
+        openPersonalModal("employeeModal");
+    }
+    function openLoanModal(x=null){
+        editingLoanId=x?.id||null;loanForm.reset();refreshPersonalSelects();
+        document.getElementById("loanModalTitle").textContent=x?"Editar préstamo":"Registrar préstamo";
+        [["loanEmployee",x?.employeeId],["loanReason",x?.reason],["loanAmount",x?.amount],["loanBalance",x?.balance],["loanInstallment",x?.installmentAmount],["loanStartDate",x?.startDate||new Date().toISOString().slice(0,10)],["loanInstallmentsTotal",x?.installmentsTotal],["loanInstallmentsPaid",x?.installmentsPaid??0],["loanStatus",x?.status||"Activo"],["loanNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        openPersonalModal("loanModal");
+    }
+    function calcPayroll(){
+        const n=Number(document.getElementById("payrollBaseSalary").value||0)+Number(document.getElementById("payrollBonuses").value||0)-Number(document.getElementById("payrollOtherDeductions").value||0)-Number(document.getElementById("payrollLoanDeduction").value||0);
+        document.getElementById("payrollNetPay").value=Math.max(0,n).toFixed(2);return n;
+    }
+    function openPayrollModal(x=null){
+        editingPayrollId=x?.id||null;payrollForm.reset();refreshPersonalSelects();
+        document.getElementById("payrollModalTitle").textContent=x?"Editar planilla":"Crear registro de planilla";
+        [["payrollEmployee",x?.employeeId],["payrollPeriod",x?.period?.slice(0,7)||new Date().toISOString().slice(0,7)],["payrollBaseSalary",x?.baseSalary??""],["payrollBonuses",x?.bonuses??0],["payrollOtherDeductions",x?.otherDeductions??0],["payrollLoanDeduction",x?.loanDeduction??0],["payrollPaymentDate",x?.paymentDate],["payrollStatus",x?.status||"Pendiente"],["payrollNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        calcPayroll();openPersonalModal("payrollModal");
+    }
+    document.getElementById("payrollEmployee").addEventListener("change",()=>{
+        const x=employees.find(e=>e.id===document.getElementById("payrollEmployee").value);if(!x)return;
+        document.getElementById("payrollBaseSalary").value=x.baseSalary.toFixed(2);
+        const suggested=employeeLoans.filter(l=>l.employeeId===x.id&&l.status==="Activo"&&l.balance>0).reduce((s,l)=>s+Math.min(l.installmentAmount,l.balance),0);
+        document.getElementById("payrollLoanDeduction").value=suggested.toFixed(2);calcPayroll();
+    });
+    ["payrollBaseSalary","payrollBonuses","payrollOtherDeductions","payrollLoanDeduction"].forEach(id=>document.getElementById(id).addEventListener("input",calcPayroll));
+    document.getElementById("addEmployeeButton").addEventListener("click",()=>openEmployeeModal());
+    document.getElementById("addLoanButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openLoanModal():alert("Primero registra un trabajador activo."));
+    document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
+    employeeForm.addEventListener("submit",async e=>{
+        e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
+        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
+            const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
+            closePersonalModal("employeeModal");await loadPersonalData();
+        }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
+    });
+    loanForm.addEventListener("submit",async e=>{
+        e.preventDefault();if(!currentUserId)return;const btn=loanForm.querySelector('[type="submit"]');btn.disabled=true;
+        try{const d=new FormData(loanForm),amount=Number(d.get("amount")),balance=Number(d.get("balance"));if(balance>amount)throw Error("El saldo no puede superar el monto inicial.");
+            const p={employee_id:String(d.get("employeeId")),reason:String(d.get("reason")||"").trim(),amount,balance,installment_amount:Number(d.get("installmentAmount")),installments_total:d.get("installmentsTotal")?Number(d.get("installmentsTotal")):null,installments_paid:Number(d.get("installmentsPaid")||0),start_date:String(d.get("startDate")),status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
+            const q=editingLoanId?supabase.from("employee_loans").update(p).eq("id",editingLoanId):supabase.from("employee_loans").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
+            closePersonalModal("loanModal");await loadPersonalData();
+        }catch(error){showOperationError(error,"guardar el préstamo");}finally{btn.disabled=false;}
+    });
+    payrollForm.addEventListener("submit",async e=>{
+        e.preventDefault();if(!currentUserId)return;const btn=payrollForm.querySelector('[type="submit"]');btn.disabled=true;
+        try{const d=new FormData(payrollForm),month=String(d.get("period")),net=calcPayroll();if(!month)throw Error("Selecciona el período.");if(net<0)throw Error("Las deducciones no pueden superar los ingresos.");
+            const status=String(d.get("status")),p={employee_id:String(d.get("employeeId")),period:month+"-01",base_salary:Number(d.get("baseSalary")),bonuses:Number(d.get("bonuses")||0),other_deductions:Number(d.get("otherDeductions")||0),loan_deduction:Number(d.get("loanDeduction")||0),net_pay:Number(net.toFixed(2)),status,payment_date:status==="Pagada"?(String(d.get("paymentDate")||"")||new Date().toISOString().slice(0,10)):null,notes:String(d.get("notes")||"").trim()};
+            const q=editingPayrollId?supabase.from("payroll_records").update(p).eq("id",editingPayrollId):supabase.from("payroll_records").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
+            closePersonalModal("payrollModal");await loadPersonalData();
+        }catch(error){showOperationError(error,"guardar la planilla");}finally{btn.disabled=false;}
+    });
+    document.getElementById("employeesTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-employee]"),toggle=e.target.closest("[data-toggle-employee]");
+        if(edit){openEmployeeModal(employees.find(x=>x.id===edit.dataset.editEmployee));return;}
+        if(toggle){const x=employees.find(v=>v.id===toggle.dataset.toggleEmployee),status=x.status==="Activo"?"Inactivo":"Activo";if(!confirm("¿"+(status==="Activo"?"Activar":"Desactivar")+" a "+x.fullName+"?"))return;
+            const {error}=await supabase.from("employees").update({status}).eq("id",x.id);if(error)showOperationError(error,"actualizar el trabajador");else await loadPersonalData();}
+    });
+    document.getElementById("loansTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-loan]"),del=e.target.closest("[data-delete-loan]");
+        if(edit){openLoanModal(employeeLoans.find(x=>x.id===edit.dataset.editLoan));return;}
+        if(del&&confirm("¿Eliminar este préstamo?")){const {error}=await supabase.from("employee_loans").delete().eq("id",del.dataset.deleteLoan);if(error)showOperationError(error,"eliminar el préstamo");else await loadPersonalData();}
+    });
+    document.getElementById("payrollTableBody").addEventListener("click",async e=>{
+        const edit=e.target.closest("[data-edit-payroll]"),pay=e.target.closest("[data-pay-payroll]"),del=e.target.closest("[data-delete-payroll]");
+        if(edit){openPayrollModal(payrollRecords.find(x=>x.id===edit.dataset.editPayroll));return;}
+        if(pay&&confirm("¿Confirmas que esta planilla ya fue pagada?")){const {error}=await supabase.from("payroll_records").update({status:"Pagada",payment_date:new Date().toISOString().slice(0,10)}).eq("id",pay.dataset.payPayroll);if(error)showOperationError(error,"marcar la planilla como pagada");else await loadPersonalData();}
+        if(del&&confirm("¿Eliminar este registro de planilla?")){const {error}=await supabase.from("payroll_records").delete().eq("id",del.dataset.deletePayroll);if(error)showOperationError(error,"eliminar la planilla");else await loadPersonalData();}
+    });
+    ["employeeSearch","loanSearch","payrollSearch"].forEach(id=>document.getElementById(id).addEventListener("input",()=>({employeeSearch:renderEmployees,loanSearch:renderLoans,payrollSearch:renderPayroll}[id])()));
+    document.getElementById("employeeStatusFilter").addEventListener("change",renderEmployees);
+    document.getElementById("loanStatusFilter").addEventListener("change",renderLoans);
+    document.getElementById("payrollPeriodFilter").addEventListener("change",renderPayroll);
+    document.getElementById("payrollStatusFilter").addEventListener("change",renderPayroll);
+
+
     // =====================================
     // MENÚ MÓVIL
     // =====================================
@@ -2040,6 +2179,32 @@
 
 </script>
 
+
+    <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
+        <div class="form-field full"><label>Nombre completo *</label><input name="fullName" id="employeeFullName" required maxlength="150"></div>
+        <div class="form-field"><label>DPI</label><input name="dpi" id="employeeDpi" maxlength="20"></div><div class="form-field"><label>Puesto *</label><input name="position" id="employeePosition" required maxlength="100"></div>
+        <div class="form-field"><label>Teléfono</label><input name="phone" id="employeePhone" maxlength="30"></div><div class="form-field"><label>Fecha de ingreso</label><input name="hireDate" id="employeeHireDate" type="date"></div>
+        <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
+        <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="employeeNotes" maxlength="1000"></textarea></div></div>
+        <div class="form-actions"><button class="secondary-button" type="button" data-close-modal="employeeModal">Cancelar</button><button class="primary-button" type="submit">Guardar trabajador</button></div></form></div></div>
+
+    <div class="modal-backdrop" id="loanModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="loanModalTitle">Registrar préstamo</h2><button class="modal-close" type="button" data-close-modal="loanModal">×</button></div><form id="loanForm"><div class="form-grid">
+        <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="loanEmployee" required></select></div>
+        <div class="form-field full"><label>Motivo</label><input name="reason" id="loanReason" maxlength="180"></div>
+        <div class="form-field"><label>Monto inicial (Q) *</label><input name="amount" id="loanAmount" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Saldo pendiente (Q) *</label><input name="balance" id="loanBalance" type="number" min="0" step=".01" required></div>
+        <div class="form-field"><label>Cuota por período (Q) *</label><input name="installmentAmount" id="loanInstallment" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Fecha de inicio *</label><input name="startDate" id="loanStartDate" type="date" required></div>
+        <div class="form-field"><label>Número de cuotas</label><input name="installmentsTotal" id="loanInstallmentsTotal" type="number" min="1"></div><div class="form-field"><label>Cuotas pagadas</label><input name="installmentsPaid" id="loanInstallmentsPaid" type="number" min="0" value="0"></div>
+        <div class="form-field"><label>Estado</label><select name="status" id="loanStatus"><option>Activo</option><option>Pagado</option><option>Cancelado</option></select></div><div class="form-field full"><label>Observaciones</label><textarea name="notes" id="loanNotes" maxlength="1000"></textarea></div></div>
+        <p class="form-message">Actualiza el saldo y las cuotas conforme se realicen abonos o descuentos.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="loanModal">Cancelar</button><button class="primary-button" type="submit">Guardar préstamo</button></div></form></div></div>
+
+    <div class="modal-backdrop" id="payrollModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="payrollModalTitle">Crear registro de planilla</h2><button class="modal-close" type="button" data-close-modal="payrollModal">×</button></div><form id="payrollForm"><div class="form-grid">
+        <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="payrollEmployee" required></select></div>
+        <div class="form-field"><label>Período *</label><input name="period" id="payrollPeriod" type="month" required></div><div class="form-field"><label>Salario base (Q) *</label><input name="baseSalary" id="payrollBaseSalary" type="number" min="0" step=".01" required></div>
+        <div class="form-field"><label>Bonificaciones (Q)</label><input name="bonuses" id="payrollBonuses" type="number" min="0" step=".01" value="0"></div><div class="form-field"><label>Otras deducciones (Q)</label><input name="otherDeductions" id="payrollOtherDeductions" type="number" min="0" step=".01" value="0"></div>
+        <div class="form-field"><label>Descuento de préstamo (Q)</label><input name="loanDeduction" id="payrollLoanDeduction" type="number" min="0" step=".01" value="0"></div><div class="form-field"><label>Neto a pagar (Q)</label><input name="netPay" id="payrollNetPay" type="number" readonly value="0"></div>
+        <div class="form-field"><label>Fecha de pago</label><input name="paymentDate" id="payrollPaymentDate" type="date"></div><div class="form-field"><label>Estado</label><select name="status" id="payrollStatus"><option>Pendiente</option><option>Pagada</option></select></div>
+        <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="payrollNotes" maxlength="1000"></textarea></div></div>
+        <p class="form-message">Neto = salario + bonificaciones − otras deducciones − descuento de préstamo. El descuento de planilla no modifica automáticamente el saldo del préstamo.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="payrollModal">Cancelar</button><button class="primary-button" type="submit">Guardar planilla</button></div></form></div></div>
 
     <div class="modal-backdrop" id="tripModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tripModalTitle">
