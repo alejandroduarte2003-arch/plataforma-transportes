@@ -1,9 +1,11 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>INCOROVA | Plataforma de Transportes</title>
 
     <style>
@@ -61,6 +63,11 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+        }
+
+        #logoutButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         main {
@@ -132,6 +139,7 @@
         </section>
 
         <section class="dashboard-content">
+
             <div id="loadingMessage">
                 Verificando sesión...
             </div>
@@ -140,6 +148,7 @@
                 <h2>Bienvenido a INCOROVA</h2>
                 <p>Tu sesión está activa.</p>
             </div>
+
         </section>
 
     </main>
@@ -153,52 +162,86 @@
         const loadingMessage = document.getElementById("loadingMessage");
         const dashboardContent = document.getElementById("dashboardContent");
 
+        let redirecting = false;
+
+        // =====================================
         // VERIFICAR SESIÓN
+        // =====================================
 
         async function verifySession() {
 
-            const { data, error } = await supabase.auth.getSession();
+            try {
 
-            if (error || !data.session) {
-                window.location.replace("./index.html");
-                return;
+                const { data, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    throw error;
+                }
+
+                if (!data.session) {
+
+                    redirecting = true;
+
+                    window.location.replace("./index.html");
+
+                    return;
+                }
+
+                userEmail.textContent = data.session.user.email;
+
+                loadingMessage.hidden = true;
+                dashboardContent.hidden = false;
+
+            } catch (error) {
+
+                console.error("Error verificando sesión:", error);
+
+                loadingMessage.textContent =
+                    "No fue posible verificar la sesión. Recarga la página.";
+
             }
 
-            userEmail.textContent = data.session.user.email;
-
-            loadingMessage.hidden = true;
-            dashboardContent.hidden = false;
         }
 
+        // =====================================
         // CERRAR SESIÓN
+        // =====================================
 
         logoutButton.addEventListener("click", async () => {
 
+            if (redirecting) return;
+
             logoutButton.disabled = true;
+            logoutButton.textContent = "Cerrando sesión...";
 
-            const { error } = await supabase.auth.signOut();
+            try {
 
-            if (error) {
-                alert("No se pudo cerrar la sesión.");
-                logoutButton.disabled = false;
-                return;
-            }
+                const { error } = await supabase.auth.signOut();
 
-            window.location.replace("./index.html");
+                if (error) {
+                    throw error;
+                }
 
-        });
+                redirecting = true;
 
-        // DETECTAR CIERRE DE SESIÓN
-
-        supabase.auth.onAuthStateChange((event, session) => {
-
-            if (event === "SIGNED_OUT" || !session) {
                 window.location.replace("./index.html");
+
+            } catch (error) {
+
+                console.error("Error cerrando sesión:", error);
+
+                alert("No fue posible cerrar la sesión.");
+
+                logoutButton.disabled = false;
+                logoutButton.textContent = "Cerrar sesión";
+
             }
 
         });
 
-        // INICIAR
+        // =====================================
+        // INICIAR DASHBOARD
+        // =====================================
 
         verifySession();
 
