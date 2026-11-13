@@ -827,9 +827,10 @@
                         <button class="primary-button" type="button" data-open-vehicles>Administrar vehículos</button>
                     </div>
 
-                    <div class="module-item">
+                    <div class="module-item vehicle-card" data-open-trips>
                         <h3>Viajes</h3>
                         <p>Control de recorridos, fechas, responsables, contratos e ingresos por viaje.</p>
+                        <button class="primary-button" type="button" data-open-trips>Administrar viajes</button>
                     </div>
 
                     <div class="module-item">
@@ -919,6 +920,87 @@
                             </thead>
                             <tbody id="vehiclesTableBody">
                                 <tr><td colspan="7" class="empty-state">No hay vehículos registrados todavía.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ================================= -->
+            <!-- VIAJES -->
+            <!-- ================================= -->
+
+            <section class="view" id="view-viajes">
+
+                <div class="page-heading">
+                    <h1>Viajes</h1>
+                    <p>Programa y controla los recorridos y servicios de transporte.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span>Total de viajes</span>
+                        <h2 id="tripTotal">0</h2>
+                        <p>Viajes registrados</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Programados</span>
+                        <h2 id="tripScheduled">0</h2>
+                        <p>Pendientes de realizar</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Completados</span>
+                        <h2 id="tripCompleted">0</h2>
+                        <p>Servicios finalizados</p>
+                    </div>
+                    <div class="stat-card">
+                        <span>Ingresos registrados</span>
+                        <h2 id="tripIncome">Q 0.00</h2>
+                        <p>Suma de ingresos de los viajes</p>
+                    </div>
+                </div>
+
+                <div class="section-toolbar">
+                    <button class="secondary-button" type="button" id="backFromTrips">Volver a Operaciones</button>
+                    <button class="primary-button" type="button" id="addTripButton">+ Registrar viaje</button>
+                </div>
+
+                <div class="panel">
+                    <div class="section-toolbar">
+                        <div>
+                            <h3 style="font-size:14px;margin-bottom:5px;">Viajes registrados</h3>
+                            <p style="font-size:11px;color:var(--texto);">Consulta recorridos, fechas y estado de cada servicio.</p>
+                        </div>
+                        <div class="toolbar-filters">
+                            <input class="field-control" id="tripSearch" type="search" placeholder="Buscar destino o responsable">
+                            <select class="field-control" id="tripStatusFilter">
+                                <option value="">Todos los estados</option>
+                                <option value="Programado">Programado</option>
+                                <option value="En curso">En curso</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>FECHA</th>
+                                    <th>VEHÍCULO</th>
+                                    <th>ORIGEN</th>
+                                    <th>DESTINO</th>
+                                    <th>RESPONSABLE</th>
+                                    <th>SERVICIO</th>
+                                    <th>INGRESO</th>
+                                    <th>ESTADO</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tripsTableBody">
+                                <tr><td colspan="9" class="empty-state">No hay viajes registrados todavía.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1083,6 +1165,7 @@
         flota: "Flota y gastos",
         finanzas: "Finanzas",
         vehiculos: "Vehículos",
+        viajes: "Viajes",
         administracion: "Administración"
     };
 
@@ -1209,7 +1292,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = viewName === "vehiculos" && allowedModules.has("operaciones");
+        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
         if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
@@ -1252,6 +1335,178 @@
             openView(button.dataset.go);
         });
     });
+
+    // =====================================
+    // VIAJES - INTERFAZ PREPARADA
+    // =====================================
+
+    const tripModal = document.getElementById("tripModal");
+    const tripForm = document.getElementById("tripForm");
+    const tripsTableBody = document.getElementById("tripsTableBody");
+    const tripSearch = document.getElementById("tripSearch");
+    const tripStatusFilter = document.getElementById("tripStatusFilter");
+
+    // Datos temporales de viajes. La persistencia se conectará después con Supabase.
+    let trips = [];
+
+    function openTripModal() {
+        refreshTripVehicleOptions();
+        tripForm.reset();
+        document.getElementById("tripDate").value =
+            new Date().toISOString().slice(0, 10);
+        refreshTripVehicleOptions();
+        tripModal.classList.add("open");
+        tripModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeTripModal() {
+        tripModal.classList.remove("open");
+        tripModal.setAttribute("aria-hidden", "true");
+    }
+
+    function refreshTripVehicleOptions() {
+        const select = document.getElementById("tripVehicle");
+        const selectedValue = select.value;
+        select.innerHTML = '<option value="">Seleccionar vehículo</option>';
+
+        vehicles.forEach(vehicle => {
+            const option = document.createElement("option");
+            option.value = vehicle.id;
+            option.textContent = vehicle.code + " · " + vehicle.plate;
+            select.appendChild(option);
+        });
+
+        if (selectedValue && vehicles.some(vehicle => vehicle.id === selectedValue)) {
+            select.value = selectedValue;
+        }
+
+        select.disabled = vehicles.length === 0;
+        if (vehicles.length === 0) {
+            select.innerHTML = '<option value="">Primero registra un vehículo</option>';
+        }
+    }
+
+    function formatQuetzales(value) {
+        return new Intl.NumberFormat("es-GT", {
+            style: "currency",
+            currency: "GTQ",
+            minimumFractionDigits: 2
+        }).format(value || 0);
+    }
+
+    function renderTrips() {
+        const search = tripSearch.value.trim().toLowerCase();
+        const status = tripStatusFilter.value;
+
+        const filtered = trips.filter(trip => {
+            const vehicle = vehicles.find(item => item.id === trip.vehicleId);
+            const vehicleLabel = vehicle ? vehicle.code + " " + vehicle.plate : "";
+            const matchesSearch = [
+                trip.origin, trip.destination, trip.responsible, vehicleLabel
+            ].join(" ").toLowerCase().includes(search);
+            return matchesSearch && (!status || trip.status === status);
+        });
+
+        document.getElementById("tripTotal").textContent = trips.length;
+        document.getElementById("tripScheduled").textContent =
+            trips.filter(trip => trip.status === "Programado").length;
+        document.getElementById("tripCompleted").textContent =
+            trips.filter(trip => trip.status === "Completado").length;
+        document.getElementById("tripIncome").textContent =
+            formatQuetzales(trips.reduce((sum, trip) => sum + trip.income, 0));
+
+        if (!filtered.length) {
+            tripsTableBody.innerHTML =
+                '<tr><td colspan="9" class="empty-state">No se encontraron viajes.</td></tr>';
+            return;
+        }
+
+        tripsTableBody.innerHTML = filtered.map(trip => {
+            const vehicle = vehicles.find(item => item.id === trip.vehicleId);
+            return `
+                <tr>
+                    <td>${escapeHtml(trip.date)}</td>
+                    <td>${escapeHtml(vehicle ? vehicle.code + " · " + vehicle.plate : "—")}</td>
+                    <td>${escapeHtml(trip.origin)}</td>
+                    <td>${escapeHtml(trip.destination)}</td>
+                    <td>${escapeHtml(trip.responsible)}</td>
+                    <td>${escapeHtml(trip.serviceType)}</td>
+                    <td>${formatQuetzales(trip.income)}</td>
+                    <td><span class="status-pill">${escapeHtml(trip.status)}</span></td>
+                    <td><button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    document.querySelectorAll("[data-open-trips]").forEach(button => {
+        button.addEventListener("click", () => openView("viajes"));
+    });
+
+    document.getElementById("backFromTrips").addEventListener("click", () => {
+        openView("operaciones");
+    });
+
+    document.getElementById("addTripButton").addEventListener("click", openTripModal);
+    document.getElementById("closeTripModal").addEventListener("click", closeTripModal);
+    document.getElementById("cancelTrip").addEventListener("click", closeTripModal);
+
+    tripModal.addEventListener("click", event => {
+        if (event.target === tripModal) closeTripModal();
+    });
+
+    tripSearch.addEventListener("input", renderTrips);
+    tripStatusFilter.addEventListener("change", renderTrips);
+
+    tripForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        if (!vehicles.length) {
+            alert("Primero registra un vehículo para poder asignarlo al viaje.");
+            return;
+        }
+
+        const formData = new FormData(tripForm);
+        const vehicleId = String(formData.get("vehicleId"));
+        const vehicle = vehicles.find(item => item.id === vehicleId);
+
+        if (!vehicle) {
+            alert("Selecciona un vehículo válido.");
+            return;
+        }
+
+        const income = Number(formData.get("income") || 0);
+        if (!Number.isFinite(income) || income < 0) {
+            alert("Ingresa un monto válido para el ingreso.");
+            return;
+        }
+
+        trips.push({
+            id: Date.now().toString(),
+            date: String(formData.get("date")),
+            vehicleId,
+            origin: String(formData.get("origin")).trim(),
+            destination: String(formData.get("destination")).trim(),
+            responsible: String(formData.get("responsible")).trim(),
+            serviceType: String(formData.get("serviceType")),
+            income,
+            status: String(formData.get("status")),
+            notes: String(formData.get("notes")).trim()
+        });
+
+        renderTrips();
+        closeTripModal();
+    });
+
+    tripsTableBody.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-trip]");
+        if (!button) return;
+
+        trips = trips.filter(trip => trip.id !== button.dataset.deleteTrip);
+        renderTrips();
+    });
+
+    renderTrips();
 
     // =====================================
     // VEHÍCULOS - INTERFAZ PREPARADA
@@ -1367,6 +1622,7 @@
         });
 
         renderVehicles();
+        refreshTripVehicleOptions();
         closeVehicleModal();
     });
 
@@ -1376,7 +1632,10 @@
 
         const vehicleId = button.dataset.deleteVehicle;
         vehicles = vehicles.filter(vehicle => vehicle.id !== vehicleId);
+        trips = trips.filter(trip => trip.vehicleId !== vehicleId);
         renderVehicles();
+        renderTrips();
+        refreshTripVehicleOptions();
     });
 
     renderVehicles();
@@ -1422,6 +1681,72 @@
 
 </script>
 
+
+    <div class="modal-backdrop" id="tripModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tripModalTitle">
+            <div class="modal-header">
+                <h2 id="tripModalTitle">Registrar viaje</h2>
+                <button class="modal-close" type="button" id="closeTripModal" aria-label="Cerrar">×</button>
+            </div>
+
+            <form id="tripForm">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="tripDate">Fecha del viaje *</label>
+                        <input id="tripDate" name="date" type="date" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="tripVehicle">Vehículo asignado *</label>
+                        <select id="tripVehicle" name="vehicleId" required>
+                            <option value="">Seleccionar vehículo</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="tripOrigin">Lugar de origen *</label>
+                        <input id="tripOrigin" name="origin" required maxlength="100" placeholder="Ej. Antigua Guatemala">
+                    </div>
+                    <div class="form-field">
+                        <label for="tripDestination">Lugar de destino *</label>
+                        <input id="tripDestination" name="destination" required maxlength="100" placeholder="Ej. Ciudad de Guatemala">
+                    </div>
+                    <div class="form-field">
+                        <label for="tripResponsible">Responsable / conductor *</label>
+                        <input id="tripResponsible" name="responsible" required maxlength="100" placeholder="Nombre del responsable">
+                    </div>
+                    <div class="form-field">
+                        <label for="tripServiceType">Tipo de servicio *</label>
+                        <select id="tripServiceType" name="serviceType" required>
+                            <option value="">Seleccionar</option>
+                            <option value="Contrato">Por contrato</option>
+                            <option value="Por viaje">Por viaje</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="tripIncomeInput">Ingreso del viaje (Q)</label>
+                        <input id="tripIncomeInput" name="income" type="number" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-field">
+                        <label for="tripStatus">Estado *</label>
+                        <select id="tripStatus" name="status" required>
+                            <option value="Programado">Programado</option>
+                            <option value="En curso">En curso</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-field full">
+                        <label for="tripNotes">Observaciones</label>
+                        <textarea id="tripNotes" name="notes" maxlength="500" placeholder="Detalles adicionales del servicio"></textarea>
+                    </div>
+                </div>
+                <p class="form-message">Los viajes se guardan temporalmente en esta pantalla. La conexión con Supabase queda pendiente.</p>
+                <div class="form-actions">
+                    <button class="secondary-button" type="button" id="cancelTrip">Cancelar</button>
+                    <button class="primary-button" type="submit">Guardar viaje</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="modal-backdrop" id="vehicleModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vehicleModalTitle">
