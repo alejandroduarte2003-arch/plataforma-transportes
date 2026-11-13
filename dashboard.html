@@ -1238,6 +1238,7 @@
     <form id="receivableForm">
         <div class="form-grid">
             <div class="form-field"><label for="receivableClient">Cliente *</label><input id="receivableClient" name="clientName" required maxlength="120"></div>
+            <div class="form-field full"><label for="receivableTrip">Vincular viaje (opcional)</label><select id="receivableTrip" name="tripId"><option value="">Sin viaje asociado</option></select></div>
             <div class="form-field"><label for="receivableAmount">Monto total (Q) *</label><input id="receivableAmount" name="amount" type="number" min="0.01" step="0.01" required></div>
             <div class="form-field full"><label for="receivableDescription">Servicio / descripción *</label><input id="receivableDescription" name="description" required maxlength="180" placeholder="Ej. Transporte contratado / viaje"></div>
             <div class="form-field"><label for="receivableIssueDate">Fecha de emisión *</label><input id="receivableIssueDate" name="issueDate" type="date" required></div>
@@ -2368,7 +2369,7 @@
     // FINANZAS
     // =====================================
     let financialReceivables=[], financialCollections=[], financialExpenses=[];
-    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[];
+    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[];
     let editingReceivableId=null, editingExpenseId=null;
     const financeToday=()=>new Date().toISOString().slice(0,10);
     const financeMoney=value=>formatQuetzales(Number(value||0));
@@ -2417,7 +2418,7 @@
         const period=document.getElementById("financePeriodFilter").value;
         const income=financialCollections.filter(x=>financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
         const fuel=financeFuel.filter(x=>financeInPeriod(x.entry_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const maintenance=financeMaintenance.filter(x=>financeInPeriod(x.service_date,period)).reduce((s,x)=>s+Number(x.cost||0),0);
+        const maintenance=financeMaintenance.filter(x=>x.status==="Completado"&&financeInPeriod(x.service_date,period)).reduce((s,x)=>s+Number(x.cost||0),0);
         const parts=financeParts.filter(x=>financeInPeriod(x.replacement_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
         const payroll=financePayroll.filter(x=>x.status==="Pagada"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.net_pay||0),0);
         const other=financialExpenses.filter(x=>x.status==="Pagado"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
@@ -2438,12 +2439,13 @@
                 supabase.from("financial_collections").select("*").order("payment_date",{ascending:false}),
                 supabase.from("financial_expenses").select("*").order("expense_date",{ascending:false}),
                 supabase.from("fuel_entries").select("entry_date,total_cost"),
-                supabase.from("maintenance_records").select("service_date,cost"),
+                supabase.from("maintenance_records").select("service_date,cost,status"),
                 supabase.from("vehicle_parts").select("replacement_date,total_cost"),
-                supabase.from("payroll_records").select("payment_date,net_pay,status")
+                supabase.from("payroll_records").select("payment_date,net_pay,status"),
+                supabase.from("trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
-            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll]=results.map(r=>r.data||[]);
+            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips]=results.map(r=>r.data||[]);
             renderFinance();
         }catch(error){showOperationError(error,"cargar la información financiera");}
     }
@@ -2459,6 +2461,9 @@
         document.getElementById("receivableStatus").value=item?receivableComputedStatus(item):"Pendiente";
         document.getElementById("receivableStatus").disabled=!!item&&collectionTotal(item.id)>0;
         document.getElementById("receivableNotes").value=item?.notes||"";
+        const tripSelect=document.getElementById("receivableTrip");
+        tripSelect.innerHTML='<option value="">Sin viaje asociado</option>'+financeTrips.map(t=>'<option value="'+t.id+'">'+escapeHtml(t.date+' · '+t.origin+' → '+t.destination+' · '+financeMoney(t.income))+'</option>').join("");
+        tripSelect.value=item?.trip_id||"";
         financeModalOpen("receivableModal");
     }
     function openExpenseModal(item=null){
@@ -2482,7 +2487,7 @@
     document.getElementById("receivableForm").addEventListener("submit",async e=>{
         e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
         try{
-            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
+            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),trip_id:String(d.get("tripId")||"")||null,amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:String(document.getElementById("receivableStatus").value),notes:String(d.get("notes")||"").trim()};
             if(p.due_date&&p.due_date<p.issue_date)throw Error("El vencimiento no puede ser anterior a la fecha de emisión.");
             if(editingReceivableId){if(collectionTotal(editingReceivableId)>0&&p.amount<collectionTotal(editingReceivableId))throw Error("El monto no puede ser menor a los abonos ya recibidos.");const {error}=await supabase.from("financial_receivables").update(p).eq("id",editingReceivableId);if(error)throw error;}
             else {const {error}=await supabase.from("financial_receivables").insert({...p,created_by:currentUserId});if(error)throw error;}
@@ -2529,6 +2534,13 @@
     document.getElementById("expenseSearch").addEventListener("input",renderExpenses);
     document.getElementById("expenseStatusFilter").addEventListener("change",renderExpenses);
     document.getElementById("financePeriodFilter").addEventListener("change",renderFinanceReport);
+    document.getElementById("receivableTrip").addEventListener("change",e=>{
+        const trip=financeTrips.find(x=>x.id===e.target.value);
+        if(!trip)return;
+        const description=document.getElementById("receivableDescription"),amount=document.getElementById("receivableAmount");
+        if(!description.value.trim())description.value="Transporte: "+trip.origin+" → "+trip.destination;
+        if(!amount.value&&Number(trip.income)>0)amount.value=Number(trip.income).toFixed(2);
+    });
 
     // =====================================
     // INICIAR
