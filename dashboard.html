@@ -1245,6 +1245,12 @@
     let allowedModules = new Set();
     let redirecting = false;
     let accessReady = false;
+    let currentUserId = null;
+
+    function showOperationError(error, action) {
+        console.error("Error en " + action + ":", error);
+        alert("No fue posible " + action + ". " + (error?.message || "Intenta nuevamente."));
+    }
 
     // =====================================
     // BLOQUEO SEGURO DE ACCESO
@@ -1295,6 +1301,7 @@
                 return;
             }
 
+            currentUserId = session.user.id;
             userEmail.textContent = profile.full_name || session.user.email;
 
             // Inicio está disponible para todo usuario activo.
@@ -1326,6 +1333,10 @@
             applyModulePermissions();
             accessReady = true;
             openView("inicio");
+
+            if (allowedModules.has("operaciones")) {
+                await loadOperationalData();
+            }
 
         } catch (error) {
             console.error("Error verificando acceso:", error);
@@ -1419,7 +1430,7 @@
     const tripSearch = document.getElementById("tripSearch");
     const tripStatusFilter = document.getElementById("tripStatusFilter");
 
-    // Datos temporales de viajes. La persistencia se conectará después con Supabase.
+    // Registros operativos cargados desde Supabase.
     let trips = [];
 
     function openTripModal() {
@@ -1531,55 +1542,65 @@
     tripSearch.addEventListener("input", renderTrips);
     tripStatusFilter.addEventListener("change", renderTrips);
 
-    tripForm.addEventListener("submit", event => {
+    tripForm.addEventListener("submit", async event => {
         event.preventDefault();
+        if (!currentUserId) return;
 
-        if (!vehicles.length) {
-            alert("Primero registra un vehículo para poder asignarlo al viaje.");
-            return;
+        const submitButton = tripForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const formData = new FormData(tripForm);
+            const vehicleId = String(formData.get("vehicleId"));
+            if (!vehicles.some(item => item.id === vehicleId)) {
+                alert("Selecciona un vehículo válido.");
+                return;
+            }
+
+            const income = Number(formData.get("income") || 0);
+            if (!Number.isFinite(income) || income < 0) {
+                alert("Ingresa un monto válido para el ingreso.");
+                return;
+            }
+
+            const payload = {
+                date: String(formData.get("date")),
+                vehicle_id: vehicleId,
+                origin: String(formData.get("origin")).trim(),
+                destination: String(formData.get("destination")).trim(),
+                responsible: String(formData.get("responsible")).trim(),
+                service_type: String(formData.get("serviceType")),
+                income,
+                status: String(formData.get("status")),
+                notes: String(formData.get("notes")).trim(),
+                created_by: currentUserId
+            };
+
+            const { error } = await supabase.from("trips").insert(payload);
+            if (error) throw error;
+
+            await loadOperationalData();
+            closeTripModal();
+            tripForm.reset();
+        } catch (error) {
+            showOperationError(error, "guardar el viaje");
+        } finally {
+            submitButton.disabled = false;
         }
-
-        const formData = new FormData(tripForm);
-        const vehicleId = String(formData.get("vehicleId"));
-        const vehicle = vehicles.find(item => item.id === vehicleId);
-
-        if (!vehicle) {
-            alert("Selecciona un vehículo válido.");
-            return;
-        }
-
-        const income = Number(formData.get("income") || 0);
-        if (!Number.isFinite(income) || income < 0) {
-            alert("Ingresa un monto válido para el ingreso.");
-            return;
-        }
-
-        trips.push({
-            id: Date.now().toString(),
-            date: String(formData.get("date")),
-            vehicleId,
-            origin: String(formData.get("origin")).trim(),
-            destination: String(formData.get("destination")).trim(),
-            responsible: String(formData.get("responsible")).trim(),
-            serviceType: String(formData.get("serviceType")),
-            income,
-            status: String(formData.get("status")),
-            notes: String(formData.get("notes")).trim()
-        });
-
-        renderTrips();
-        closeTripModal();
     });
 
-    tripsTableBody.addEventListener("click", event => {
+    tripsTableBody.addEventListener("click", async event => {
         const button = event.target.closest("[data-delete-trip]");
         if (!button) return;
+        if (!confirm("¿Eliminar este viaje y todos sus abordajes registrados?")) return;
 
-        trips = trips.filter(trip => trip.id !== button.dataset.deleteTrip);
-        boardings = boardings.filter(boarding => boarding.tripId !== button.dataset.deleteTrip);
-        renderTrips();
-        refreshBoardingTripOptions();
-        renderBoardings();
+        try {
+            const { error } = await supabase.from("trips").delete().eq("id", button.dataset.deleteTrip);
+            if (error) throw error;
+            await loadOperationalData();
+        } catch (error) {
+            showOperationError(error, "eliminar el viaje");
+        }
     });
 
     renderTrips();
@@ -1594,7 +1615,7 @@
     const vehicleSearch = document.getElementById("vehicleSearch");
     const vehicleStatusFilter = document.getElementById("vehicleStatusFilter");
 
-    // Datos temporales para probar la interfaz. Se reemplazarán por Supabase.
+    // Vehículos cargados desde Supabase.
     let vehicles = [];
 
     function openVehicleModal() {
@@ -1673,49 +1694,52 @@
     vehicleSearch.addEventListener("input", renderVehicles);
     vehicleStatusFilter.addEventListener("change", renderVehicles);
 
-    vehicleForm.addEventListener("submit", event => {
+    vehicleForm.addEventListener("submit", async event => {
         event.preventDefault();
+        if (!currentUserId) return;
 
-        const formData = new FormData(vehicleForm);
-        const code = String(formData.get("code")).trim().toUpperCase();
-        const plate = String(formData.get("plate")).trim().toUpperCase();
+        const submitButton = vehicleForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
 
-        if (vehicles.some(vehicle => vehicle.code === code || vehicle.plate === plate)) {
-            alert("Ya existe un vehículo con ese código o número de placa.");
-            return;
+        try {
+            const formData = new FormData(vehicleForm);
+            const payload = {
+                code: String(formData.get("code")).trim().toUpperCase(),
+                plate: String(formData.get("plate")).trim().toUpperCase(),
+                type: String(formData.get("type")),
+                capacity: Number(formData.get("capacity")),
+                brand: String(formData.get("brand")).trim(),
+                model: String(formData.get("model")).trim(),
+                status: String(formData.get("status")),
+                notes: String(formData.get("notes")).trim(),
+                created_by: currentUserId
+            };
+
+            const { error } = await supabase.from("vehicles").insert(payload);
+            if (error) throw error;
+
+            await loadOperationalData();
+            closeVehicleModal();
+            vehicleForm.reset();
+        } catch (error) {
+            showOperationError(error, "guardar el vehículo");
+        } finally {
+            submitButton.disabled = false;
         }
-
-        vehicles.push({
-            id: Date.now().toString(),
-            code,
-            plate,
-            type: String(formData.get("type")),
-            capacity: Number(formData.get("capacity")),
-            brand: String(formData.get("brand")).trim(),
-            model: String(formData.get("model")).trim(),
-            status: String(formData.get("status")),
-            notes: String(formData.get("notes")).trim()
-        });
-
-        renderVehicles();
-        refreshTripVehicleOptions();
-        closeVehicleModal();
     });
 
-    vehiclesTableBody.addEventListener("click", event => {
+    vehiclesTableBody.addEventListener("click", async event => {
         const button = event.target.closest("[data-delete-vehicle]");
         if (!button) return;
+        if (!confirm("¿Eliminar este vehículo? También se eliminarán sus viajes y abordajes relacionados.")) return;
 
-        const vehicleId = button.dataset.deleteVehicle;
-        vehicles = vehicles.filter(vehicle => vehicle.id !== vehicleId);
-        const removedTripIds = trips.filter(trip => trip.vehicleId === vehicleId).map(trip => trip.id);
-        trips = trips.filter(trip => trip.vehicleId !== vehicleId);
-        boardings = boardings.filter(boarding => !removedTripIds.includes(boarding.tripId));
-        renderVehicles();
-        renderTrips();
-        refreshTripVehicleOptions();
-        refreshBoardingTripOptions();
-        renderBoardings();
+        try {
+            const { error } = await supabase.from("vehicles").delete().eq("id", button.dataset.deleteVehicle);
+            if (error) throw error;
+            await loadOperationalData();
+        } catch (error) {
+            showOperationError(error, "eliminar el vehículo");
+        }
     });
 
     renderVehicles();
@@ -1730,7 +1754,7 @@
     const boardingSearch = document.getElementById("boardingSearch");
     const boardingTripFilter = document.getElementById("boardingTripFilter");
 
-    // Registros temporales. La persistencia se conectará después con Supabase.
+    // Registros de abordaje cargados desde Supabase.
     let boardings = [];
 
     function refreshBoardingTripOptions() {
@@ -1832,6 +1856,69 @@
         }).join("");
     }
 
+
+    // =====================================
+    // CONEXIÓN Y CARGA DE OPERACIONES
+    // =====================================
+
+    async function loadOperationalData() {
+        try {
+            const [vehicleResult, tripResult, boardingResult] = await Promise.all([
+                supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
+                supabase.from("trips").select("*").order("date", { ascending: false }),
+                supabase.from("boardings").select("*").order("date", { ascending: false })
+            ]);
+
+            if (vehicleResult.error) throw vehicleResult.error;
+            if (tripResult.error) throw tripResult.error;
+            if (boardingResult.error) throw boardingResult.error;
+
+            vehicles = (vehicleResult.data || []).map(item => ({
+                id: item.id,
+                code: item.code,
+                plate: item.plate,
+                type: item.type,
+                capacity: item.capacity,
+                brand: item.brand || "",
+                model: item.model || "",
+                status: item.status,
+                notes: item.notes || ""
+            }));
+
+            trips = (tripResult.data || []).map(item => ({
+                id: item.id,
+                date: item.date,
+                vehicleId: item.vehicle_id,
+                origin: item.origin,
+                destination: item.destination,
+                responsible: item.responsible,
+                serviceType: item.service_type,
+                income: Number(item.income || 0),
+                status: item.status,
+                notes: item.notes || ""
+            }));
+
+            boardings = (boardingResult.data || []).map(item => ({
+                id: item.id,
+                tripId: item.trip_id,
+                name: item.name,
+                date: item.date,
+                time: item.time || "",
+                boardingPoint: item.boarding_point || "",
+                contact: item.contact || "",
+                notes: item.notes || ""
+            }));
+
+            renderVehicles();
+            renderTrips();
+            refreshTripVehicleOptions();
+            refreshBoardingTripOptions();
+            renderBoardings();
+        } catch (error) {
+            showOperationError(error, "cargar los registros de Operaciones");
+        }
+    }
+
     document.querySelectorAll("[data-open-boardings]").forEach(button => {
         button.addEventListener("click", () => openView("abordajes"));
     });
@@ -1851,42 +1938,63 @@
     boardingSearch.addEventListener("input", renderBoardings);
     boardingTripFilter.addEventListener("change", renderBoardings);
 
-    boardingForm.addEventListener("submit", event => {
+    boardingForm.addEventListener("submit", async event => {
         event.preventDefault();
+        if (!currentUserId) return;
 
-        const formData = new FormData(boardingForm);
-        const tripId = String(formData.get("tripId"));
-        if (!trips.some(trip => trip.id === tripId)) {
-            alert("Selecciona un viaje válido.");
-            return;
+        const submitButton = boardingForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const formData = new FormData(boardingForm);
+            const tripId = String(formData.get("tripId"));
+            if (!trips.some(trip => trip.id === tripId)) {
+                alert("Selecciona un viaje válido.");
+                return;
+            }
+
+            const name = String(formData.get("name") || "").trim();
+            if (!name) {
+                alert("Ingresa el nombre de la persona.");
+                return;
+            }
+
+            const payload = {
+                trip_id: tripId,
+                name,
+                date: String(formData.get("date")),
+                time: String(formData.get("time") || "") || null,
+                boarding_point: String(formData.get("boardingPoint") || "").trim(),
+                contact: String(formData.get("contact") || "").trim(),
+                notes: String(formData.get("notes") || "").trim(),
+                created_by: currentUserId
+            };
+
+            const { error } = await supabase.from("boardings").insert(payload);
+            if (error) throw error;
+
+            await loadOperationalData();
+            closeBoardingModal();
+            boardingForm.reset();
+        } catch (error) {
+            showOperationError(error, "guardar el abordaje");
+        } finally {
+            submitButton.disabled = false;
         }
-
-        const name = String(formData.get("name") || "").trim();
-        if (!name) {
-            alert("Ingresa el nombre de la persona.");
-            return;
-        }
-
-        boardings.push({
-            id: Date.now().toString(),
-            tripId,
-            name,
-            date: String(formData.get("date")),
-            time: String(formData.get("time") || ""),
-            boardingPoint: String(formData.get("boardingPoint") || "").trim(),
-            contact: String(formData.get("contact") || "").trim(),
-            notes: String(formData.get("notes") || "").trim()
-        });
-
-        renderBoardings();
-        closeBoardingModal();
     });
 
-    boardingsTableBody.addEventListener("click", event => {
+    boardingsTableBody.addEventListener("click", async event => {
         const button = event.target.closest("[data-delete-boarding]");
         if (!button) return;
-        boardings = boardings.filter(item => item.id !== button.dataset.deleteBoarding);
-        renderBoardings();
+        if (!confirm("¿Eliminar este registro de abordaje?")) return;
+
+        try {
+            const { error } = await supabase.from("boardings").delete().eq("id", button.dataset.deleteBoarding);
+            if (error) throw error;
+            await loadOperationalData();
+        } catch (error) {
+            showOperationError(error, "eliminar el abordaje");
+        }
     });
 
     renderBoardings();
