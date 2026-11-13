@@ -2194,7 +2194,7 @@
     document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
     employeeForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
-        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(document.getElementById("receivableStatus").value),notes:String(d.get("notes")||"").trim()};
+        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
             const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
             closePersonalModal("employeeModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
