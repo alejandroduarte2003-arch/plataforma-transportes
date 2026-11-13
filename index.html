@@ -1,128 +1,370 @@
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Plataforma de Transportes</title>
-
-    <link rel="stylesheet" href="css/style.css">
+    <title>INCOROVA | Panel principal</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 
 <body>
 
-    <main class="login-container">
+<div class="app-container">
 
-        <section class="login-brand">
+    <!-- SIDEBAR -->
 
-            <div class="brand-content">
+    <aside class="sidebar">
 
-                <div class="brand-symbol">PT</div>
+        <div class="sidebar-brand">
+            <div class="brand-icon">I</div>
 
-                <h1>PLATAFORMA<br>DE TRANSPORTES</h1>
+            <div>
+                <h2>INCOROVA</h2>
+                <span>TRANSPORTES</span>
+            </div>
+        </div>
 
-                <p>
-                    Gestión, control y administración
-                    de operaciones en un solo lugar.
-                </p>
+        <div class="sidebar-label">MENÚ PRINCIPAL</div>
 
-                <div class="brand-line"></div>
+        <nav class="sidebar-nav">
 
-                <span>SISTEMA DE GESTIÓN EMPRESARIAL</span>
+            <a href="index.html" class="nav-link active">
+                <span>▦</span>
+                Inicio
+            </a>
+
+            <a href="modules/vehiculos.html" class="nav-link">
+                <span>▣</span>
+                Operaciones
+            </a>
+
+            <a href="modules/personal.html" class="nav-link">
+                <span>♙</span>
+                Personal
+            </a>
+
+            <a href="modules/flota.html" class="nav-link">
+                <span>⚙</span>
+                Flota y gastos
+            </a>
+
+            <a href="modules/finanzas.html" class="nav-link">
+                <span>▤</span>
+                Finanzas
+            </a>
+
+        </nav>
+
+        <div class="sidebar-label">CONFIGURACIÓN</div>
+
+        <nav class="sidebar-nav">
+
+            <a href="modules/administracion.html" class="nav-link">
+                <span>⚙</span>
+                Administración
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="sidebar-user">
+                <div class="user-avatar">A</div>
+
+                <div>
+                    <strong id="sidebarUser">Administrador</strong>
+                    <span>Administrador</span>
+                </div>
+            </div>
+
+            <button id="logoutButton" class="logout-button">
+                Cerrar sesión
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <span class="breadcrumb">Panel / Inicio</span>
+                <h1>Panel principal</h1>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="date-display" id="currentDate"></div>
+
+                <div class="topbar-avatar">A</div>
 
             </div>
 
-        </section>
+        </header>
 
-        <section class="login-section">
 
-            <div class="login-box">
+        <section class="dashboard-content">
 
-                <div class="login-heading">
+            <div class="welcome-section">
 
-                    <span class="welcome-label">
-                        BIENVENIDO
-                    </span>
-
-                    <h2>Iniciar sesión</h2>
+                <div>
+                    <h2>Bienvenido, <span id="welcomeUser">Administrador</span></h2>
 
                     <p>
-                        Ingresa tus credenciales para acceder
-                        a la plataforma.
+                        Este es el resumen general de las operaciones de transporte.
                     </p>
-
                 </div>
 
-                <form id="loginForm">
-
-                    <div class="form-group">
-
-                        <label for="email">
-                            Correo electrónico
-                        </label>
-
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="nombre@empresa.com"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="password">
-                            Contraseña
-                        </label>
-
-                        <input
-                            type="password"
-                            id="password"
-                            placeholder="Ingresa tu contraseña"
-                            required
-                        >
-
-                    </div>
-
-                    <div id="loginMessage" class="login-message"></div>
-
-                    <button type="submit" id="loginButton">
-
-                        <span id="buttonText">
-                            Ingresar a la plataforma
-                        </span>
-
-                    </button>
-
-                </form>
-
-                <div class="login-footer">
-
-                    <span>
-                        Acceso exclusivo para personal autorizado
-                    </span>
-
-                    <p>
-                        Plataforma de Transportes © 2026
-                    </p>
-
+                <div class="status-indicator">
+                    <span></span>
+                    Sistema operativo
                 </div>
 
             </div>
+
+
+            <!-- INDICADORES -->
+
+            <section class="stats-grid">
+
+                <article class="stat-card">
+
+                    <div class="stat-top">
+                        <span>Vehículos activos</span>
+                        <span class="stat-icon">▣</span>
+                    </div>
+
+                    <h3 id="activeVehicles">8</h3>
+
+                    <p>Vehículos registrados en operación</p>
+
+                </article>
+
+
+                <article class="stat-card">
+
+                    <div class="stat-top">
+                        <span>Viajes realizados</span>
+                        <span class="stat-icon">↗</span>
+                    </div>
+
+                    <h3 id="totalTrips">24</h3>
+
+                    <p>Viajes registrados este mes</p>
+
+                </article>
+
+
+                <article class="stat-card">
+
+                    <div class="stat-top">
+                        <span>Ingresos del mes</span>
+                        <span class="stat-icon">Q</span>
+                    </div>
+
+                    <h3 id="totalIncome">Q 18,500</h3>
+
+                    <p>Ingresos registrados</p>
+
+                </article>
+
+
+                <article class="stat-card">
+
+                    <div class="stat-top">
+                        <span>Gastos del mes</span>
+                        <span class="stat-icon">−</span>
+                    </div>
+
+                    <h3 id="totalExpenses">Q 7,250</h3>
+
+                    <p>Gastos operativos registrados</p>
+
+                </article>
+
+            </section>
+
+
+            <!-- RESUMEN FINANCIERO -->
+
+            <section class="dashboard-grid">
+
+                <article class="panel financial-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Resumen financiero</h3>
+                            <p>Comportamiento de las finanzas del período</p>
+                        </div>
+
+                        <span class="period-label">Este mes</span>
+
+                    </div>
+
+                    <div class="financial-summary">
+
+                        <div>
+                            <span>Ingresos</span>
+                            <strong id="financialIncome">Q 18,500</strong>
+                        </div>
+
+                        <div>
+                            <span>Gastos</span>
+                            <strong id="financialExpenses">Q 7,250</strong>
+                        </div>
+
+                        <div>
+                            <span>Balance</span>
+                            <strong class="positive" id="financialBalance">
+                                Q 11,250
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+
+                </article>
+
+
+                <!-- ALERTAS -->
+
+                <article class="panel alerts-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Alertas y pendientes</h3>
+                            <p>Situaciones que requieren atención</p>
+                        </div>
+
+                        <span class="alert-count" id="alertCount">3</span>
+
+                    </div>
+
+                    <div class="alerts-list" id="alertsList">
+
+                        <div class="alert-item warning">
+                            <div class="alert-icon">!</div>
+
+                            <div>
+                                <strong>Mantenimiento pendiente</strong>
+                                <p>Vehículo BUS-002 requiere revisión</p>
+                            </div>
+                        </div>
+
+                        <div class="alert-item danger">
+                            <div class="alert-icon">!</div>
+
+                            <div>
+                                <strong>Pago pendiente</strong>
+                                <p>Factura de proveedor por vencer</p>
+                            </div>
+                        </div>
+
+                        <div class="alert-item warning">
+                            <div class="alert-icon">!</div>
+
+                            <div>
+                                <strong>Préstamo activo</strong>
+                                <p>Trabajador con cuota pendiente</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+
+            <!-- ACTIVIDAD RECIENTE -->
+
+            <section class="panel activity-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h3>Actividad reciente</h3>
+                        <p>Últimos movimientos registrados</p>
+                    </div>
+
+                    <span class="period-label">Últimos registros</span>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="activityTable">
+
+                            <tr>
+                                <td>Ingreso por contrato de transporte</td>
+                                <td>Ingreso</td>
+                                <td>12/11/2026</td>
+                                <td><span class="status completed">Registrado</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Compra de combustible</td>
+                                <td>Gasto</td>
+                                <td>11/11/2026</td>
+                                <td><span class="status completed">Registrado</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Mantenimiento de BUS-002</td>
+                                <td>Mantenimiento</td>
+                                <td>10/11/2026</td>
+                                <td><span class="status pending">Pendiente</span></td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <footer class="dashboard-footer">
+                INCOROVA © 2026 · Sistema de gestión de transporte
+            </footer>
 
         </section>
 
     </main>
 
-    <script type="module" src="js/app.js"></script>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="js/dashboard.js"></script>
 
 </body>
 </html>
