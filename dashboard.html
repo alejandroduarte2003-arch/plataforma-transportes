@@ -2217,7 +2217,7 @@
         setFleetForm("partsForm",{partsVehicle:x?.vehicleId,partsDate:x?.replacementDate||fleetToday(),partsName:x?.partName,partsAction:x?.action||"Reemplazo",partsQuantity:x?.quantity??1,partsUnitCost:x?.unitCost??0,partsTotalCost:x?.totalCost??0,partsSupplier:x?.supplier,partsOdometer:x?.odometer,partsNotes:x?.notes});
         openFleetModal("partsModal");
     }
-    function calculateParts(){document.getElementById("partsTotalCost").value=(Number(document.getElementById("partsQuantity").value||0)*Number(document.getElementById("partsUnitCost").value||0)).toFixed(2);}
+    function calculateParts(){document.getElementById("partsCalculatedTotal").value=(Number(document.getElementById("partsQuantity").value||0)*Number(document.getElementById("partsUnitCost").value||0)).toFixed(2);}
     ["fuelLiters","fuelPrice"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
     ["partsQuantity","partsUnitCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateParts));
     document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Operaciones."));
@@ -2465,7 +2465,7 @@
         <div class="form-field full"><label>Vehículo *</label><select id="partsVehicle" required></select></div>
         <div class="form-field"><label>Fecha *</label><input id="partsDate" type="date" required></div><div class="form-field"><label>Nombre del repuesto *</label><input id="partsName" maxlength="150" required></div>
         <div class="form-field"><label>Acción *</label><select id="partsAction"><option>Reemplazo</option><option>Daño</option><option>Instalación</option></select></div><div class="form-field"><label>Cantidad *</label><input id="partsQuantity" type="number" min="1" step="1" value="1" required></div>
-        <div class="form-field"><label>Costo unitario (Q) *</label><input id="partsUnitCost" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Costo total (Q)</label><input id="partsTotalCost" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Costo unitario (Q) *</label><input id="partsUnitCost" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Costo total (Q)</label><input id="partsCalculatedTotal" type="number" min="0" step=".01" readonly></div>
         <div class="form-field"><label>Proveedor</label><input id="partsSupplier" maxlength="150"></div><div class="form-field"><label>Odómetro (km)</label><input id="partsOdometer" type="number" min="0"></div>
         <div class="form-field full"><label>Observaciones</label><textarea id="partsNotes" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="secondary-button" type="button" data-close-fleet="partsModal">Cancelar</button><button class="primary-button" type="submit">Guardar repuesto</button></div></form></div></div>
 
