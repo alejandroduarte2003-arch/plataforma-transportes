@@ -882,40 +882,133 @@
     const sidebar = document.getElementById("sidebar");
     const mobileMenu = document.getElementById("mobileMenu");
     const pageTitle = document.getElementById("pageTitle");
+    const content = document.querySelector(".content");
 
+    const moduleNames = {
+        inicio: "Inicio",
+        operaciones: "Operaciones",
+        personal: "Personal",
+        flota: "Flota y gastos",
+        finanzas: "Finanzas",
+        administracion: "Administración"
+    };
+
+    let allowedModules = new Set();
     let redirecting = false;
+    let accessReady = false;
 
     // =====================================
-    // VERIFICAR SESIÓN
+    // BLOQUEO SEGURO DE ACCESO
     // =====================================
+
+    function showAccessError(message) {
+        content.innerHTML = "";
+        const panel = document.createElement("div");
+        panel.className = "panel";
+        const heading = document.createElement("h3");
+        heading.textContent = "Acceso no disponible";
+        heading.style.marginBottom = "10px";
+        const description = document.createElement("p");
+        description.textContent = message;
+        description.style.fontSize = "13px";
+        description.style.color = "var(--texto)";
+        panel.append(heading, description);
+        content.appendChild(panel);
+    }
 
     async function verifySession() {
-
         try {
+            const { data: sessionData, error: sessionError } =
+                await supabase.auth.getSession();
 
-            const { data, error } = await supabase.auth.getSession();
+            if (sessionError) throw sessionError;
 
-            if (error) throw error;
+            const session = sessionData.session;
 
-            if (!data.session) {
-
+            if (!session) {
                 redirecting = true;
                 window.location.replace("./index.html");
-
                 return;
             }
 
-            userEmail.textContent = data.session.user.email;
+            const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("full_name, role, status")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+            if (profileError) throw profileError;
+
+            if (!profile || profile.status !== "active") {
+                await supabase.auth.signOut();
+                redirecting = true;
+                window.location.replace("./index.html");
+                return;
+            }
+
+            userEmail.textContent = profile.full_name || session.user.email;
+
+            // Inicio está disponible para todo usuario activo.
+            allowedModules = new Set(["inicio"]);
+
+            if (profile.role === "superadmin") {
+                // El superadmin tiene acceso completo por su rol de base de datos.
+                Object.keys(moduleNames).forEach(code => allowedModules.add(code));
+            } else {
+                const { data: permissions, error: permissionsError } = await supabase
+                    .from("user_module_permissions")
+                    .select("module_code, can_access")
+                    .eq("user_id", session.user.id);
+
+                if (permissionsError) throw permissionsError;
+
+                (permissions || []).forEach(permission => {
+                    if (
+                        permission.can_access === true &&
+                        Object.prototype.hasOwnProperty.call(moduleNames, permission.module_code) &&
+                        permission.module_code !== "inicio" &&
+                        permission.module_code !== "administracion"
+                    ) {
+                        allowedModules.add(permission.module_code);
+                    }
+                });
+            }
+
+            applyModulePermissions();
+            accessReady = true;
+            openView("inicio");
 
         } catch (error) {
-
-            console.error("Error verificando sesión:", error);
-
-            document.querySelector(".content").innerHTML =
-                "<p>No fue posible verificar tu sesión. Recarga la página.</p>";
-
+            console.error("Error verificando acceso:", error);
+            accessReady = false;
+            showAccessError(
+                "No fue posible verificar tu perfil y tus permisos. Por seguridad, no se habilitó ningún módulo. Recarga la página o contacta al administrador."
+            );
         }
+    }
 
+    // =====================================
+    // MOSTRAR ÚNICAMENTE MÓDULOS AUTORIZADOS
+    // =====================================
+
+    function applyModulePermissions() {
+        document.querySelectorAll(".nav-button[data-view]").forEach(button => {
+            const permitted = allowedModules.has(button.dataset.view);
+            button.hidden = !permitted;
+        });
+
+        document.querySelectorAll("[data-go]").forEach(button => {
+            const permitted = allowedModules.has(button.dataset.go);
+            const card = button.closest(".module-card");
+            if (card) card.hidden = !permitted;
+        });
+
+        // La etiqueta de gestión del sistema solo aparece para superadmin.
+        const adminButton = document.querySelector('.nav-button[data-view="administracion"]');
+        const managementLabel = adminButton?.previousElementSibling;
+        if (managementLabel?.classList.contains("menu-label")) {
+            managementLabel.hidden = !allowedModules.has("administracion");
+        }
     }
 
     // =====================================
@@ -923,9 +1016,12 @@
     // =====================================
 
     function openView(viewName) {
+        if (!accessReady || !allowedModules.has(viewName)) {
+            console.warn("Acceso denegado al módulo:", viewName);
+            return;
+        }
 
         const target = document.getElementById("view-" + viewName);
-
         if (!target) return;
 
         document.querySelectorAll(".view").forEach(view => {
@@ -941,34 +1037,20 @@
             );
         });
 
-        const activeButton = document.querySelector(
-            '.nav-button[data-view="' + viewName + '"]'
-        );
-
-        pageTitle.textContent = activeButton
-            ? activeButton.textContent.trim()
-            : "Inicio";
-
+        pageTitle.textContent = moduleNames[viewName] || "Inicio";
         sidebar.classList.remove("open");
-
     }
 
     document.querySelectorAll(".nav-button").forEach(button => {
-
         button.addEventListener("click", () => {
             openView(button.dataset.view);
         });
-
     });
 
-    // ACCESOS DESDE TARJETAS
-
     document.querySelectorAll("[data-go]").forEach(button => {
-
         button.addEventListener("click", () => {
             openView(button.dataset.go);
         });
-
     });
 
     // =====================================
@@ -984,33 +1066,24 @@
     // =====================================
 
     logoutButton.addEventListener("click", async () => {
-
         if (redirecting) return;
 
         logoutButton.disabled = true;
         logoutButton.textContent = "Cerrando sesión...";
 
         try {
-
             const { error } = await supabase.auth.signOut();
-
             if (error) throw error;
 
             redirecting = true;
-
             window.location.replace("./index.html");
 
         } catch (error) {
-
             console.error("Error cerrando sesión:", error);
-
             alert("No fue posible cerrar la sesión.");
-
             logoutButton.disabled = false;
             logoutButton.textContent = "Cerrar sesión";
-
         }
-
     });
 
     // =====================================
