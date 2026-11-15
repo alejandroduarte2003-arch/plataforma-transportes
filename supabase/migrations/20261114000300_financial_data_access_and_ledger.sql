@@ -840,7 +840,7 @@ begin
     return new;
   end if;
 
-  insert into public.financial_movements (
+  insert into public.financial_movements as fm (
     direction, movement_date, category, concept, amount, currency,
     status, source_table, source_id, employee_id, created_by,
     idempotency_key
@@ -859,7 +859,7 @@ begin
     amount = excluded.amount,
     status = excluded.status,
     employee_id = excluded.employee_id,
-    created_by = coalesce(excluded.created_by, public.financial_movements.created_by),
+    created_by = coalesce(excluded.created_by, fm.created_by),
     updated_at = now();
 
   if v_deleted then return old; end if;
