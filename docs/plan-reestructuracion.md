@@ -162,6 +162,9 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Las funciones SQL nuevas de la tercera migración tienen delimitadores balanceados; la migración contiene 8 vistas protegidas y triggers de sincronización financiera.
 - Se confirmó que las tres migraciones nuevas siguen fuera del proyecto Supabase activo: no existen aún sus tablas ni columnas nuevas.
 
+### Orden de liberación obligatorio
+La tercera migración retira permisos de lectura directa sobre columnas monetarias y reserva algunos registros para RPCs. Por eso, **no se debe aplicar a producción antes de desplegar la versión de interfaz que consulta las vistas y llama a esos RPCs**. La liberación debe probarse primero en una base aislada y coordinar migraciones y frontend en una misma ventana controlada.
+
 ### Pendiente antes de activar
 **Ninguna migración se ha aplicado al proyecto Supabase activo y no se ha desplegado producción.** La base financiera central todavía es una estructura inicial: falta migrar ingresos y egresos históricos de viajes, combustible, mantenimiento, repuestos, préstamos y planilla; mover o proteger los importes que hoy siguen expuestos en tablas operativas; y completar RPC transaccionales para esas operaciones.
 
