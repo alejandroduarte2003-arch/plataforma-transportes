@@ -29,7 +29,7 @@ as $$
       and ump.module_code = 'finanzas'
       and ump.can_access = true
   );
-$;
+$$;
 
 -- RLS policies need this one boolean helper. Client sessions cannot execute
 -- any trigger helper directly.
@@ -280,12 +280,12 @@ create or replace function incorova_private.touch_employee_compensation()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   new.updated_at := now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists employee_compensation_touch_updated_at on public.employee_compensation;
 create trigger employee_compensation_touch_updated_at
@@ -414,7 +414,7 @@ create or replace function incorova_private.calculate_loan_installment()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   if new.installments_total is not null then
     if new.amount < new.installments_total * 0.01 then
@@ -424,7 +424,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists employee_loans_calculate_installment on public.employee_loans;
 create trigger employee_loans_calculate_installment
@@ -441,7 +441,7 @@ create or replace function incorova_private.prepare_payroll_calculation()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 declare
   v_monthly_salary numeric(12,2);
   v_monthly_bonus_max numeric(12,2);
@@ -507,7 +507,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists payroll_records_calculate_kpi on public.payroll_records;
 drop trigger if exists payroll_records_prepare_calculation on public.payroll_records;
@@ -523,7 +523,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_loan record;
   v_remaining numeric(12,2);
@@ -589,7 +589,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists payroll_apply_loan_deductions on public.payroll_records;
 create trigger payroll_apply_loan_deductions
