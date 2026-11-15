@@ -319,7 +319,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if tg_op = 'UPDATE' and old.base_salary is not distinct from new.base_salary then
     return new;
@@ -424,7 +424,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if exists (
     select 1 from public.financial_collections c
@@ -434,7 +434,7 @@ begin
   end if;
   return old;
 end;
-$;
+$$;
 
 drop trigger if exists prevent_receivable_delete_with_collections on public.financial_receivables;
 create trigger prevent_receivable_delete_with_collections
