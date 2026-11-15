@@ -12,6 +12,26 @@ begin;
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
 
+-- Internal permission check for database triggers. This function is not exposed.
+create or replace function private.has_finance_access()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1
+    from public.profiles p
+    join public.user_module_permissions ump on ump.user_id = p.id
+    where p.id = auth.uid()
+      and p.status = 'active'
+      and ump.module_code = 'finanzas'
+      and ump.can_access = true
+  );
+$;
+
+
 -- Finance views deliberately run with the view owner's privileges. Each view
 -- has its own explicit finance authorization predicate; do not remove it.
 create or replace view public.finance_trips
@@ -190,6 +210,129 @@ grant select (id, employee_id, period, fortnight, kpi_complaints,
   created_at, updated_at)
 on public.payroll_records to authenticated;
 
+-- Finance is the only role allowed to create or modify monetary loan and
+-- payroll records. Personal-module users can still read the non-monetary fields.
+create policy employee_loans_finance_write
+  on public.employee_loans as restrictive for insert to authenticated
+  with check (public.is_superadmin() or private.has_finance_access());
+create policy employee_loans_finance_update
+  on public.employee_loans as restrictive for update to authenticated
+  using (public.is_superadmin() or private.has_finance_access())
+  with check (public.is_superadmin() or private.has_finance_access());
+create policy employee_loans_finance_delete
+  on public.employee_loans as restrictive for delete to authenticated
+  using (public.is_superadmin() or private.has_finance_access());
+
+create policy payroll_records_finance_write
+  on public.payroll_records as restrictive for insert to authenticated
+  with check (public.is_superadmin() or private.has_finance_access());
+create policy payroll_records_finance_update
+  on public.payroll_records as restrictive for update to authenticated
+  using (public.is_superadmin() or private.has_finance_access())
+  with check (public.is_superadmin() or private.has_finance_access());
+create policy payroll_records_finance_delete
+  on public.payroll_records as restrictive for delete to authenticated
+  using (public.is_superadmin() or private.has_finance_access());
+
+-- A Finance user may create or update employee salary; other staff may still
+-- manage the non-financial employee profile.
+create or replace function private.protect_employee_salary()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if not (public.is_superadmin() or private.has_finance_access())
+     and new.base_salary is distinct from
+       case when tg_op = 'INSERT' then 0::numeric else old.base_salary end then
+    raise exception 'Solo Finanzas puede modificar el sueldo base';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists protect_employee_salary on public.employees;
+create trigger protect_employee_salary
+before insert or update of base_salary on public.employees
+for each row execute function private.protect_employee_salary();
+
+-- Keep the protected compensation table in sync with the legacy salary field.
+create or replace function private.sync_employee_compensation_salary()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  insert into public.employee_compensation
+    (employee_id, monthly_base_salary, monthly_kpi_bonus_max, currency)
+  values (new.id, new.base_salary, 0, 'GTQ')
+  on conflict (employee_id) do update
+    set monthly_base_salary = excluded.monthly_base_salary,
+        updated_at = now();
+  return new;
+end;
+$;
+
+drop trigger if exists sync_employee_compensation_salary on public.employees;
+create trigger sync_employee_compensation_salary
+after insert or update of base_salary on public.employees
+for each row execute function private.sync_employee_compensation_salary();
+
+-- Prevent operational users from changing existing expense amounts after
+-- creation. They may submit a new expense, but only Finance can alter its cost.
+create or replace function private.protect_legacy_financial_updates()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if public.is_superadmin() or private.has_finance_access() then
+    return new;
+  end if;
+
+  if tg_table_name = 'fuel_entries'
+     and (old.price_per_liter is distinct from new.price_per_liter
+       or old.total_cost is distinct from new.total_cost
+       or old.price_per_gallon is distinct from new.price_per_gallon) then
+    raise exception 'Solo Finanzas puede modificar importes de combustible';
+  elsif tg_table_name = 'maintenance_records'
+     and old.cost is distinct from new.cost then
+    raise exception 'Solo Finanzas puede modificar el costo de mantenimiento';
+  elsif tg_table_name = 'vehicle_parts'
+     and (old.unit_cost is distinct from new.unit_cost
+       or old.total_cost is distinct from new.total_cost) then
+    raise exception 'Solo Finanzas puede modificar costos de repuestos';
+  elsif tg_table_name = 'trips'
+     and old.income is distinct from new.income then
+    raise exception 'Solo Finanzas puede modificar el ingreso del viaje';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists protect_trip_financial_update on public.trips;
+create trigger protect_trip_financial_update
+before update on public.trips
+for each row execute function private.protect_legacy_financial_updates();
+
+drop trigger if exists protect_fuel_financial_update on public.fuel_entries;
+create trigger protect_fuel_financial_update
+before update on public.fuel_entries
+for each row execute function private.protect_legacy_financial_updates();
+
+drop trigger if exists protect_maintenance_financial_update on public.maintenance_records;
+create trigger protect_maintenance_financial_update
+before update on public.maintenance_records
+for each row execute function private.protect_legacy_financial_updates();
+
+drop trigger if exists protect_parts_financial_update on public.vehicle_parts;
+create trigger protect_parts_financial_update
+before update on public.vehicle_parts
+for each row execute function private.protect_legacy_financial_updates();
+
 -- These tables are finance-only already at the RLS layer. Remove anonymous
 -- SQL privileges explicitly as a second boundary.
 revoke all on public.financial_receivables, public.financial_collections,
@@ -316,7 +459,8 @@ begin
     update public.financial_movements
        set status = 'anulado', updated_at = now()
      where idempotency_key = v_key;
-    return case when v_deleted then old else new end;
+    if v_deleted then return old; end if;
+    return new;
   end if;
 
   insert into public.financial_movements (
@@ -341,7 +485,8 @@ begin
     created_by = coalesce(excluded.created_by, public.financial_movements.created_by),
     updated_at = now();
 
-  return case when v_deleted then old else new end;
+  if v_deleted then return old; end if;
+  return new;
 end;
 $$;
 
