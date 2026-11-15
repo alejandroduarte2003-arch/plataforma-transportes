@@ -282,16 +282,16 @@ async function loadBoardingsData() {
 async function initSchool() {
   $("ext-escolares").innerHTML =
     '<div class="ext-school-accordions">' +
+      '<details class="ext-school-accordion"><summary>Nuevo centro educativo<small>Registrar el colegio y su dirección</small></summary><div class="ext-school-accordion-body"><form id="extSchoolCenterForm" class="ext-form">' +
+        '<label class="full">Nombre del colegio<input name="name" required maxlength="160"></label>' +
+        '<label class="full">Dirección del colegio<input name="address" required maxlength="250"></label>' +
+        '<button class="full" type="submit">Guardar centro educativo</button></form></div></details>' +
       '<details class="ext-school-accordion"><summary>Nuevo alumno<small>Información del estudiante y su encargado</small></summary><div class="ext-school-accordion-body"><form id="extStudentForm" class="ext-form">' +
         '<label class="full">Nombre completo del alumno<input name="full_name" required maxlength="160"></label>' +
         '<label>Nombre del encargado<input name="guardian_name" required maxlength="160"></label><label>Teléfono del encargado<input name="guardian_phone" maxlength="40"></label>' +
         '<label>Parentesco<input name="guardian_relationship" maxlength="80"></label><label>Centro educativo<select name="education_center_id" id="extStudentCenter" required></select></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option></select></label>' +
         '<label class="full">Dirección mañana<input name="address_am" maxlength="250"></label><label class="full">Dirección tarde<input name="address_pm" maxlength="250"></label>' +
         '<button class="full" type="submit">Guardar alumno</button></form></div></details>' +
-      '<details class="ext-school-accordion"><summary>Nuevo centro educativo<small>Registrar el colegio y su dirección</small></summary><div class="ext-school-accordion-body"><form id="extSchoolCenterForm" class="ext-form">' +
-        '<label class="full">Nombre del colegio<input name="name" required maxlength="160"></label>' +
-        '<label class="full">Dirección del colegio<input name="address" required maxlength="250"></label>' +
-        '<button class="full" type="submit">Guardar centro educativo</button></form></div></details>' +
       '<details class="ext-school-accordion"><summary>Nuevo seguimiento<small>Registrar una nota para un alumno</small></summary><div class="ext-school-accordion-body"><form id="extFollowupForm" class="ext-form">' +
         '<label class="full">Alumno<select name="student_id" id="extFollowupStudent" required></select></label>' +
         '<label class="full">Asunto<input name="subject" required maxlength="160"></label><label class="full">Detalle<textarea name="detail" required></textarea></label>' +
@@ -337,7 +337,9 @@ async function initSchool() {
     button.disabled=true;button.textContent="Guardando...";
     try{
       const p=Object.fromEntries(new FormData(form).entries());
-      p.name=p.name.trim();p.address=p.address.trim();p.created_by=userId;
+      p.name=p.name.trim();p.address=p.address.trim();
+      if(!p.name||!p.address)throw new Error("Completa el nombre y la dirección del colegio.");
+      p.created_by=userId;
       const {error}=await supabase.from("school_education_centers").insert(p);
       if(error)throw error;
       form.reset();await loadSchoolData();
