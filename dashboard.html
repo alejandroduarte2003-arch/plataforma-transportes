@@ -2418,7 +2418,7 @@
     // =====================================
     let financialReceivables=[], financialCollections=[], financialExpenses=[];
     let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[], financeMovements=[];
-    let editingReceivableId=null, editingExpenseId=null;
+    let editingReceivableId=null, editingExpenseId=null, collectionRequestKey=null;
     const financeToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
     const financeMoney=value=>formatQuetzales(Number(value||0));
     const financeModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
@@ -2560,10 +2560,14 @@
             const d=new FormData(e.currentTarget),id=String(d.get("receivableId")),item=financialReceivables.find(x=>x.id===id),amount=Number(d.get("amount"));
             if(!item)throw Error("Selecciona una cuenta válida.");
             if(amount<=0||amount>receivableBalance(item)+0.009)throw Error("El abono debe ser mayor a cero y no puede superar el saldo pendiente.");
-            const p={receivable_id:id,amount,payment_date:String(d.get("paymentDate")),payment_method:String(d.get("paymentMethod")),reference:String(d.get("reference")||"").trim(),notes:String(d.get("notes")||"").trim(),created_by:currentUserId};
-            const {error}=await supabase.from("financial_collections").insert(p);if(error)throw error;
-            const newBalance=receivableBalance(item)-amount,newStatus=newBalance<=0.009?"Pagada":"Parcial";
-            const update=await supabase.from("financial_receivables").update({status:newStatus}).eq("id",id);if(update.error)throw update.error;
+            if(!collectionRequestKey)collectionRequestKey=crypto.randomUUID();
+            const {error}=await supabase.rpc("register_financial_collection",{
+                p_receivable_id:id,p_amount:amount,p_payment_date:String(d.get("paymentDate")),
+                p_payment_method:String(d.get("paymentMethod")),p_reference:String(d.get("reference")||"").trim(),
+                p_notes:String(d.get("notes")||"").trim(),p_request_key:collectionRequestKey
+            });
+            if(error)throw error;
+            collectionRequestKey=null;
             financeModalClose("collectionModal");e.currentTarget.reset();await loadFinanceData();
         }catch(error){showOperationError(error,"registrar el cobro");}finally{btn.disabled=false;}
     });
@@ -2579,7 +2583,7 @@
     });
     document.getElementById("receivablesTableBody").addEventListener("click",async e=>{
         const ab=e.target.closest("[data-add-collection]"),ed=e.target.closest("[data-edit-receivable]"),del=e.target.closest("[data-delete-receivable]");
-        if(ab){document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
+        if(ab){collectionRequestKey=crypto.randomUUID();document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
         if(ed){openReceivableModal(financialReceivables.find(x=>x.id===ed.dataset.editReceivable));return;}
         if(del&&confirm("¿Eliminar esta cuenta y su historial de abonos?")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
     });
