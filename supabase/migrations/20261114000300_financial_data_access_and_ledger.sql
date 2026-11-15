@@ -475,7 +475,7 @@ $;
 drop trigger if exists payroll_records_calculate_kpi on public.payroll_records;
 drop trigger if exists payroll_records_prepare_calculation on public.payroll_records;
 create trigger payroll_records_prepare_calculation
-before insert or update of employee_id, fortnight, kpi_complaints,
+before insert or update of employee_id, period, fortnight, kpi_complaints,
   kpi_cleanliness, kpi_delays, other_deductions, loan_deduction,
   base_salary, bonuses, net_pay, status
 on public.payroll_records
