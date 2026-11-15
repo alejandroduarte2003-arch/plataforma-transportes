@@ -1549,6 +1549,10 @@
             if (card) card.hidden = !permitted;
         });
 
+        document.querySelectorAll("[data-open-boardings]").forEach(button => {
+            button.hidden = !allowedModules.has("abordajes");
+        });
+
         // La etiqueta de gestión del sistema solo aparece para superadmin.
         const adminButton = document.querySelector('.nav-button[data-view="administracion"]');
         const managementLabel = adminButton?.previousElementSibling;
@@ -1960,133 +1964,18 @@
     renderVehicles();
 
     // =====================================
-    // ABORDAJES - INTERFAZ PREPARADA
-    // =====================================
-
-    const boardingModal = document.getElementById("boardingModal");
-    const boardingForm = document.getElementById("boardingForm");
-    const boardingsTableBody = document.getElementById("boardingsTableBody");
-    const boardingSearch = document.getElementById("boardingSearch");
-    const boardingTripFilter = document.getElementById("boardingTripFilter");
-
-    // Registros de abordaje cargados desde Supabase.
-    let boardings = [];
-
-    function refreshBoardingTripOptions() {
-        const select = document.getElementById("boardingTrip");
-        const previousValue = select.value;
-        select.innerHTML = '<option value="">Seleccionar viaje</option>';
-
-        trips.forEach(trip => {
-            const vehicle = vehicles.find(item => item.id === trip.vehicleId);
-            const option = document.createElement("option");
-            option.value = trip.id;
-            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination +
-                " · " + (vehicle ? vehicle.code + " / " + vehicle.plate : "Sin vehículo");
-            select.appendChild(option);
-        });
-
-        if (previousValue && trips.some(trip => trip.id === previousValue)) {
-            select.value = previousValue;
-        }
-
-        select.disabled = trips.length === 0;
-        if (!trips.length) {
-            select.innerHTML = '<option value="">Primero registra un viaje</option>';
-        }
-
-        const filterValue = boardingTripFilter.value;
-        boardingTripFilter.innerHTML = '<option value="">Todos los viajes</option>';
-        trips.forEach(trip => {
-            const option = document.createElement("option");
-            option.value = trip.id;
-            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination;
-            boardingTripFilter.appendChild(option);
-        });
-        if (trips.some(trip => trip.id === filterValue)) {
-            boardingTripFilter.value = filterValue;
-        }
-    }
-
-    function openBoardingModal() {
-        refreshBoardingTripOptions();
-        if (!trips.length) {
-            alert("Primero registra un viaje para poder agregar personas a sus abordajes.");
-            return;
-        }
-        boardingForm.reset();
-        document.getElementById("boardingDate").value = new Date().toISOString().slice(0, 10);
-        refreshBoardingTripOptions();
-        boardingModal.classList.add("open");
-        boardingModal.setAttribute("aria-hidden", "false");
-    }
-
-    function closeBoardingModal() {
-        boardingModal.classList.remove("open");
-        boardingModal.setAttribute("aria-hidden", "true");
-    }
-
-    function renderBoardings() {
-        const search = boardingSearch.value.trim().toLowerCase();
-        const tripId = boardingTripFilter.value;
-
-        const filtered = boardings.filter(boarding => {
-            const trip = trips.find(item => item.id === boarding.tripId);
-            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
-            const tripLabel = trip ? trip.origin + " " + trip.destination : "";
-            const vehicleLabel = vehicle ? vehicle.code + " " + vehicle.plate : "";
-            const matchesSearch = [boarding.name, boarding.contact, boarding.boardingPoint, tripLabel, vehicleLabel]
-                .join(" ").toLowerCase().includes(search);
-            return matchesSearch && (!tripId || boarding.tripId === tripId);
-        });
-
-        document.getElementById("boardingTotal").textContent = boardings.length;
-        document.getElementById("boardingTrips").textContent =
-            new Set(boardings.map(item => item.tripId)).size;
-        const today = new Date().toISOString().slice(0, 10);
-        document.getElementById("boardingToday").textContent =
-            boardings.filter(item => item.date === today).length;
-
-        if (!filtered.length) {
-            boardingsTableBody.innerHTML =
-                '<tr><td colspan="8" class="empty-state">No se encontraron abordajes.</td></tr>';
-            return;
-        }
-
-        boardingsTableBody.innerHTML = filtered.map(boarding => {
-            const trip = trips.find(item => item.id === boarding.tripId);
-            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
-            return `
-                <tr>
-                    <td>${escapeHtml(boarding.date)}</td>
-                    <td>${escapeHtml(boarding.name)}</td>
-                    <td>${escapeHtml(trip ? trip.origin + " → " + trip.destination : "—")}</td>
-                    <td>${escapeHtml(vehicle ? vehicle.code + " · " + vehicle.plate : "—")}</td>
-                    <td>${escapeHtml(boarding.time || "—")}</td>
-                    <td>${escapeHtml(boarding.boardingPoint || "—")}</td>
-                    <td>${escapeHtml(boarding.contact || "—")}</td>
-                    <td><button class="table-action" type="button" data-delete-boarding="${boarding.id}">Eliminar</button></td>
-                </tr>
-            `;
-        }).join("");
-    }
-
-
-    // =====================================
     // CONEXIÓN Y CARGA DE OPERACIONES
     // =====================================
 
     async function loadOperationalData() {
         try {
-            const [vehicleResult, tripResult, boardingResult] = await Promise.all([
+            const [vehicleResult, tripResult] = await Promise.all([
                 supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
-                supabase.from("trips").select("*").order("date", { ascending: false }),
-                supabase.from("boardings").select("*").order("date", { ascending: false })
+                supabase.from("trips").select("*").order("date", { ascending: false })
             ]);
 
             if (vehicleResult.error) throw vehicleResult.error;
             if (tripResult.error) throw tripResult.error;
-            if (boardingResult.error) throw boardingResult.error;
 
             vehicles = (vehicleResult.data || []).map(item => ({
                 id: item.id,
@@ -2113,22 +2002,9 @@
                 notes: item.notes || ""
             }));
 
-            boardings = (boardingResult.data || []).map(item => ({
-                id: item.id,
-                tripId: item.trip_id,
-                name: item.name,
-                date: item.date,
-                time: item.time || "",
-                boardingPoint: item.boarding_point || "",
-                contact: item.contact || "",
-                notes: item.notes || ""
-            }));
-
             renderVehicles();
             renderTrips();
             refreshTripVehicleOptions();
-            refreshBoardingTripOptions();
-            renderBoardings();
         } catch (error) {
             showOperationError(error, "cargar los registros de Operaciones");
         }
