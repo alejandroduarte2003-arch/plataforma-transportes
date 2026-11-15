@@ -2547,7 +2547,9 @@
     document.getElementById("receivableForm").addEventListener("submit",async e=>{
         e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
         try{
-            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),trip_id:String(d.get("tripId")||"")||null,amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:String(document.getElementById("receivableStatus").value),notes:String(d.get("notes")||"").trim()};
+            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),trip_id:String(d.get("tripId")||"")||null,amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:"Pendiente",notes:String(d.get("notes")||"").trim()};
+            const collected=editingReceivableId?collectionTotal(editingReceivableId):0;
+            p.status=collected>0?(p.amount-collected<=0.009?"Pagada":"Parcial"):(document.getElementById("receivableStatus").value||"Pendiente");
             if(p.due_date&&p.due_date<p.issue_date)throw Error("El vencimiento no puede ser anterior a la fecha de emisión.");
             if(editingReceivableId){if(collectionTotal(editingReceivableId)>0&&p.amount<collectionTotal(editingReceivableId))throw Error("El monto no puede ser menor a los abonos ya recibidos.");const {error}=await supabase.from("financial_receivables").update(p).eq("id",editingReceivableId);if(error)throw error;}
             else {const {error}=await supabase.from("financial_receivables").insert({...p,created_by:currentUserId});if(error)throw error;}
