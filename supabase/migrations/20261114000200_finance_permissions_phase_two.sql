@@ -1,6 +1,6 @@
 -- INCOROVA Transportes — finance and permissions phase 2.
--- Branch-only migration. Do not apply to production until frontend is migrated
--- to the RPCs and the security review is complete.
+-- Applied to the INCOROVA Transportes Supabase project with the matching
+-- frontend changes in changes/transport-school-finance-restructure.
 
 begin;
 
