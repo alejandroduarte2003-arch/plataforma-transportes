@@ -2766,29 +2766,32 @@
                 <div class="home-item-meta"><span class="home-item-date">${homeDateLabel(x.date)}</span><button class="home-item-action" type="button" data-home-go="${x.action}">${x.actionLabel}</button></div>
             </div>`).join(""):'<div class="home-empty">No hay alertas pendientes en los módulos habilitados.</div>';
 
-        const activity=[];
-        if(hasOperations){
-            trips.forEach(x=>activity.push({date:x.date,title:"Viaje registrado",detail:x.origin+" → "+x.destination,status:x.status,action:"operaciones"}));
-            boardings.forEach(x=>activity.push({date:x.date,title:"Abordaje registrado",detail:x.name,status:"Registrado",action:"operaciones"}));
+        loadHomeActivity();
+    }
+    async function loadHomeActivity(){
+        const container=document.getElementById("homeActivityList");
+        if(!container)return;
+        const {data,error}=await supabase
+            .from("activity_logs")
+            .select("id,module_code,summary,actor_name,created_at")
+            .order("created_at",{ascending:false})
+            .limit(15);
+        if(error){
+            console.error("No se pudo cargar la actividad reciente:",error);
+            container.innerHTML='<div class="home-empty">No fue posible cargar la actividad reciente.</div>';
+            return;
         }
-        if(hasFleet){
-            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+fleetMoney(x.totalCost),status:"Registrado",action:"flota"}));
-            maintenanceRecords.forEach(x=>activity.push({date:x.serviceDate,title:"Mantenimiento",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.maintenanceType,status:x.status,action:"flota"}));
-            vehicleParts.forEach(x=>activity.push({date:x.replacementDate,title:"Movimiento de repuesto",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.partName,status:x.action,action:"flota"}));
-        }
-        if(hasFinance){
-            financialCollections.forEach(x=>{
-                const account=financialReceivables.find(r=>r.id===x.receivable_id);
-                activity.push({date:x.payment_date,title:"Cobro recibido",detail:(account?.client_name||"Cliente")+" · "+financeMoney(x.amount),status:"Recibido",action:"finanzas"});
-            });
-            financialExpenses.filter(x=>x.status==="Pagado").forEach(x=>activity.push({date:x.payment_date||x.expense_date,title:"Gasto pagado",detail:x.concept+" · "+financeMoney(x.amount),status:"Pagado",action:"finanzas"}));
-        }
-        activity.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-        document.getElementById("homeActivityList").innerHTML=activity.length?activity.slice(0,8).map(x=>`
-            <div class="home-list-item">
-                <div class="home-item-main"><div class="home-item-title">${escapeHtml(x.title)}</div><div class="home-item-detail">${escapeHtml(x.detail)}</div></div>
-                <div class="home-item-meta"><span class="home-item-date">${homeDateLabel(x.date)}</span><span class="home-item-status">${escapeHtml(x.status||"Registrado")}</span></div>
-            </div>`).join(""):'<div class="home-empty">Todavía no hay movimientos registrados en los módulos habilitados.</div>';
+        const visible=(data||[]).filter(item=>allowedModules.has(item.module_code));
+        container.innerHTML=visible.length?visible.map(item=>{
+            const date=new Date(item.created_at);
+            const dateLabel=new Intl.DateTimeFormat("es-GT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date);
+            const moduleLabel=moduleNames[item.module_code]||"Actividad";
+            const detail=[item.actor_name,moduleLabel].filter(Boolean).join(" · ");
+            return `<div class="home-list-item">
+                <div class="home-item-main"><div class="home-item-title">${escapeHtml(item.summary)}</div><div class="home-item-detail">${escapeHtml(detail)}</div></div>
+                <div class="home-item-meta"><span class="home-item-date">${escapeHtml(dateLabel)}</span><span class="home-item-status">${escapeHtml(moduleLabel)}</span></div>
+            </div>`;
+        }).join(""):'<div class="home-empty">Todavía no hay acciones registradas en tus módulos habilitados.</div>';
     }
     document.getElementById("homeAlertsList").addEventListener("click",e=>{
         const button=e.target.closest("[data-home-go]");
