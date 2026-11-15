@@ -1,6 +1,6 @@
 -- INCOROVA Transportes — foundation for the restructuring.
--- IMPORTANT: branch artifact only. Do not apply to the active Supabase project
--- until the frontend/RPC migration and backup plan have been reviewed.
+-- Applied to the INCOROVA Transportes Supabase project with the matching
+-- frontend changes in changes/transport-school-finance-restructure.
 -- Existing operational/financial columns are intentionally preserved.
 
 begin;
