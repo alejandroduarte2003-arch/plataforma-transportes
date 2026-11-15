@@ -178,6 +178,43 @@ alter table public.fuel_entries
   alter column gallons set not null,
   alter column price_per_gallon set not null;
 
+-- Keep older clients compatible during the frontend transition. If a client
+-- still submits liters and price_per_liter only, derive the gallon fields
+-- before NOT NULL constraints are checked.
+create or replace function public.sync_fuel_measurement_units()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if tg_op = 'INSERT' then
+    if new.gallons is null then
+      new.gallons := round((new.liters / 3.785411784)::numeric, 3);
+    end if;
+    if new.price_per_gallon is null then
+      new.price_per_gallon := round((new.price_per_liter * 3.785411784)::numeric, 3);
+    end if;
+  else
+    if new.liters is distinct from old.liters
+       and new.gallons is not distinct from old.gallons then
+      new.gallons := round((new.liters / 3.785411784)::numeric, 3);
+    end if;
+    if new.price_per_liter is distinct from old.price_per_liter
+       and new.price_per_gallon is not distinct from old.price_per_gallon then
+      new.price_per_gallon := round((new.price_per_liter * 3.785411784)::numeric, 3);
+    end if;
+  end if;
+  return new;
+end;
+$;
+
+revoke all on function public.sync_fuel_measurement_units() from public, anon, authenticated;
+drop trigger if exists fuel_entries_sync_measurement_units on public.fuel_entries;
+create trigger fuel_entries_sync_measurement_units
+before insert or update of liters, price_per_liter, gallons, price_per_gallon
+on public.fuel_entries
+for each row execute function public.sync_fuel_measurement_units();
+
 alter table public.fuel_entries
   add column if not exists kilometers_driven integer
     generated always as (
