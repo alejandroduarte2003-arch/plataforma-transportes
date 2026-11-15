@@ -2161,6 +2161,20 @@
         document.getElementById("loanBalanceTotal").textContent=money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+x.balance,0));
         document.getElementById("payrollPendingTotal").textContent=money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+x.netPay,0));
     }
+    async function markPayrollDeleted(payrollId,employeeId){
+        if(!confirm("¿Eliminar esta planilla? Se conservará en el historial como Eliminada con la fecha y dejará de contar en los totales financieros."))return;
+        const {data,error}=await supabase.from("payroll_records")
+            .update({deleted_at:new Date().toISOString(),deleted_by:currentUserId})
+            .eq("id",payrollId).eq("status","Pendiente").is("deleted_at",null)
+            .select("id,employee_id").maybeSingle();
+        if(error){showOperationError(error,"eliminar la planilla");return;}
+        if(!data){alert("No se pudo eliminar: la planilla ya fue procesada o eliminada. Actualiza el historial.");return;}
+        await loadPersonalData();
+        await loadFinanceData();
+        window.dispatchEvent(new CustomEvent("transport-payroll-deleted"));
+        if(employeeId)await openEmployeeProfile(employeeId);
+        alert("Planilla eliminada. Se conservó el registro y la fecha de eliminación.");
+    }
     async function openEmployeeProfile(employeeId){
         const worker=employees.find(x=>x.id===employeeId);if(!worker)return;
         const target=document.getElementById("employeeProfileContent");
@@ -2170,20 +2184,26 @@
         openPersonalModal("employeeProfileModal");
         const {data,error}=await supabase.from("payroll_records").select("*").eq("employee_id",employeeId).order("period",{ascending:false}).order("fortnight",{ascending:false});
         if(error){target.innerHTML='<p class="form-message">No se pudo cargar el historial de planillas. '+escapeHtml(error.message)+'</p>';return;}
-        const rows=data||[],paid=rows.filter(x=>x.status==="Pagada"),pending=rows.filter(x=>x.status==="Pendiente");
+        const rows=data||[],activeRows=rows.filter(x=>!x.deleted_at),paid=activeRows.filter(x=>x.status==="Pagada"),pending=activeRows.filter(x=>x.status==="Pendiente");
         const sum=(items)=>items.reduce((s,x)=>s+Number(x.net_pay||0),0);
         const canManagePayroll=allowedModules.has("finanzas");
         target.innerHTML='<div class="stats-grid employee-profile-stats">'+
-            '<div class="stat-card"><span>Quincenas registradas</span><h2>'+rows.length+'</h2></div>'+
+            '<div class="stat-card"><span>Quincenas registradas</span><h2>'+activeRows.length+'</h2></div>'+
             '<div class="stat-card"><span>Total pagado</span><h2>'+money(sum(paid))+'</h2></div>'+
             '<div class="stat-card"><span>Pendiente de pago</span><h2>'+money(sum(pending))+'</h2></div></div>'+
             '<div class="employee-profile-meta"><span><strong>Puesto:</strong> '+escapeHtml(worker.position||"—")+'</span><span><strong>Teléfono:</strong> '+escapeHtml(worker.phone||"—")+'</span><span><strong>Estado:</strong> '+escapeHtml(worker.status)+'</span></div>'+
             '<h3 class="employee-profile-heading">Historial de planillas</h3>'+
             (rows.length?'<div class="table-wrapper"><table class="employee-profile-table"><thead><tr><th>Período</th><th>Sueldo base</th><th>KPI (Quejas / Limpieza / Retrasos)</th><th>Bono</th><th>Préstamo</th><th>Otras deducciones</th><th>Neto</th><th>Estado</th>'+(canManagePayroll?'<th>Acción</th>':'')+'</tr></thead><tbody>'+
-            rows.map(x=>'<tr><td>'+escapeHtml(String(x.period).slice(0,7))+' · '+(Number(x.fortnight)===1?'1.ª quincena':'2.ª quincena')+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?'—':Number(x.kpi_percentage).toFixed(1)+'%')+'<br><small>Q:'+ (x.kpi_complaints??'—')+' · L:'+ (x.kpi_cleanliness??'—')+' · R:'+ (x.kpi_delays??'—')+'</small></td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td>'+money(x.other_deductions)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td><span class="status-pill">'+escapeHtml(x.status)+'</span>'+(x.payment_date?'<br><small>'+escapeHtml(x.payment_date)+'</small>':'')+'</td>'+(canManagePayroll?'<td>'+(x.status==="Pendiente"?'<button class="table-action" data-profile-payroll-paid="'+x.id+'">Marcar pagada</button>':'—')+'</td>':'')+'</tr>').join("")+
+            rows.map(x=>{
+                const deleted=!!x.deleted_at;
+                const statusLabel=deleted?"Eliminada":x.status;
+                const statusDate=deleted?new Date(x.deleted_at).toLocaleString("es-GT"):(x.payment_date?x.payment_date:"");
+                const actions=canManagePayroll&&!deleted&&x.status==="Pendiente"?'<button class="table-action" data-profile-payroll-paid="'+x.id+'">Marcar pagada</button> <button class="table-action" data-profile-payroll-delete="'+x.id+'">Eliminar</button>':"—";
+                return '<tr'+(deleted?' class="payroll-deleted-row"':'')+'><td>'+escapeHtml(String(x.period).slice(0,7))+' · '+(Number(x.fortnight)===1?'1.ª quincena':'2.ª quincena')+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?'—':Number(x.kpi_percentage).toFixed(1)+'%')+'<br><small>Q:'+ (x.kpi_complaints??'—')+' · L:'+ (x.kpi_cleanliness??'—')+' · R:'+ (x.kpi_delays??'—')+'</small></td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td>'+money(x.other_deductions)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td><span class="status-pill">'+escapeHtml(statusLabel)+'</span>'+(statusDate?'<br><small>'+(deleted?'Borrado el ':'Pagado el ')+escapeHtml(statusDate)+'</small>':'')+'</td>'+(canManagePayroll?'<td>'+actions+'</td>':'')+'</tr>';
+            }).join("")+
             '</tbody></table></div>':'<p class="form-message">Este trabajador todavía no tiene planillas registradas.</p>');
     }
-    function renderEmployees(){
+        function renderEmployees(){
         const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
         const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
         document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-view-employee="${x.id}">Ver perfil</button><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
@@ -2204,7 +2224,7 @@
             const [er,lr,pr]=await Promise.all([
                 supabase.from("employees").select("id,full_name,dpi,position,phone,hire_date,status,notes").order("full_name"),
                 supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
-                supabase.from("payroll_records").select("*").order("period",{ascending:false})
+                supabase.from("payroll_records").select("*").is("deleted_at",null).order("period",{ascending:false})
             ]);
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
             employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:0,status:x.status,notes:x.notes||""}));
@@ -2277,6 +2297,12 @@
             const {error}=await supabase.from("employees").update({status}).eq("id",x.id);if(error)showOperationError(error,"actualizar el trabajador");else await loadPersonalData();}
     });
     document.getElementById("employeeProfileContent").addEventListener("click",async e=>{
+        const deleteButton=e.target.closest("[data-profile-payroll-delete]");
+        if(deleteButton){
+            const employeeId=document.getElementById("employeeProfileContent").dataset.employeeId;
+            await markPayrollDeleted(deleteButton.dataset.profilePayrollDelete,employeeId);
+            return;
+        }
         const button=e.target.closest("[data-profile-payroll-paid]");if(!button)return;
         const payrollId=button.dataset.profilePayrollPaid;
         const employeeId=document.getElementById("employeeProfileContent").dataset.employeeId;
@@ -2285,7 +2311,7 @@
         button.disabled=true;button.textContent="Procesando...";
         const {data,error}=await supabase.from("payroll_records")
             .update({status:"Pagada",payment_date:new Date().toISOString().slice(0,10)})
-            .eq("id",payrollId).eq("status","Pendiente")
+            .eq("id",payrollId).eq("status","Pendiente").is("deleted_at",null)
             .select("id,employee_id,status,net_pay,loan_deduction").maybeSingle();
         if(error){button.disabled=false;button.textContent="Marcar pagada";showOperationError(error,"marcar la quincena como pagada");return;}
         if(!data){await loadPersonalData();await openEmployeeProfile(employeeId);alert("Esta planilla ya fue procesada o cambió de estado. Se actualizó el historial.");return;}
@@ -2302,7 +2328,7 @@
         const edit=e.target.closest("[data-edit-payroll]"),pay=e.target.closest("[data-pay-payroll]"),del=e.target.closest("[data-delete-payroll]");
         if(edit){openPayrollModal(payrollRecords.find(x=>x.id===edit.dataset.editPayroll));return;}
         if(pay&&confirm("¿Confirmas que esta planilla ya fue pagada?")){const {error}=await supabase.from("payroll_records").update({status:"Pagada",payment_date:new Date().toISOString().slice(0,10)}).eq("id",pay.dataset.payPayroll);if(error)showOperationError(error,"marcar la planilla como pagada");else await loadPersonalData();}
-        if(del&&confirm("¿Eliminar este registro de planilla?")){const {error}=await supabase.from("payroll_records").delete().eq("id",del.dataset.deletePayroll);if(error)showOperationError(error,"eliminar la planilla");else await loadPersonalData();}
+        if(del){const record=payrollRecords.find(x=>x.id===del.dataset.deletePayroll);if(record)await markPayrollDeleted(record.id,record.employeeId);}
     });
     ["employeeSearch","loanSearch","payrollSearch"].forEach(id=>document.getElementById(id).addEventListener("input",()=>({employeeSearch:renderEmployees,loanSearch:renderLoans,payrollSearch:renderPayroll}[id])()));
     document.getElementById("employeeStatusFilter").addEventListener("change",renderEmployees);
@@ -2313,6 +2339,10 @@
     window.addEventListener("transport-payroll-status-changed",async()=>{
         await loadPersonalData();
         if(allowedModules.has("finanzas")) await loadFinanceData();
+    });
+    window.addEventListener("transport-payroll-deleted",async()=>{
+        await loadPersonalData();
+        await loadFinanceData();
     });
 
 
@@ -2548,7 +2578,7 @@
                 supabase.from("fuel_entries").select("entry_date,total_cost"),
                 supabase.from("maintenance_records").select("service_date,cost,status"),
                 supabase.from("vehicle_parts").select("replacement_date,total_cost"),
-                supabase.from("payroll_records").select("payment_date,net_pay,status"),
+                supabase.from("payroll_records").select("payment_date,net_pay,status").is("deleted_at",null),
                 supabase.from("trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
@@ -2779,7 +2809,7 @@
     verifySession();
 
 </script>
-<script type="module" src="./js/transport-enhancements.js?v=20261115-3"></script>
+<script type="module" src="./js/transport-enhancements.js?v=20261115-4"></script>
 
 
     <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
