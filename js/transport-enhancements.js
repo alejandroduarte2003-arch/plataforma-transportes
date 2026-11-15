@@ -481,6 +481,10 @@ async function initFinance() {
   grid.append(compensationCard,loansCard,payrollCard,schoolPaymentsCard);
   workspace.replaceChildren(grid);
   await loadFinanceDataExt();
+  window.addEventListener("transport-payroll-status-changed",async()=>{
+    await loadFinanceDataExt();
+    renderPayrollPreview();
+  });
   $("extCompForm").addEventListener("submit",async e=>{
     e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());
     p.monthly_base_salary=Number(p.monthly_base_salary);p.monthly_kpi_bonus_max=Number(p.monthly_kpi_bonus_max);p.currency="GTQ";
