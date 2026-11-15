@@ -6,7 +6,7 @@ Rama de trabajo: `changes/transport-school-finance-restructure`
 
 - Sueldo base mensual; la planilla genera dos pagos por mes.
 - Cada quincena parte del 50% del sueldo mensual.
-- Bono KPI individual: cada trabajador tiene un máximo propio. Tres evaluaciones iguales (quejas, limpieza y retrasos), escala 1–5 convertida a 0%, 25%, 50%, 75% y 100%. El bono de la quincena se calcula sobre el máximo definido para esa quincena, salvo que se defina expresamente otro período.
+- Bono KPI individual mensual: cada trabajador tiene un máximo propio mensual. Tres evaluaciones iguales (quejas, limpieza y retrasos), escala 1–5 convertida a 0%, 25%, 50%, 75% y 100%. El porcentaje KPI se aplica al máximo mensual individual y el bono mensual obtenido se divide entre dos para pagarse en las dos quincenas.
 - Préstamos: máximo 12 cuotas; descuento en cada pago quincenal hasta cancelar el saldo.
 - Los montos y movimientos económicos deben residir en Finanzas y estar protegidos en la base de datos, no solamente ocultos en la interfaz.
 - Viajes: edición exclusiva del superadministrador.
@@ -45,7 +45,7 @@ Rama de trabajo: `changes/transport-school-finance-restructure`
 - Cada registro de planilla representará una quincena: mes de referencia + número de quincena (1 o 2). La unicidad será trabajador + mes + quincena.
 - Guardar las tres notas KPI y el porcentaje resultante en cada quincena para mantener trazabilidad del cálculo.
 - Calcular sueldo base quincenal como sueldo mensual / 2.
-- El bono ganado se calcula como máximo individual × porcentaje KPI.
+- El bono mensual ganado se calcula como máximo individual mensual × porcentaje KPI; cada quincena recibe la mitad del bono mensual ganado.
 - Cada descuento de préstamo se registra una sola vez por pago de planilla. La cuota efectiva será el menor valor entre la cuota programada y el saldo pendiente.
 - Los préstamos y su saldo serán datos financieros protegidos. La pantalla Personal puede presentar el estado operativo del préstamo sin exponer importes a usuarios sin permiso de Finanzas.
 
@@ -93,3 +93,23 @@ Los módulos operativos no volverán a guardar copias independientes de importes
 ## Regla confirmada del bono KPI
 
 El monto máximo del bono es mensual y diferente para cada trabajador. El porcentaje KPI se aplica al máximo mensual individual y el bono mensual obtenido se divide entre dos para pagar la mitad en cada quincena. Ejemplo: máximo mensual Q500 con KPI 75% = bono mensual ganado Q375; cada quincena recibe Q187.50. El sueldo base mensual también se divide entre dos. Los descuentos de préstamos se aplican en cada quincena.
+
+
+## Estado de implementación en la rama
+
+### Base de datos — migración de preparación creada, no aplicada
+Archivo: `supabase/migrations/20261114000100_transport_restructure_foundation.sql`
+
+Incluye:
+- Dos módulos nuevos: Abordajes y Transporte escolares.
+- Planilla con identificador de quincena: 0 para registros históricos mensuales existentes, 1 y 2 para nuevos pagos quincenales. No duplica registros históricos.
+- Campos de evaluaciones KPI por quincena.
+- Estructura separada para sueldo mensual y bono máximo KPI individual mensual.
+- Libro central de movimientos financieros como base para la migración de ingresos y egresos.
+- Contratos, pasajeros, relaciones de pasajeros por contrato y abordajes por viaje.
+- Expedientes de estudiantes, seguimientos y tabla de pagos escolares.
+- Registro de combustible preparado para migrar a galones en una fase posterior (las columnas históricas se conservan).
+- RLS en las tablas nuevas y una política restrictiva para que solo superadmin pueda actualizar viajes.
+
+### Pendiente antes de activar
+Esta migración es deliberadamente aditiva. No elimina columnas ni datos históricos. Tampoco se aplicó al proyecto Supabase activo. La migración de importes históricos al libro central, la separación completa de las columnas financieras actualmente expuestas en tablas operativas, los RPC transaccionales y el frontend integrado deben completarse y probarse antes de aplicar esta migración. En particular, el acceso a importes en las tablas antiguas de Personal y Flota todavía requiere una segunda fase de seguridad; no se considera resuelto por esta migración.
