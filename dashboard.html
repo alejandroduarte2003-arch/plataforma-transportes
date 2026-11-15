@@ -1611,6 +1611,10 @@
         });
     });
 
+    document.querySelectorAll("[data-open-boardings]").forEach(button => {
+        button.addEventListener("click", () => openView("abordajes"));
+    });
+
     // =====================================
     // VIAJES - INTERFAZ PREPARADA
     // =====================================
@@ -2009,86 +2013,6 @@
             showOperationError(error, "cargar los registros de Operaciones");
         }
     }
-
-    document.querySelectorAll("[data-open-boardings]").forEach(button => {
-        button.addEventListener("click", () => openView("abordajes"));
-    });
-
-    document.getElementById("backFromBoardings").addEventListener("click", () => {
-        openView("operaciones");
-    });
-
-    document.getElementById("addBoardingButton").addEventListener("click", openBoardingModal);
-    document.getElementById("closeBoardingModal").addEventListener("click", closeBoardingModal);
-    document.getElementById("cancelBoarding").addEventListener("click", closeBoardingModal);
-
-    boardingModal.addEventListener("click", event => {
-        if (event.target === boardingModal) closeBoardingModal();
-    });
-
-    boardingSearch.addEventListener("input", renderBoardings);
-    boardingTripFilter.addEventListener("change", renderBoardings);
-
-    boardingForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        if (!currentUserId) return;
-
-        const submitButton = boardingForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-
-        try {
-            const formData = new FormData(boardingForm);
-            const tripId = String(formData.get("tripId"));
-            if (!trips.some(trip => trip.id === tripId)) {
-                alert("Selecciona un viaje válido.");
-                return;
-            }
-
-            const name = String(formData.get("name") || "").trim();
-            if (!name) {
-                alert("Ingresa el nombre de la persona.");
-                return;
-            }
-
-            const payload = {
-                trip_id: tripId,
-                name,
-                date: String(formData.get("date")),
-                time: String(formData.get("time") || "") || null,
-                boarding_point: String(formData.get("boardingPoint") || "").trim(),
-                contact: String(formData.get("contact") || "").trim(),
-                notes: String(formData.get("notes") || "").trim(),
-                created_by: currentUserId
-            };
-
-            const { error } = await supabase.from("boardings").insert(payload);
-            if (error) throw error;
-
-            await loadOperationalData();
-            closeBoardingModal();
-            boardingForm.reset();
-        } catch (error) {
-            showOperationError(error, "guardar el abordaje");
-        } finally {
-            submitButton.disabled = false;
-        }
-    });
-
-    boardingsTableBody.addEventListener("click", async event => {
-        const button = event.target.closest("[data-delete-boarding]");
-        if (!button) return;
-        if (!confirm("¿Eliminar este registro de abordaje?")) return;
-
-        try {
-            const { error } = await supabase.from("boardings").delete().eq("id", button.dataset.deleteBoarding);
-            if (error) throw error;
-            await loadOperationalData();
-        } catch (error) {
-            showOperationError(error, "eliminar el abordaje");
-        }
-    });
-
-    renderBoardings();
 
     // PERSONAL: DATOS Y OPERACIONES
     let employees=[], employeeLoans=[], payrollRecords=[];
