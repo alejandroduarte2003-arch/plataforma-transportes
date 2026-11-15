@@ -2070,7 +2070,7 @@
     }
     function renderPersonalSummary(){
         document.getElementById("employeeActiveTotal").textContent=employees.filter(x=>x.status==="Activo").length;
-        document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo"&&x.balance>0).length;
+        document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo").length;
         document.getElementById("loanBalanceTotal").textContent=hasFinanceAccess?money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+(x.balance||0),0)):"Solo Finanzas";
         document.getElementById("payrollPendingTotal").textContent=hasFinanceAccess?money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+(x.netPay||0),0)):"Solo Finanzas";
     }
@@ -2087,7 +2087,11 @@
     function renderPayroll(){
         const q=document.getElementById("payrollSearch").value.trim().toLowerCase(),period=document.getElementById("payrollPeriodFilter").value,st=document.getElementById("payrollStatusFilter").value;
         const rows=payrollRecords.filter(x=>employeeName(x.employeeId).toLowerCase().includes(q)&&(!period||x.period.startsWith(period))&&(!st||x.status===st));
-        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.period.slice(0,7)}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.bonuses):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.otherDeductions):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.loanDeduction):"Solo Finanzas"}</td><td><strong>${hasFinanceAccess?money(x.netPay):"Solo Finanzas"}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button>':""}<button class="table-action" data-edit-payroll="${x.id}">Editar</button><button class="table-action" data-delete-payroll="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="9" class="empty-state">No se encontraron registros de planilla.</td></tr>';
+        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>{
+            const fortnight=x.fortnight===1?"1ª":x.fortnight===2?"2ª":"Histórico";
+            const actions=x.fortnight>0&&x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button><button class="table-action" data-edit-payroll="'+x.id+'">Editar</button>':"—";
+            return `<tr><td>${x.period.slice(0,7)}</td><td>${fortnight}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.bonuses):"Solo Finanzas"}</td><td>${hasFinanceAccess?(x.kpiPercentage===null?"—":Number(x.kpiPercentage).toFixed(2)+"%"):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.otherDeductions):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.loanDeduction):"Solo Finanzas"}</td><td><strong>${hasFinanceAccess?money(x.netPay):"Solo Finanzas"}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${actions}</div></td></tr>`;
+        }).join(""):'<tr><td colspan="11" class="empty-state">No se encontraron registros de planilla.</td></tr>';
     }
     function renderPersonal(){renderPersonalSummary();renderEmployees();renderLoans();renderPayroll();refreshPersonalSelects();}
     async function loadPersonalData(){
@@ -2113,7 +2117,7 @@
             const payrollById=new Map(payrollAmounts.map(x=>[x.id,x]));
             employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(compById.get(x.id)?.monthly_base_salary||0),kpiBonusMax:Number(compById.get(x.id)?.monthly_kpi_bonus_max||0),status:x.status,notes:x.notes||""}));
             employeeLoans=(lr.data||[]).map(x=>{const m=loanById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:hasFinanceAccess?Number(m.amount||0):null,balance:hasFinanceAccess?Number(m.balance||0):null,installmentAmount:hasFinanceAccess?Number(m.installment_amount||0):null,installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""};});
-            payrollRecords=(pr.data||[]).map(x=>{const m=payrollById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,period:x.period,fortnight:x.fortnight,baseSalary:hasFinanceAccess?Number(m.base_salary||0):null,bonuses:hasFinanceAccess?Number(m.bonuses||0):null,otherDeductions:hasFinanceAccess?Number(m.other_deductions||0):null,loanDeduction:hasFinanceAccess?Number(m.loan_deduction||0):null,netPay:hasFinanceAccess?Number(m.net_pay||0):null,kpiPercentage:hasFinanceAccess?m.kpi_percentage:null,status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""};});
+            payrollRecords=(pr.data||[]).map(x=>{const m=payrollById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,period:x.period,fortnight:x.fortnight,kpiComplaints:x.kpi_complaints,kpiCleanliness:x.kpi_cleanliness,kpiDelays:x.kpi_delays,baseSalary:hasFinanceAccess?Number(m.base_salary||0):null,bonuses:hasFinanceAccess?Number(m.bonuses||0):null,otherDeductions:hasFinanceAccess?Number(m.other_deductions||0):null,loanDeduction:hasFinanceAccess?Number(m.loan_deduction||0):null,netPay:hasFinanceAccess?Number(m.net_pay||0):null,kpiPercentage:hasFinanceAccess?m.kpi_percentage:null,status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""};});
             renderPersonal();
         }catch(error){showOperationError(error,"cargar los registros de Personal");}
     }
@@ -2131,22 +2135,30 @@
         openPersonalModal("loanModal");
     }
     function calcPayroll(){
-        const n=Number(document.getElementById("payrollBaseSalary").value||0)+Number(document.getElementById("payrollBonuses").value||0)-Number(document.getElementById("payrollOtherDeductions").value||0)-Number(document.getElementById("payrollLoanDeduction").value||0);
-        document.getElementById("payrollNetPay").value=Math.max(0,n).toFixed(2);return n;
+        const employee=employees.find(x=>x.id===document.getElementById("payrollEmployee").value);
+        const ratingIds=["payrollKpiComplaints","payrollKpiCleanliness","payrollKpiDelays"];
+        const ratings=ratingIds.map(id=>document.getElementById(id).value?Number(document.getElementById(id).value):null);
+        const percentageMap={1:0,2:25,3:50,4:75,5:100};
+        const kpiPercentage=ratings.every(x=>x!==null)?ratings.reduce((sum,x)=>sum+percentageMap[x],0)/3:0;
+        const base=employee?Number(employee.baseSalary||0)/2:Number(document.getElementById("payrollBaseSalary").value||0);
+        const bonus=employee?Number(employee.kpiBonusMax||0)*kpiPercentage/100/2:Number(document.getElementById("payrollBonuses").value||0);
+        const loan=employee?employeeLoans.filter(x=>x.employeeId===employee.id&&x.status==="Activo"&&(x.installmentsTotal===null||x.installmentsPaid<x.installmentsTotal)).reduce((sum,x)=>sum+Math.min(Number(x.installmentAmount||0),Number(x.balance||0)),0):0;
+        document.getElementById("payrollBaseSalary").value=base.toFixed(2);
+        document.getElementById("payrollBonuses").value=bonus.toFixed(2);
+        document.getElementById("payrollLoanDeduction").value=loan.toFixed(2);
+        const n=base+bonus-Number(document.getElementById("payrollOtherDeductions").value||0)-loan;
+        document.getElementById("payrollNetPay").value=Math.max(0,n).toFixed(2);
+        return n;
     }
     function openPayrollModal(x=null){
         editingPayrollId=x?.id||null;payrollForm.reset();refreshPersonalSelects();
         document.getElementById("payrollModalTitle").textContent=x?"Editar planilla":"Crear registro de planilla";
-        [["payrollEmployee",x?.employeeId],["payrollPeriod",x?.period?.slice(0,7)||new Date().toISOString().slice(0,7)],["payrollBaseSalary",x?.baseSalary??""],["payrollBonuses",x?.bonuses??0],["payrollOtherDeductions",x?.otherDeductions??0],["payrollLoanDeduction",x?.loanDeduction??0],["payrollPaymentDate",x?.paymentDate],["payrollStatus",x?.status||"Pendiente"],["payrollNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        [["payrollEmployee",x?.employeeId],["payrollPeriod",x?.period?.slice(0,7)||new Date().toISOString().slice(0,7)],["payrollFortnight",x?.fortnight===2?2:1],["payrollKpiComplaints",x?.kpiComplaints??""],["payrollKpiCleanliness",x?.kpiCleanliness??""],["payrollKpiDelays",x?.kpiDelays??""],["payrollBaseSalary",x?.baseSalary??0],["payrollBonuses",x?.bonuses??0],["payrollOtherDeductions",x?.otherDeductions??0],["payrollLoanDeduction",x?.loanDeduction??0],["payrollPaymentDate",x?.paymentDate],["payrollStatus",x?.status||"Pendiente"],["payrollNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
         calcPayroll();openPersonalModal("payrollModal");
     }
-    document.getElementById("payrollEmployee").addEventListener("change",()=>{
-        const x=employees.find(e=>e.id===document.getElementById("payrollEmployee").value);if(!x)return;
-        document.getElementById("payrollBaseSalary").value=x.baseSalary.toFixed(2);
-        const suggested=employeeLoans.filter(l=>l.employeeId===x.id&&l.status==="Activo"&&l.balance>0).reduce((s,l)=>s+Math.min(l.installmentAmount,l.balance),0);
-        document.getElementById("payrollLoanDeduction").value=suggested.toFixed(2);calcPayroll();
-    });
-    ["payrollBaseSalary","payrollBonuses","payrollOtherDeductions","payrollLoanDeduction"].forEach(id=>document.getElementById(id).addEventListener("input",calcPayroll));
+    document.getElementById("payrollEmployee").addEventListener("change",calcPayroll);
+    ["payrollKpiComplaints","payrollKpiCleanliness","payrollKpiDelays","payrollOtherDeductions","payrollFortnight"].forEach(id=>document.getElementById(id).addEventListener("change",calcPayroll));
+    document.getElementById("payrollOtherDeductions").addEventListener("input",calcPayroll);
     document.getElementById("addEmployeeButton").addEventListener("click",()=>openEmployeeModal());
     document.getElementById("addLoanButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openLoanModal():alert("Primero registra un trabajador activo."));
     document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
@@ -2184,7 +2196,7 @@
     payrollForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=payrollForm.querySelector('[type="submit"]');btn.disabled=true;
         try{const d=new FormData(payrollForm),month=String(d.get("period")),net=calcPayroll();if(!month)throw Error("Selecciona el período.");if(net<0)throw Error("Las deducciones no pueden superar los ingresos.");
-            const status=String(d.get("status")),p={employee_id:String(d.get("employeeId")),period:month+"-01",base_salary:Number(d.get("baseSalary")),bonuses:Number(d.get("bonuses")||0),other_deductions:Number(d.get("otherDeductions")||0),loan_deduction:Number(d.get("loanDeduction")||0),net_pay:Number(net.toFixed(2)),status,payment_date:status==="Pagada"?(String(d.get("paymentDate")||"")||new Date().toISOString().slice(0,10)):null,notes:String(d.get("notes")||"").trim()};
+            const status=String(d.get("status")),p={employee_id:String(d.get("employeeId")),period:month+"-01",fortnight:Number(d.get("fortnight")),kpi_complaints:Number(d.get("kpiComplaints")),kpi_cleanliness:Number(d.get("kpiCleanliness")),kpi_delays:Number(d.get("kpiDelays")),other_deductions:Number(d.get("otherDeductions")||0),status,payment_date:status==="Pagada"?(String(d.get("paymentDate")||"")||new Date().toISOString().slice(0,10)):null,notes:String(d.get("notes")||"").trim()};
             const q=editingPayrollId?supabase.from("payroll_records").update(p).eq("id",editingPayrollId):supabase.from("payroll_records").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
             closePersonalModal("payrollModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar la planilla");}finally{btn.disabled=false;}
