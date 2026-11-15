@@ -611,6 +611,9 @@
         .home-item-action{border:0;background:transparent;color:var(--azul);font-size:10px;font-weight:700;cursor:pointer;padding:2px 0}
         .home-item-status{font-size:9px;border:1px solid var(--gris);border-radius:20px;padding:4px 7px;white-space:nowrap;color:var(--texto)}
         .home-empty{font-size:11px;color:var(--texto);padding:18px 0}
+        .home-reset-panel[hidden],.home-reset-success[hidden]{display:none!important}
+        .home-reset-panel .form-message{line-height:1.6}
+        .home-reset-success{font-size:13px;line-height:1.7;font-weight:600;color:var(--azul);}
         @media(max-width:900px){.home-panels{grid-template-columns:1fr}}
         @media(max-width:700px){.home-welcome{align-items:flex-start;flex-direction:column;gap:8px}.home-date{text-align:left}.home-welcome h1{font-size:22px}.home-list-item{gap:8px}}
 
@@ -795,6 +798,19 @@
                     </div>
                     <div class="home-date" id="homeDate"></div>
                 </div>
+
+                <div class="panel home-reset-panel" id="homeResetPanel" hidden>
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Limpieza inicial de la plataforma</h3>
+                            <p class="home-panel-hint">Elimina los registros utilizados durante las pruebas antes de entregar el sistema.</p>
+                        </div>
+                    </div>
+                    <button class="primary-button" type="button" id="resetPlatformButton">Limpiar información de prueba</button>
+                    <p class="form-message">Esta acción es permanente. Se conservarán las cuentas, perfiles, contraseñas, permisos y configuración.</p>
+                </div>
+
+                <div class="panel home-reset-success" id="homeResetNotice" role="status" hidden></div>
 
                 <div class="stats-grid home-stats">
                     <div class="stat-card" id="homeVehicleCard">
@@ -1545,6 +1561,7 @@
             }
 
             renderHomeDashboard();
+            await loadPlatformResetState();
 
         } catch (error) {
             console.error("Error verificando acceso:", error);
@@ -2996,6 +3013,62 @@
         openView(button.dataset.homeGo);
         if(button.dataset.homeGo==="flota")document.querySelector('[data-fleet-tab="maintenance"]')?.click();
         if(button.dataset.homeGo==="personal")document.querySelector('[data-personal-tab="payroll"]')?.click();
+    });
+
+    // La limpieza inicial se controla desde la base de datos para que el botón
+    // desaparezca para todos los usuarios, incluso al cambiar de dispositivo.
+    async function loadPlatformResetState(){
+        const panel=document.getElementById("homeResetPanel");
+        const button=document.getElementById("resetPlatformButton");
+        const notice=document.getElementById("homeResetNotice");
+        panel.hidden=true;
+        notice.hidden=true;
+
+        const {data:completed,error}=await supabase.rpc("get_platform_reset_status");
+        if(error){
+            console.error("No fue posible consultar el estado de la limpieza inicial:",error);
+            return;
+        }
+
+        if(completed){
+            notice.textContent="Bienvenido Fernando a la plataforma de transportes, una plataforma hecha por INCOROVA. La información de prueba fue borrada y el botón desapareció con éxito.";
+            notice.hidden=false;
+            return;
+        }
+
+        if(isSuperAdmin) panel.hidden=false;
+    }
+
+    document.getElementById("resetPlatformButton").addEventListener("click",async()=>{
+        const button=document.getElementById("resetPlatformButton");
+        if(!isSuperAdmin||button.disabled)return;
+
+        const confirmed=window.confirm("¿Confirmas la limpieza inicial? Se eliminarán permanentemente los registros de prueba de todos los módulos. Las cuentas, perfiles, contraseñas, permisos y configuración se conservarán.");
+        if(!confirmed)return;
+
+        const phrase=window.prompt('Para confirmar, escribe exactamente: LIMPIAR PLATAFORMA');
+        if(phrase!=="LIMPIAR PLATAFORMA"){
+            if(phrase!==null)window.alert("La frase no coincide. No se eliminó ninguna información.");
+            return;
+        }
+
+        button.disabled=true;
+        button.textContent="Limpiando información...";
+        try{
+            const {error}=await supabase.rpc("reset_platform_test_data");
+            if(error)throw error;
+
+            document.getElementById("homeResetPanel").hidden=true;
+            const notice=document.getElementById("homeResetNotice");
+            notice.textContent="Bienvenido Fernando a la plataforma de transportes, una plataforma hecha por INCOROVA. La información de prueba fue borrada y el botón desapareció con éxito.";
+            notice.hidden=false;
+            window.setTimeout(()=>window.location.reload(),1200);
+        }catch(error){
+            console.error("Error al limpiar la información de prueba:",error);
+            button.disabled=false;
+            button.textContent="Limpiar información de prueba";
+            window.alert("No se pudo completar la limpieza. No se confirmó el cambio. "+(error?.message||"Intenta nuevamente."));
+        }
     });
 
     // =====================================
