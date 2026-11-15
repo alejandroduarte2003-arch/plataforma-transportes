@@ -2177,8 +2177,8 @@
             '<div class="stat-card"><span>Pendiente de pago</span><h2>'+money(sum(pending))+'</h2></div></div>'+
             '<div class="employee-profile-meta"><span><strong>Puesto:</strong> '+escapeHtml(worker.position||"—")+'</span><span><strong>Teléfono:</strong> '+escapeHtml(worker.phone||"—")+'</span><span><strong>Estado:</strong> '+escapeHtml(worker.status)+'</span></div>'+
             '<h3 class="employee-profile-heading">Historial de planillas</h3>'+
-            (rows.length?'<div class="table-wrapper"><table class="employee-profile-table"><thead><tr><th>Período</th><th>Sueldo base</th><th>KPI</th><th>Bono</th><th>Préstamo</th><th>Otras deducciones</th><th>Neto</th><th>Estado</th></tr></thead><tbody>'+
-            rows.map(x=>'<tr><td>'+escapeHtml(String(x.period).slice(0,7))+' · '+(Number(x.fortnight)===1?'1.ª quincena':'2.ª quincena')+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?'—':Number(x.kpi_percentage).toFixed(1)+'%')+'</td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td>'+money(x.other_deductions)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td><span class="status-pill">'+escapeHtml(x.status)+'</span>'+(x.payment_date?'<br><small>'+escapeHtml(x.payment_date)+'</small>':'')+'</td></tr>').join("")+
+            (rows.length?'<div class="table-wrapper"><table class="employee-profile-table"><thead><tr><th>Período</th><th>Sueldo base</th><th>KPI (Quejas / Limpieza / Retrasos)</th><th>Bono</th><th>Préstamo</th><th>Otras deducciones</th><th>Neto</th><th>Estado</th></tr></thead><tbody>'+
+            rows.map(x=>'<tr><td>'+escapeHtml(String(x.period).slice(0,7))+' · '+(Number(x.fortnight)===1?'1.ª quincena':'2.ª quincena')+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?'—':Number(x.kpi_percentage).toFixed(1)+'%')+'<br><small>Q:'+ (x.kpi_complaints??'—')+' · L:'+ (x.kpi_cleanliness??'—')+' · R:'+ (x.kpi_delays??'—')+'</small></td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td>'+money(x.other_deductions)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td><span class="status-pill">'+escapeHtml(x.status)+'</span>'+(x.payment_date?'<br><small>'+escapeHtml(x.payment_date)+'</small>':'')+'</td></tr>').join("")+
             '</tbody></table></div>':'<p class="form-message">Este trabajador todavía no tiene planillas registradas.</p>');
     }
     function renderEmployees(){
@@ -2756,7 +2756,7 @@
     verifySession();
 
 </script>
-<script type="module" src="./js/transport-enhancements.js?v=20261115-1"></script>
+<script type="module" src="./js/transport-enhancements.js?v=20261115-2"></script>
 
 
     <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
