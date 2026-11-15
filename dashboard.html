@@ -2830,8 +2830,14 @@
             const dateLabel=new Intl.DateTimeFormat("es-GT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date);
             const moduleLabel=moduleNames[item.module_code]||"Actividad";
             const detail=[item.actor_name,moduleLabel].filter(Boolean).join(" · ");
+            const cleanSummary=String(item.summary||"")
+                .replace(/\s*[·|,;]?\s*Acceso:\s*(?:true|false)\b/gi,"")
+                .replace(/\s{2,}/g," ")
+                .trim()
+                .replace(/[·|,;]$/,"")
+                .trim();
             return `<div class="home-list-item">
-                <div class="home-item-main"><div class="home-item-title">${escapeHtml(item.summary)}</div><div class="home-item-detail">${escapeHtml(detail)}</div></div>
+                <div class="home-item-main"><div class="home-item-title">${escapeHtml(cleanSummary)}</div><div class="home-item-detail">${escapeHtml(detail)}</div></div>
                 <div class="home-item-meta"><span class="home-item-date">${escapeHtml(dateLabel)}</span><span class="home-item-status">${escapeHtml(moduleLabel)}</span></div>
             </div>`;
         }).join(""):'<div class="home-empty">Todavía no hay acciones registradas en tus módulos habilitados.</div>';
