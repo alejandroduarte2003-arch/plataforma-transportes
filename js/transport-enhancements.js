@@ -196,7 +196,7 @@ async function loadBoardingsData() {
 }
 
 // ---------------- TRANSPORTE ESCOLARES ----------------
-async async function initSchool() {
+async function initSchool() {
   $("ext-escolares").innerHTML =
     '<div class="ext-grid">' +
       '<div class="ext-card"><h3>Nuevo expediente</h3><form id="extStudentForm" class="ext-form">' +
