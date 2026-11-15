@@ -2168,12 +2168,12 @@
     async function loadPersonalData(){
         try{
             const [er,lr,pr]=await Promise.all([
-                supabase.from("employees").select("*").order("full_name"),
+                supabase.from("employees").select("id,full_name,dpi,position,phone,hire_date,status,notes").order("full_name"),
                 supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
                 supabase.from("payroll_records").select("*").order("period",{ascending:false})
             ]);
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
-            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(x.base_salary||0),status:x.status,notes:x.notes||""}));
+            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:0,status:x.status,notes:x.notes||""}));
             employeeLoans=(lr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:Number(x.amount),balance:Number(x.balance),installmentAmount:Number(x.installment_amount),installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""}));
             payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
             renderPersonal();
@@ -2214,7 +2214,7 @@
     document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
     employeeForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
-        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
+        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
             const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
             closePersonalModal("employeeModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
