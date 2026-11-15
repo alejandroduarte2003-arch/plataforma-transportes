@@ -122,12 +122,32 @@ El monto máximo del bono es mensual y diferente para cada trabajador. El porcen
   - Restricción de préstamos a un máximo de 12 cuotas.
   - Conversión histórica de litros a galones, precio por galón y cálculo de kilómetros recorridos por diferencia de odómetro.
 
+### Finanzas — capa de seguridad y libro central preparados
+Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sql`
+
+- Vistas de Finanzas con filtro explícito de permiso para viajes, combustible, mantenimiento, repuestos, empleados/compensación, préstamos, planilla y movimientos.
+- Se retiró el permiso general de lectura de las tablas operativas y se concedió lectura por columnas, excluyendo importes, sueldos, saldos y costos.
+- Los usuarios de Flota pueden registrar una operación, pero no consultar los importes históricos ni modificarlos después; esos cambios quedan reservados a Finanzas.
+- Los importes de sueldos, préstamos y planilla se consultan mediante vistas de Finanzas. Los usuarios sin ese permiso ven los datos operativos, no las cantidades monetarias.
+- El libro central se sincroniza mediante triggers con combustible, mantenimiento, repuestos, préstamos, planilla, cobros y gastos. Las claves deterministas evitan duplicar movimientos al reintentar o repetir el backfill.
+- Las cuentas por cobrar y los ingresos de viajes no se cuentan como efectivo recibido; el ingreso efectivo se registra al crear el cobro. Los pagos escolares ya generan su movimiento desde el RPC transaccional.
+- El panel de Finanzas consulta el libro central para los totales, reportes y una nueva pestaña de movimientos.
+- Se añadieron permisos explícitos de Data API para las tablas nuevas y la secuencia del código de estudiante. RLS sigue controlando qué filas puede utilizar cada usuario.
+
+### Cambios de interfaz relacionados
+- Operaciones muestra el ingreso del viaje solo a usuarios con Finanzas.
+- Personal oculta sueldos, montos de préstamos y planilla a usuarios sin Finanzas.
+- Flota muestra galones y kilometraje a sus usuarios; costos y precios quedan reservados a Finanzas.
+- Finanzas utiliza las vistas protegidas para consultar importes y el libro central para reportes.
+
 ### Validaciones realizadas sobre la rama
 - Sintaxis JavaScript de los scripts de `dashboard.html` y `administracion.html`: comprobada mediante compilación sintáctica.
 - IDs HTML duplicados en `dashboard.html`: no se encontraron.
 - Referencias literales a elementos DOM inexistentes en el script principal: no se encontraron.
-- Restricciones y columnas actuales de planilla, préstamos y combustible consultadas en Supabase para ajustar las migraciones. No había préstamos existentes que impidieran imponer el límite de 12 cuotas.
-- Se corrigieron delimitadores SQL de dos funciones y se reforzó la idempotencia del RPC de pagos escolares.
+- Restricciones y columnas actuales de planilla, préstamos, combustible y módulos consultadas en Supabase para ajustar las migraciones. La restricción real de planilla mensual se elimina por su nombre verificado y se reemplaza por la clave quincenal.
+- Scripts de `dashboard.html` y `administracion.html`: sintaxis verificada, IDs duplicados no encontrados y referencias literales al DOM revisadas.
+- Las funciones SQL nuevas de la tercera migración tienen delimitadores balanceados; la migración contiene 8 vistas protegidas y triggers de sincronización financiera.
+- Se confirmó que las tres migraciones nuevas siguen fuera del proyecto Supabase activo: no existen aún sus tablas ni columnas nuevas.
 
 ### Pendiente antes de activar
 **Ninguna migración se ha aplicado al proyecto Supabase activo y no se ha desplegado producción.** La base financiera central todavía es una estructura inicial: falta migrar ingresos y egresos históricos de viajes, combustible, mantenimiento, repuestos, préstamos y planilla; mover o proteger los importes que hoy siguen expuestos en tablas operativas; y completar RPC transaccionales para esas operaciones.
