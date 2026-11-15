@@ -1,0 +1,44 @@
+name: Deploy transport test page
+
+on:
+  push:
+    branches:
+      - changes/transport-school-finance-restructure
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-test
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare static test site
+        run: |
+          mkdir -p dist
+          cp index.html dashboard.html administracion.html finanzas.html dist/
+          cp -R css js dist/
+
+      - name: Upload test site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Publish test site
+        id: deployment
+        uses: actions/deploy-pages@v4

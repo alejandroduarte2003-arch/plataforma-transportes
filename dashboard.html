@@ -721,6 +721,16 @@
                 Flota y gastos
             </button>
 
+            <button class="nav-button" data-view="abordajes">
+                <span class="nav-icon">≋</span>
+                Abordajes
+            </button>
+
+            <button class="nav-button" data-view="escolares">
+                <span class="nav-icon">▦</span>
+                Transporte escolares
+            </button>
+
             <button class="nav-button" data-view="finanzas">
                 <span class="nav-icon">▥</span>
                 Finanzas
@@ -1070,70 +1080,27 @@
             <!-- ================================= -->
 
             <section class="view" id="view-abordajes">
-
-                <div class="page-heading">
-                    <h1>Abordajes</h1>
-                    <p>Registro y control de las personas que utilizan cada servicio de transporte.</p>
+                <div class="page-heading"><h1>Abordajes</h1><p>Administra pasajeros por contrato y registra quién aborda en cada viaje.</p></div>
+                <div class="personal-tabs">
+                    <button class="personal-tab active" type="button" data-boarding-mode="contracts">Por contrato</button>
+                    <button class="personal-tab" type="button" data-boarding-mode="trips">Por viaje</button>
                 </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span>Personas registradas</span>
-                        <h2 id="boardingTotal">0</h2>
-                        <p>Registros de abordaje</p>
-                    </div>
-                    <div class="stat-card">
-                        <span>Viajes con pasajeros</span>
-                        <h2 id="boardingTrips">0</h2>
-                        <p>Viajes con abordajes registrados</p>
-                    </div>
-                    <div class="stat-card">
-                        <span>Abordajes de hoy</span>
-                        <h2 id="boardingToday">0</h2>
-                        <p>Personas registradas hoy</p>
-                    </div>
+                <div class="personal-panel active" id="boarding-contracts">
+                    <div class="section-toolbar"><div><h3>Contratos</h3><p class="personal-hint">Pasajeros asignados de forma permanente a cada contrato.</p></div><button class="primary-button" id="addTransportContractButton" type="button">+ Nuevo contrato</button></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Contrato</th><th>Cliente</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Pasajeros</th><th></th></tr></thead><tbody id="transportContractsBody"></tbody></table></div></div>
+                    <div class="section-toolbar" style="margin-top:24px;"><div><h3>Registro de pasajeros</h3><p class="personal-hint">Cada pasajero se registra una vez y puede estar en varios contratos y viajes.</p></div><button class="primary-button" id="addTransportPassengerButton" type="button">+ Nuevo pasajero</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="transportPassengerSearch" type="search" placeholder="Buscar pasajero"></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Observaciones</th><th></th></tr></thead><tbody id="transportPassengersBody"></tbody></table></div></div>
+                    <section class="panel" id="contractPassengerPanel" hidden style="margin-top:18px;padding:20px;">
+                        <div class="section-toolbar"><div><h3 id="contractPassengerTitle">Pasajeros del contrato</h3><p class="personal-hint">Asigna pasajeros al contrato seleccionado.</p></div><button class="primary-button" id="assignContractPassengerButton" type="button">+ Asignar pasajero</button></div>
+                        <div class="table-wrapper"><table><thead><tr><th>Pasajero</th><th>Punto de abordaje</th><th>Estado</th><th></th></tr></thead><tbody id="contractPassengerBody"></tbody></table></div>
+                    </section>
                 </div>
-
-                <div class="section-toolbar">
-                    <button class="secondary-button" type="button" id="backFromBoardings">Volver a Operaciones</button>
-                    <button class="primary-button" type="button" id="addBoardingButton">+ Registrar abordaje</button>
+                <div class="personal-panel" id="boarding-trips">
+                    <div class="section-toolbar"><div><h3>Abordajes por viaje</h3><p class="personal-hint">Registra a cada pasajero en el viaje concreto. Un pasajero puede aparecer en muchos viajes.</p></div><button class="primary-button" id="addTripBoardingButton" type="button">+ Registrar abordaje</button></div>
+                    <div class="toolbar-filters"><select class="field-control" id="tripBoardingFilter"><option value="">Todos los viajes</option></select><input class="field-control" id="tripBoardingSearch" type="search" placeholder="Buscar pasajero o destino"></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Pasajero</th><th>Viaje</th><th>Responsable</th><th>Hora</th><th>Punto</th><th></th></tr></thead><tbody id="tripBoardingsBody"></tbody></table></div></div>
                 </div>
-
-                <div class="panel">
-                    <div class="section-toolbar">
-                        <div>
-                            <h3 style="font-size:14px;margin-bottom:5px;">Personas registradas</h3>
-                            <p style="font-size:11px;color:var(--texto);">Cada persona queda vinculada al viaje seleccionado y a su vehículo asignado.</p>
-                        </div>
-                        <div class="toolbar-filters">
-                            <input class="field-control" id="boardingSearch" type="search" placeholder="Buscar nombre o destino">
-                            <select class="field-control" id="boardingTripFilter">
-                                <option value="">Todos los viajes</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>FECHA</th>
-                                    <th>PERSONA</th>
-                                    <th>VIAJE</th>
-                                    <th>VEHÍCULO</th>
-                                    <th>HORA</th>
-                                    <th>PUNTO DE ABORDAJE</th>
-                                    <th>CONTACTO</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="boardingsTableBody">
-                                <tr><td colspan="8" class="empty-state">No hay abordajes registrados todavía.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </section>
 
             <!-- ================================= -->
@@ -1156,7 +1123,7 @@
                 <div class="personal-panel active" id="personal-employees">
                     <div class="section-toolbar"><div><h3>Trabajadores</h3><p class="personal-hint">Datos y estado del personal.</p></div><button class="primary-button" id="addEmployeeButton" type="button">+ Registrar trabajador</button></div>
                     <div class="toolbar-filters"><input class="field-control" id="employeeSearch" type="search" placeholder="Buscar trabajador..."><select class="field-control" id="employeeStatusFilter"><option value="">Todos los estados</option><option>Activo</option><option>Inactivo</option></select></div>
-                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Salario base</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="employeesTableBody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Salario base</th><th>Bono KPI máx.</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="employeesTableBody"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
                 <div class="personal-panel" id="personal-loans">
                     <div class="section-toolbar"><div><h3>Préstamos al personal</h3><p class="personal-hint">Control de montos, cuotas y saldos.</p></div><button class="primary-button" id="addLoanButton" type="button">+ Registrar préstamo</button></div>
@@ -1166,7 +1133,7 @@
                 <div class="personal-panel" id="personal-payroll">
                     <div class="section-toolbar"><div><h3>Planilla</h3><p class="personal-hint">Salarios, bonificaciones, descuentos y pagos.</p></div><button class="primary-button" id="addPayrollButton" type="button">+ Crear registro de planilla</button></div>
                     <div class="toolbar-filters"><input class="field-control" id="payrollSearch" type="search" placeholder="Buscar trabajador..."><input class="field-control" id="payrollPeriodFilter" type="month" aria-label="Filtrar período"><select class="field-control" id="payrollStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>Pagada</option></select></div>
-                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Período</th><th>Trabajador</th><th>Salario</th><th>Bonos</th><th>Otras deducciones</th><th>Préstamo</th><th>Neto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="payrollTableBody"><tr><td colspan="9" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Período</th><th>Quincena</th><th>Trabajador</th><th>Salario</th><th>Bono KPI</th><th>KPI</th><th>Otras deducciones</th><th>Préstamo</th><th>Neto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="payrollTableBody"><tr><td colspan="11" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
             </section>
 
@@ -1188,9 +1155,9 @@
                     <button class="fleet-tab" type="button" data-fleet-tab="parts">Repuestos</button>
                 </div>
                 <div class="fleet-panel active" id="fleet-fuel">
-                    <div class="section-toolbar"><div><h3>Control de combustible</h3><p class="fleet-hint">Cargas, litros, precio y kilometraje.</p></div><button class="primary-button" id="addFuelButton" type="button">+ Registrar combustible</button></div>
+                    <div class="section-toolbar"><div><h3>Control de combustible</h3><p class="fleet-hint">Cargas en galones y distancia recorrida entre lecturas del odómetro.</p></div><button class="primary-button" id="addFuelButton" type="button">+ Registrar combustible</button></div>
                     <div class="toolbar-filters"><input class="field-control" id="fuelSearch" type="search" placeholder="Buscar vehículo o proveedor"><input class="field-control" id="fuelPeriodFilter" type="month" aria-label="Filtrar período"></div>
-                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Vehículo</th><th>Litros</th><th>Precio / litro</th><th>Total</th><th>Odómetro</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody id="fuelTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Vehículo</th><th>Galones</th><th>Odómetro inicial</th><th>Odómetro final</th><th>Km recorridos</th><th>Precio / galón</th><th>Total</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody id="fuelTableBody"><tr><td colspan="10" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
                 <div class="fleet-panel" id="fleet-maintenance">
                     <div class="section-toolbar"><div><h3>Mantenimiento</h3><p class="fleet-hint">Servicios, reparaciones y próximos mantenimientos.</p></div><button class="primary-button" id="addMaintenanceButton" type="button">+ Registrar mantenimiento</button></div>
@@ -1223,6 +1190,7 @@
                     <div class="personal-tabs">
                         <button class="personal-tab active" data-finance-tab="cobros">Cobros</button>
                         <button class="personal-tab" data-finance-tab="pagos">Pagos</button>
+                        <button class="personal-tab" data-finance-tab="movimientos">Libro de movimientos</button>
                         <button class="personal-tab" data-finance-tab="reportes">Reportes</button>
                     </div>
                     <div class="personal-panel active" id="finance-cobros">
@@ -1242,6 +1210,14 @@
                         <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Proveedor</th><th>Monto</th><th>Estado</th><th>Fecha de pago</th><th>Acciones</th></tr></thead><tbody id="expensesTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                         <p class="personal-hint">Los gastos de combustible, mantenimiento y repuestos se toman automáticamente de Flota y gastos. No los registres otra vez aquí.</p>
                     </div>
+                    <div class="personal-panel" id="finance-movimientos">
+                        <div class="section-toolbar"><div><h3>Libro central de movimientos</h3><p class="personal-hint">Ingresos y egresos sincronizados desde las operaciones y Finanzas.</p></div></div>
+                        <div class="toolbar-filters">
+                            <input class="field-control" id="movementSearch" type="search" placeholder="Buscar concepto, categoría o estudiante">
+                            <select class="field-control" id="movementDirectionFilter"><option value="">Ingresos y egresos</option><option value="ingreso">Ingresos</option><option value="egreso">Egresos</option></select>
+                        </div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Concepto</th><th>Estudiante</th><th>Monto</th><th>Estado</th><th>Origen</th></tr></thead><tbody id="financeMovementsBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    </div>
                     <div class="personal-panel" id="finance-reportes">
                         <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><input class="field-control" id="financePeriodFilter" type="month"></div>
                         <div class="stats-grid">
@@ -1255,6 +1231,43 @@
                 </div>
             </section>
 
+            <section class="view" id="view-escolares">
+                <div class="page-heading">
+                    <h1>Transporte escolares</h1>
+                    <p>Administra estudiantes, expedientes, seguimientos y pagos.</p>
+                </div>
+                <div class="section-toolbar">
+                    <div><h3>Información de estudiantes</h3><p class="personal-hint">Cada estudiante cuenta con un expediente individual.</p></div>
+                    <button class="primary-button" id="addSchoolStudentButton" type="button" hidden>+ Agregar estudiante</button>
+                </div>
+                <div class="toolbar-filters">
+                    <input class="field-control" id="schoolStudentSearch" type="search" placeholder="Buscar estudiante o colegio">
+                    <select class="field-control" id="schoolStudentStatus"><option value="">Todos los estados</option><option>Activo</option><option>Inactivo</option></select>
+                </div>
+                <div class="panel table-panel">
+                    <div class="table-wrapper"><table>
+                        <thead><tr><th>ID</th><th>Estudiante</th><th>Colegio</th><th>Dirección AM</th><th>Dirección PM</th><th>Encargado</th><th>Estado</th><th>Expediente</th></tr></thead>
+                        <tbody id="schoolStudentsTableBody"><tr><td colspan="8" class="empty-state">Cargando estudiantes...</td></tr></tbody>
+                    </table></div>
+                </div>
+                <section class="panel" id="schoolStudentFile" hidden style="margin-top:22px;padding:22px;">
+                    <div class="section-toolbar">
+                        <div><h3 id="schoolFileTitle">Expediente del estudiante</h3><p id="schoolFileSubtitle" class="personal-hint"></p></div>
+                        <div><button class="secondary-button" id="closeSchoolFileButton" type="button">Cerrar expediente</button></div>
+                    </div>
+                    <div id="schoolFileDetails" class="stats-grid"></div>
+                    <div class="section-toolbar" style="margin-top:20px;">
+                        <div><h3>Seguimientos</h3><p class="personal-hint">Historial de notas y comunicaciones del expediente.</p></div>
+                        <button class="primary-button" id="addSchoolFollowupButton" type="button" hidden>+ Agregar seguimiento</button>
+                    </div>
+                    <div id="schoolFollowupsList"></div>
+                    <div class="form-actions" style="margin-top:18px;">
+                        <button class="secondary-button" id="editSchoolStudentButton" type="button" hidden>Editar información</button>
+                        <button class="primary-button" id="addSchoolPaymentButton" type="button" hidden>Agregar pago</button>
+                    </div>
+                </section>
+            </section>
+
         </div>
 
     </main>
@@ -1266,6 +1279,69 @@
 <!-- JAVASCRIPT -->
 <!-- ================================= -->
 
+
+<!-- MODALES DE ABORDAJES -->
+<div class="modal-backdrop" id="transportContractModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Nuevo contrato</h2><button class="modal-close" type="button" data-close-boarding="transportContractModal">×</button></div>
+<form id="transportContractForm"><div class="form-grid">
+<div class="form-field full"><label>Nombre del contrato *</label><input id="transportContractName" required maxlength="160"></div>
+<div class="form-field"><label>Cliente *</label><input id="transportContractClient" required maxlength="160"></div>
+<div class="form-field"><label>Estado</label><select id="transportContractStatus"><option>Activo</option><option>Inactivo</option><option>Finalizado</option></select></div>
+<div class="form-field"><label>Fecha de inicio</label><input id="transportContractStart" type="date"></div>
+<div class="form-field"><label>Fecha de finalización</label><input id="transportContractEnd" type="date"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="transportContractNotes"></textarea></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="transportContractModal">Cancelar</button><button class="primary-button" type="submit">Guardar contrato</button></div></form></div></div>
+<div class="modal-backdrop" id="transportPassengerModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Nuevo pasajero</h2><button class="modal-close" type="button" data-close-boarding="transportPassengerModal">×</button></div>
+<form id="transportPassengerForm"><div class="form-grid">
+<div class="form-field full"><label>Nombre completo *</label><input id="transportPassengerName" required maxlength="160"></div>
+<div class="form-field full"><label>Contacto</label><input id="transportPassengerContact" maxlength="60"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="transportPassengerNotes"></textarea></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="transportPassengerModal">Cancelar</button><button class="primary-button" type="submit">Guardar pasajero</button></div></form></div></div>
+<div class="modal-backdrop" id="contractAssignModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Asignar pasajero al contrato</h2><button class="modal-close" type="button" data-close-boarding="contractAssignModal">×</button></div>
+<form id="contractAssignForm"><div class="form-grid">
+<div class="form-field full"><label>Pasajero *</label><select id="contractAssignPassenger" required></select></div>
+<div class="form-field full"><label>Punto de abordaje</label><input id="contractAssignPoint" maxlength="180"></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="contractAssignModal">Cancelar</button><button class="primary-button" type="submit">Asignar</button></div></form></div></div>
+<div class="modal-backdrop" id="tripBoardingModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Registrar abordaje por viaje</h2><button class="modal-close" type="button" data-close-boarding="tripBoardingModal">×</button></div>
+<form id="tripBoardingForm"><div class="form-grid">
+<div class="form-field full"><label>Viaje *</label><select id="tripBoardingTrip" required></select></div>
+<div class="form-field full"><label>Pasajero *</label><select id="tripBoardingPassenger" required></select></div>
+<div class="form-field"><label>Fecha y hora</label><input id="tripBoardingAt" type="datetime-local"></div>
+<div class="form-field"><label>Punto de abordaje</label><input id="tripBoardingPoint" maxlength="180"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="tripBoardingNotes"></textarea></div>
+</div><p class="form-message">El mismo pasajero puede registrarse en diferentes viajes. No se permiten duplicados dentro de un mismo viaje.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="tripBoardingModal">Cancelar</button><button class="primary-button" type="submit">Guardar abordaje</button></div></form></div></div>
+<!-- MODALES DE TRANSPORTE ESCOLAR -->
+<div class="modal-backdrop" id="schoolStudentModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2 id="schoolStudentModalTitle">Agregar estudiante</h2><button class="modal-close" type="button" data-close-school="schoolStudentModal">×</button></div>
+    <form id="schoolStudentForm"><div class="form-grid">
+        <div class="form-field full"><label for="schoolStudentName">Nombre del alumno *</label><input id="schoolStudentName" required maxlength="160"></div>
+        <div class="form-field"><label for="schoolAddressAm">Dirección AM *</label><input id="schoolAddressAm" required maxlength="250"></div>
+        <div class="form-field"><label for="schoolAddressPm">Dirección PM *</label><input id="schoolAddressPm" required maxlength="250"></div>
+        <div class="form-field"><label for="schoolGuardianPhone">Número del encargado *</label><input id="schoolGuardianPhone" required maxlength="40"></div>
+        <div class="form-field"><label for="schoolGuardianRelationship">Parentesco *</label><input id="schoolGuardianRelationship" required maxlength="80" placeholder="Madre, padre, tutor..."></div>
+        <div class="form-field"><label for="schoolName">Colegio *</label><input id="schoolName" required maxlength="160"></div>
+        <div class="form-field"><label for="schoolStatus">Estado</label><select id="schoolStatus"><option>Activo</option><option>Inactivo</option></select></div>
+    </div><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolStudentModal">Cancelar</button><button class="primary-button" type="submit">Guardar estudiante</button></div></form>
+</div></div>
+<div class="modal-backdrop" id="schoolFollowupModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2>Agregar seguimiento</h2><button class="modal-close" type="button" data-close-school="schoolFollowupModal">×</button></div>
+    <form id="schoolFollowupForm"><div class="form-grid">
+        <div class="form-field full"><label for="schoolFollowupSubject">Asunto *</label><input id="schoolFollowupSubject" required maxlength="160"></div>
+        <div class="form-field full"><label for="schoolFollowupDetail">Detalle *</label><textarea id="schoolFollowupDetail" required maxlength="2000"></textarea></div>
+    </div><p class="form-message">La fecha y hora se asignan automáticamente al guardar.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolFollowupModal">Cancelar</button><button class="primary-button" type="submit">Guardar seguimiento</button></div></form>
+</div></div>
+<div class="modal-backdrop" id="schoolPaymentModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2>Agregar pago</h2><button class="modal-close" type="button" data-close-school="schoolPaymentModal">×</button></div>
+    <form id="schoolPaymentForm"><div class="form-grid">
+        <div class="form-field full"><label>Estudiante</label><input id="schoolPaymentStudent" readonly></div>
+        <div class="form-field"><label for="schoolPaymentAmount">Monto abonado (Q) *</label><input id="schoolPaymentAmount" type="number" min="0.01" step="0.01" required></div>
+        <div class="form-field"><label for="schoolPaymentStatus">Estado</label><select id="schoolPaymentStatus"><option>Vigente</option><option>No vigente</option></select></div>
+        <div class="form-field full"><label for="schoolPaymentReference">Referencia (opcional)</label><input id="schoolPaymentReference" maxlength="120"></div>
+    </div><p class="form-message">El pago se registra en quetzales con fecha y hora del servidor y se refleja como ingreso en Finanzas.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolPaymentModal">Cancelar</button><button class="primary-button" type="submit">Registrar pago</button></div></form>
+</div></div>
 
 <!-- MODALES DE FINANZAS -->
 <div class="modal-backdrop" id="receivableModal" aria-hidden="true"><div class="modal">
@@ -1335,6 +1411,7 @@
         personal: "Personal",
         flota: "Flota y gastos",
         finanzas: "Finanzas",
+        escolares: "Transporte escolares",
         vehiculos: "Vehículos",
         viajes: "Viajes",
         abordajes: "Abordajes",
@@ -1345,6 +1422,8 @@
     let redirecting = false;
     let accessReady = false;
     let currentUserId = null;
+    let isSuperAdmin = false;
+    let hasFinanceAccess = false;
 
     function showOperationError(error, action) {
         console.error("Error en " + action + ":", error);
@@ -1401,6 +1480,7 @@
             }
 
             currentUserId = session.user.id;
+            isSuperAdmin = profile.role === "superadmin";
             userEmail.textContent = profile.full_name || session.user.email;
 
             // Inicio está disponible para todo usuario activo.
@@ -1429,6 +1509,18 @@
                 });
             }
 
+            hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
+            const salaryField = document.getElementById("employeeBaseSalary");
+            const bonusField = document.getElementById("employeeKpiBonusMax");
+            [salaryField,bonusField].forEach(field=>{if(field){field.closest(".form-field").style.display=hasFinanceAccess?"":"none";field.required=hasFinanceAccess;}});
+            document.getElementById("addLoanButton").style.display = hasFinanceAccess ? "" : "none";
+            document.getElementById("addPayrollButton").style.display = hasFinanceAccess ? "" : "none";
+            ["fuelPricePerGallon","fuelCost","maintenanceCost","partsUnitCost","partsCalculatedTotal"].forEach(id => {
+                const field = document.getElementById(id);
+                if (field) { field.closest(".form-field").style.display = hasFinanceAccess ? "" : "none"; field.disabled = !hasFinanceAccess; field.required = hasFinanceAccess && !["fuelCost","partsCalculatedTotal"].includes(id); }
+            });
+            const tripIncomeField = document.getElementById("tripIncomeInput");
+            if (tripIncomeField) tripIncomeField.required = hasFinanceAccess;
             applyModulePermissions();
             accessReady = true;
             openView("inicio");
@@ -1444,6 +1536,12 @@
             }
             if (allowedModules.has("finanzas")) {
                 await loadFinanceData();
+            }
+            if (allowedModules.has("escolares")) {
+                await loadSchoolData();
+            }
+            if (allowedModules.has("abordajes")) {
+                await loadBoardingsData();
             }
 
             renderHomeDashboard();
@@ -1473,6 +1571,10 @@
             if (card) card.hidden = !permitted;
         });
 
+        document.querySelectorAll("[data-open-boardings]").forEach(button => {
+            button.hidden = !allowedModules.has("abordajes");
+        });
+
         // La etiqueta de gestión del sistema solo aparece para superadmin.
         const adminButton = document.querySelector('.nav-button[data-view="administracion"]');
         const managementLabel = adminButton?.previousElementSibling;
@@ -1486,7 +1588,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = ["vehiculos", "viajes", "abordajes"].includes(viewName) && allowedModules.has("operaciones");
+        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
         if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
@@ -1531,6 +1633,10 @@
         });
     });
 
+    document.querySelectorAll("[data-open-boardings]").forEach(button => {
+        button.addEventListener("click", () => openView("abordajes"));
+    });
+
     // =====================================
     // VIAJES - INTERFAZ PREPARADA
     // =====================================
@@ -1543,13 +1649,29 @@
 
     // Registros operativos cargados desde Supabase.
     let trips = [];
+    let editingTripId = null;
 
-    function openTripModal() {
+    function openTripModal(trip = null) {
         refreshTripVehicleOptions();
         tripForm.reset();
-        document.getElementById("tripDate").value =
-            new Date().toISOString().slice(0, 10);
-        refreshTripVehicleOptions();
+        editingTripId = trip?.id || null;
+        document.getElementById("tripModalTitle").textContent = editingTripId ? "Editar viaje" : "Registrar viaje";
+        tripForm.querySelector('button[type="submit"]').textContent = editingTripId ? "Guardar cambios" : "Guardar viaje";
+        document.getElementById("tripDate").value = trip?.date || new Date().toISOString().slice(0, 10);
+        const incomeField = document.getElementById("tripIncomeInput");
+        incomeField.closest(".form-field").style.display = hasFinanceAccess ? "" : "none";
+        incomeField.required = hasFinanceAccess;
+        incomeField.value = hasFinanceAccess ? (trip?.income ?? 0) : 0;
+        if (trip) {
+            document.getElementById("tripVehicle").value = trip.vehicleId;
+            document.getElementById("tripOrigin").value = trip.origin;
+            document.getElementById("tripDestination").value = trip.destination;
+            document.getElementById("tripResponsible").value = trip.responsible;
+            document.getElementById("tripServiceType").value = trip.serviceType;
+            if (hasFinanceAccess) document.getElementById("tripIncomeInput").value = trip.income;
+            document.getElementById("tripStatus").value = trip.status;
+            document.getElementById("tripNotes").value = trip.notes || "";
+        }
         tripModal.classList.add("open");
         tripModal.setAttribute("aria-hidden", "false");
     }
@@ -1557,6 +1679,7 @@
     function closeTripModal() {
         tripModal.classList.remove("open");
         tripModal.setAttribute("aria-hidden", "true");
+        editingTripId = null;
     }
 
     function refreshTripVehicleOptions() {
@@ -1607,8 +1730,9 @@
             trips.filter(trip => trip.status === "Programado").length;
         document.getElementById("tripCompleted").textContent =
             trips.filter(trip => trip.status === "Completado").length;
-        document.getElementById("tripIncome").textContent =
-            formatQuetzales(trips.reduce((sum, trip) => sum + trip.income, 0));
+        document.getElementById("tripIncome").textContent = hasFinanceAccess
+            ? formatQuetzales(trips.reduce((sum, trip) => sum + trip.income, 0))
+            : "Solo Finanzas";
 
         if (!filtered.length) {
             tripsTableBody.innerHTML =
@@ -1626,9 +1750,9 @@
                     <td>${escapeHtml(trip.destination)}</td>
                     <td>${escapeHtml(trip.responsible)}</td>
                     <td>${escapeHtml(trip.serviceType)}</td>
-                    <td>${formatQuetzales(trip.income)}</td>
+                    <td>${hasFinanceAccess ? formatQuetzales(trip.income) : "Solo Finanzas"}</td>
                     <td><span class="status-pill">${escapeHtml(trip.status)}</span></td>
-                    <td><button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
+                    <td>${isSuperAdmin ? `<button class="table-action" type="button" data-edit-trip="${trip.id}">Editar</button>` : ""} <button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
                 </tr>
             `;
         }).join("");
@@ -1668,7 +1792,7 @@
                 return;
             }
 
-            const income = Number(formData.get("income") || 0);
+            const income = hasFinanceAccess ? Number(formData.get("income") || 0) : 0;
             if (!Number.isFinite(income) || income < 0) {
                 alert("Ingresa un monto válido para el ingreso.");
                 return;
@@ -1683,12 +1807,17 @@
                 service_type: String(formData.get("serviceType")),
                 income,
                 status: String(formData.get("status")),
-                notes: String(formData.get("notes")).trim(),
-                created_by: currentUserId
+                notes: String(formData.get("notes")).trim()
             };
 
-            const { error } = await supabase.from("trips").insert(payload);
-            if (error) throw error;
+            if (editingTripId) {
+                if (!isSuperAdmin) throw new Error("Solo el superadministrador puede editar viajes.");
+                const { error } = await supabase.from("trips").update(payload).eq("id", editingTripId);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from("trips").insert({ ...payload, created_by: currentUserId });
+                if (error) throw error;
+            }
 
             await loadOperationalData();
             closeTripModal();
@@ -1701,6 +1830,16 @@
     });
 
     tripsTableBody.addEventListener("click", async event => {
+        const editButton = event.target.closest("[data-edit-trip]");
+        if (editButton) {
+            if (!isSuperAdmin) {
+                alert("Solo el superadministrador puede editar viajes.");
+                return;
+            }
+            const trip = trips.find(item => item.id === editButton.dataset.editTrip);
+            if (trip) openTripModal(trip);
+            return;
+        }
         const button = event.target.closest("[data-delete-trip]");
         if (!button) return;
         if (!confirm("¿Eliminar este viaje y todos sus abordajes registrados?")) return;
@@ -1856,133 +1995,18 @@
     renderVehicles();
 
     // =====================================
-    // ABORDAJES - INTERFAZ PREPARADA
-    // =====================================
-
-    const boardingModal = document.getElementById("boardingModal");
-    const boardingForm = document.getElementById("boardingForm");
-    const boardingsTableBody = document.getElementById("boardingsTableBody");
-    const boardingSearch = document.getElementById("boardingSearch");
-    const boardingTripFilter = document.getElementById("boardingTripFilter");
-
-    // Registros de abordaje cargados desde Supabase.
-    let boardings = [];
-
-    function refreshBoardingTripOptions() {
-        const select = document.getElementById("boardingTrip");
-        const previousValue = select.value;
-        select.innerHTML = '<option value="">Seleccionar viaje</option>';
-
-        trips.forEach(trip => {
-            const vehicle = vehicles.find(item => item.id === trip.vehicleId);
-            const option = document.createElement("option");
-            option.value = trip.id;
-            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination +
-                " · " + (vehicle ? vehicle.code + " / " + vehicle.plate : "Sin vehículo");
-            select.appendChild(option);
-        });
-
-        if (previousValue && trips.some(trip => trip.id === previousValue)) {
-            select.value = previousValue;
-        }
-
-        select.disabled = trips.length === 0;
-        if (!trips.length) {
-            select.innerHTML = '<option value="">Primero registra un viaje</option>';
-        }
-
-        const filterValue = boardingTripFilter.value;
-        boardingTripFilter.innerHTML = '<option value="">Todos los viajes</option>';
-        trips.forEach(trip => {
-            const option = document.createElement("option");
-            option.value = trip.id;
-            option.textContent = trip.date + " · " + trip.origin + " → " + trip.destination;
-            boardingTripFilter.appendChild(option);
-        });
-        if (trips.some(trip => trip.id === filterValue)) {
-            boardingTripFilter.value = filterValue;
-        }
-    }
-
-    function openBoardingModal() {
-        refreshBoardingTripOptions();
-        if (!trips.length) {
-            alert("Primero registra un viaje para poder agregar personas a sus abordajes.");
-            return;
-        }
-        boardingForm.reset();
-        document.getElementById("boardingDate").value = new Date().toISOString().slice(0, 10);
-        refreshBoardingTripOptions();
-        boardingModal.classList.add("open");
-        boardingModal.setAttribute("aria-hidden", "false");
-    }
-
-    function closeBoardingModal() {
-        boardingModal.classList.remove("open");
-        boardingModal.setAttribute("aria-hidden", "true");
-    }
-
-    function renderBoardings() {
-        const search = boardingSearch.value.trim().toLowerCase();
-        const tripId = boardingTripFilter.value;
-
-        const filtered = boardings.filter(boarding => {
-            const trip = trips.find(item => item.id === boarding.tripId);
-            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
-            const tripLabel = trip ? trip.origin + " " + trip.destination : "";
-            const vehicleLabel = vehicle ? vehicle.code + " " + vehicle.plate : "";
-            const matchesSearch = [boarding.name, boarding.contact, boarding.boardingPoint, tripLabel, vehicleLabel]
-                .join(" ").toLowerCase().includes(search);
-            return matchesSearch && (!tripId || boarding.tripId === tripId);
-        });
-
-        document.getElementById("boardingTotal").textContent = boardings.length;
-        document.getElementById("boardingTrips").textContent =
-            new Set(boardings.map(item => item.tripId)).size;
-        const today = new Date().toISOString().slice(0, 10);
-        document.getElementById("boardingToday").textContent =
-            boardings.filter(item => item.date === today).length;
-
-        if (!filtered.length) {
-            boardingsTableBody.innerHTML =
-                '<tr><td colspan="8" class="empty-state">No se encontraron abordajes.</td></tr>';
-            return;
-        }
-
-        boardingsTableBody.innerHTML = filtered.map(boarding => {
-            const trip = trips.find(item => item.id === boarding.tripId);
-            const vehicle = trip ? vehicles.find(item => item.id === trip.vehicleId) : null;
-            return `
-                <tr>
-                    <td>${escapeHtml(boarding.date)}</td>
-                    <td>${escapeHtml(boarding.name)}</td>
-                    <td>${escapeHtml(trip ? trip.origin + " → " + trip.destination : "—")}</td>
-                    <td>${escapeHtml(vehicle ? vehicle.code + " · " + vehicle.plate : "—")}</td>
-                    <td>${escapeHtml(boarding.time || "—")}</td>
-                    <td>${escapeHtml(boarding.boardingPoint || "—")}</td>
-                    <td>${escapeHtml(boarding.contact || "—")}</td>
-                    <td><button class="table-action" type="button" data-delete-boarding="${boarding.id}">Eliminar</button></td>
-                </tr>
-            `;
-        }).join("");
-    }
-
-
-    // =====================================
     // CONEXIÓN Y CARGA DE OPERACIONES
     // =====================================
 
     async function loadOperationalData() {
         try {
-            const [vehicleResult, tripResult, boardingResult] = await Promise.all([
+            const [vehicleResult, tripResult] = await Promise.all([
                 supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
-                supabase.from("trips").select("*").order("date", { ascending: false }),
-                supabase.from("boardings").select("*").order("date", { ascending: false })
+                supabase.from("trips").select("id,date,vehicle_id,origin,destination,responsible,service_type,status,notes,created_by,created_at,updated_at").order("date", { ascending: false })
             ]);
 
             if (vehicleResult.error) throw vehicleResult.error;
             if (tripResult.error) throw tripResult.error;
-            if (boardingResult.error) throw boardingResult.error;
 
             vehicles = (vehicleResult.data || []).map(item => ({
                 id: item.id,
@@ -1996,6 +2020,13 @@
                 notes: item.notes || ""
             }));
 
+            let financeTripAmounts = [];
+            if (hasFinanceAccess) {
+                const { data, error } = await supabase.from("finance_trips").select("id,income");
+                if (error) throw error;
+                financeTripAmounts = data || [];
+            }
+            const tripIncomeById = new Map(financeTripAmounts.map(item => [item.id, Number(item.income || 0)]));
             trips = (tripResult.data || []).map(item => ({
                 id: item.id,
                 date: item.date,
@@ -2004,111 +2035,18 @@
                 destination: item.destination,
                 responsible: item.responsible,
                 serviceType: item.service_type,
-                income: Number(item.income || 0),
+                income: tripIncomeById.get(item.id) ?? 0,
                 status: item.status,
-                notes: item.notes || ""
-            }));
-
-            boardings = (boardingResult.data || []).map(item => ({
-                id: item.id,
-                tripId: item.trip_id,
-                name: item.name,
-                date: item.date,
-                time: item.time || "",
-                boardingPoint: item.boarding_point || "",
-                contact: item.contact || "",
                 notes: item.notes || ""
             }));
 
             renderVehicles();
             renderTrips();
             refreshTripVehicleOptions();
-            refreshBoardingTripOptions();
-            renderBoardings();
         } catch (error) {
             showOperationError(error, "cargar los registros de Operaciones");
         }
     }
-
-    document.querySelectorAll("[data-open-boardings]").forEach(button => {
-        button.addEventListener("click", () => openView("abordajes"));
-    });
-
-    document.getElementById("backFromBoardings").addEventListener("click", () => {
-        openView("operaciones");
-    });
-
-    document.getElementById("addBoardingButton").addEventListener("click", openBoardingModal);
-    document.getElementById("closeBoardingModal").addEventListener("click", closeBoardingModal);
-    document.getElementById("cancelBoarding").addEventListener("click", closeBoardingModal);
-
-    boardingModal.addEventListener("click", event => {
-        if (event.target === boardingModal) closeBoardingModal();
-    });
-
-    boardingSearch.addEventListener("input", renderBoardings);
-    boardingTripFilter.addEventListener("change", renderBoardings);
-
-    boardingForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        if (!currentUserId) return;
-
-        const submitButton = boardingForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-
-        try {
-            const formData = new FormData(boardingForm);
-            const tripId = String(formData.get("tripId"));
-            if (!trips.some(trip => trip.id === tripId)) {
-                alert("Selecciona un viaje válido.");
-                return;
-            }
-
-            const name = String(formData.get("name") || "").trim();
-            if (!name) {
-                alert("Ingresa el nombre de la persona.");
-                return;
-            }
-
-            const payload = {
-                trip_id: tripId,
-                name,
-                date: String(formData.get("date")),
-                time: String(formData.get("time") || "") || null,
-                boarding_point: String(formData.get("boardingPoint") || "").trim(),
-                contact: String(formData.get("contact") || "").trim(),
-                notes: String(formData.get("notes") || "").trim(),
-                created_by: currentUserId
-            };
-
-            const { error } = await supabase.from("boardings").insert(payload);
-            if (error) throw error;
-
-            await loadOperationalData();
-            closeBoardingModal();
-            boardingForm.reset();
-        } catch (error) {
-            showOperationError(error, "guardar el abordaje");
-        } finally {
-            submitButton.disabled = false;
-        }
-    });
-
-    boardingsTableBody.addEventListener("click", async event => {
-        const button = event.target.closest("[data-delete-boarding]");
-        if (!button) return;
-        if (!confirm("¿Eliminar este registro de abordaje?")) return;
-
-        try {
-            const { error } = await supabase.from("boardings").delete().eq("id", button.dataset.deleteBoarding);
-            if (error) throw error;
-            await loadOperationalData();
-        } catch (error) {
-            showOperationError(error, "eliminar el abordaje");
-        }
-    });
-
-    renderBoardings();
 
     // PERSONAL: DATOS Y OPERACIONES
     let employees=[], employeeLoans=[], payrollRecords=[];
@@ -2133,44 +2071,61 @@
     }
     function renderPersonalSummary(){
         document.getElementById("employeeActiveTotal").textContent=employees.filter(x=>x.status==="Activo").length;
-        document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo"&&x.balance>0).length;
-        document.getElementById("loanBalanceTotal").textContent=money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+x.balance,0));
-        document.getElementById("payrollPendingTotal").textContent=money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+x.netPay,0));
+        document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo").length;
+        document.getElementById("loanBalanceTotal").textContent=hasFinanceAccess?money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+(x.balance||0),0)):"Solo Finanzas";
+        document.getElementById("payrollPendingTotal").textContent=hasFinanceAccess?money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+(x.netPay||0),0)):"Solo Finanzas";
     }
     function renderEmployees(){
         const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
         const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
+        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.kpiBonusMax):"Solo Finanzas"}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron trabajadores.</td></tr>';
     }
     function renderLoans(){
         const q=document.getElementById("loanSearch").value.trim().toLowerCase(),st=document.getElementById("loanStatusFilter").value;
         const rows=employeeLoans.filter(x=>(employeeName(x.employeeId)+" "+x.reason).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("loansTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${escapeHtml(x.reason||"—")}</td><td>${money(x.amount)}</td><td>${money(x.balance)}</td><td>${money(x.installmentAmount)}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-loan="${x.id}">Editar</button><button class="table-action" data-delete-loan="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron préstamos.</td></tr>';
+        document.getElementById("loansTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${escapeHtml(x.reason||"—")}</td><td>${hasFinanceAccess?money(x.amount):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.balance):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.installmentAmount):"Solo Finanzas"}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${hasFinanceAccess?'<button class="table-action" data-edit-loan="'+x.id+'">Editar</button>'+(x.installmentsPaid===0&&x.status==="Activo"?'<button class="table-action" data-delete-loan="'+x.id+'">Eliminar</button>':"Con historial"): "Solo Finanzas"}</div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron préstamos.</td></tr>';
     }
     function renderPayroll(){
         const q=document.getElementById("payrollSearch").value.trim().toLowerCase(),period=document.getElementById("payrollPeriodFilter").value,st=document.getElementById("payrollStatusFilter").value;
         const rows=payrollRecords.filter(x=>employeeName(x.employeeId).toLowerCase().includes(q)&&(!period||x.period.startsWith(period))&&(!st||x.status===st));
-        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.period.slice(0,7)}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${money(x.baseSalary)}</td><td>${money(x.bonuses)}</td><td>${money(x.otherDeductions)}</td><td>${money(x.loanDeduction)}</td><td><strong>${money(x.netPay)}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button>':""}<button class="table-action" data-edit-payroll="${x.id}">Editar</button><button class="table-action" data-delete-payroll="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="9" class="empty-state">No se encontraron registros de planilla.</td></tr>';
+        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>{
+            const fortnight=x.fortnight===1?"1ª":x.fortnight===2?"2ª":"Histórico";
+            const actions=x.fortnight>0&&x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button><button class="table-action" data-edit-payroll="'+x.id+'">Editar</button>':"—";
+            return `<tr><td>${x.period.slice(0,7)}</td><td>${fortnight}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.bonuses):"Solo Finanzas"}</td><td>${hasFinanceAccess?(x.kpiPercentage===null?"—":Number(x.kpiPercentage).toFixed(2)+"%"):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.otherDeductions):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.loanDeduction):"Solo Finanzas"}</td><td><strong>${hasFinanceAccess?money(x.netPay):"Solo Finanzas"}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${actions}</div></td></tr>`;
+        }).join(""):'<tr><td colspan="11" class="empty-state">No se encontraron registros de planilla.</td></tr>';
     }
     function renderPersonal(){renderPersonalSummary();renderEmployees();renderLoans();renderPayroll();refreshPersonalSelects();}
     async function loadPersonalData(){
         try{
             const [er,lr,pr]=await Promise.all([
-                supabase.from("employees").select("*").order("full_name"),
-                supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
-                supabase.from("payroll_records").select("*").order("period",{ascending:false})
+                supabase.from("employees").select("id,full_name,dpi,position,phone,hire_date,status,notes").order("full_name"),
+                supabase.from("employee_loans").select("id,employee_id,reason,installments_total,installments_paid,start_date,status,notes,created_at").order("created_at",{ascending:false}),
+                supabase.from("payroll_records").select("id,employee_id,period,fortnight,kpi_complaints,kpi_cleanliness,kpi_delays,status,payment_date,notes").order("period",{ascending:false}).order("fortnight",{ascending:false})
             ]);
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
-            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(x.base_salary||0),status:x.status,notes:x.notes||""}));
-            employeeLoans=(lr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:Number(x.amount),balance:Number(x.balance),installmentAmount:Number(x.installment_amount),installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""}));
-            payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
+            let compensation=[],loanAmounts=[],payrollAmounts=[];
+            if(hasFinanceAccess){
+                const [cr,lar,par]=await Promise.all([
+                    supabase.from("finance_employees").select("id,monthly_base_salary,monthly_kpi_bonus_max"),
+                    supabase.from("finance_employee_loans").select("id,amount,balance,installment_amount"),
+                    supabase.from("finance_payroll_records").select("id,base_salary,bonuses,other_deductions,loan_deduction,net_pay,kpi_percentage")
+                ]);
+                for(const r of [cr,lar,par])if(r.error)throw r.error;
+                compensation=cr.data||[];loanAmounts=lar.data||[];payrollAmounts=par.data||[];
+            }
+            const compById=new Map(compensation.map(x=>[x.id,x]));
+            const loanById=new Map(loanAmounts.map(x=>[x.id,x]));
+            const payrollById=new Map(payrollAmounts.map(x=>[x.id,x]));
+            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(compById.get(x.id)?.monthly_base_salary||0),kpiBonusMax:Number(compById.get(x.id)?.monthly_kpi_bonus_max||0),status:x.status,notes:x.notes||""}));
+            employeeLoans=(lr.data||[]).map(x=>{const m=loanById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:hasFinanceAccess?Number(m.amount||0):null,balance:hasFinanceAccess?Number(m.balance||0):null,installmentAmount:hasFinanceAccess?Number(m.installment_amount||0):null,installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""};});
+            payrollRecords=(pr.data||[]).map(x=>{const m=payrollById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,period:x.period,fortnight:x.fortnight,kpiComplaints:x.kpi_complaints,kpiCleanliness:x.kpi_cleanliness,kpiDelays:x.kpi_delays,baseSalary:hasFinanceAccess?Number(m.base_salary||0):null,bonuses:hasFinanceAccess?Number(m.bonuses||0):null,otherDeductions:hasFinanceAccess?Number(m.other_deductions||0):null,loanDeduction:hasFinanceAccess?Number(m.loan_deduction||0):null,netPay:hasFinanceAccess?Number(m.net_pay||0):null,kpiPercentage:hasFinanceAccess?m.kpi_percentage:null,status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""};});
             renderPersonal();
         }catch(error){showOperationError(error,"cargar los registros de Personal");}
     }
     function openEmployeeModal(x=null){
         editingEmployeeId=x?.id||null;employeeForm.reset();
         document.getElementById("employeeModalTitle").textContent=x?"Editar trabajador":"Registrar trabajador";
-        [["employeeFullName",x?.fullName],["employeeDpi",x?.dpi],["employeePosition",x?.position],["employeePhone",x?.phone],["employeeHireDate",x?.hireDate],["employeeBaseSalary",x?.baseSalary??0],["employeeStatus",x?.status||"Activo"],["employeeNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v||"");
+        [["employeeFullName",x?.fullName],["employeeDpi",x?.dpi],["employeePosition",x?.position],["employeePhone",x?.phone],["employeeHireDate",x?.hireDate],["employeeBaseSalary",x?.baseSalary??0],["employeeKpiBonusMax",x?.kpiBonusMax??0],["employeeStatus",x?.status||"Activo"],["employeeNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v||"");
         if(!x)document.getElementById("employeeBaseSalary").value=0;
         openPersonalModal("employeeModal");
     }
@@ -2178,39 +2133,70 @@
         editingLoanId=x?.id||null;loanForm.reset();refreshPersonalSelects();
         document.getElementById("loanModalTitle").textContent=x?"Editar préstamo":"Registrar préstamo";
         [["loanEmployee",x?.employeeId],["loanReason",x?.reason],["loanAmount",x?.amount],["loanBalance",x?.balance],["loanInstallment",x?.installmentAmount],["loanStartDate",x?.startDate||new Date().toISOString().slice(0,10)],["loanInstallmentsTotal",x?.installmentsTotal],["loanInstallmentsPaid",x?.installmentsPaid??0],["loanStatus",x?.status||"Activo"],["loanNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        calculateLoanInstallment();
         openPersonalModal("loanModal");
     }
+    function calculateLoanInstallment(){
+        const amount=Number(document.getElementById("loanAmount").value||0);
+        const total=Number(document.getElementById("loanInstallmentsTotal").value||0);
+        document.getElementById("loanInstallment").value=amount>0&&total>0?(amount/total).toFixed(2):"";
+    }
+    ["loanAmount","loanInstallmentsTotal"].forEach(id=>document.getElementById(id).addEventListener("input",calculateLoanInstallment));
     function calcPayroll(){
-        const n=Number(document.getElementById("payrollBaseSalary").value||0)+Number(document.getElementById("payrollBonuses").value||0)-Number(document.getElementById("payrollOtherDeductions").value||0)-Number(document.getElementById("payrollLoanDeduction").value||0);
-        document.getElementById("payrollNetPay").value=Math.max(0,n).toFixed(2);return n;
+        const employee=employees.find(x=>x.id===document.getElementById("payrollEmployee").value);
+        const ratingIds=["payrollKpiComplaints","payrollKpiCleanliness","payrollKpiDelays"];
+        const ratings=ratingIds.map(id=>document.getElementById(id).value?Number(document.getElementById(id).value):null);
+        const percentageMap={1:0,2:25,3:50,4:75,5:100};
+        const kpiPercentage=ratings.every(x=>x!==null)?ratings.reduce((sum,x)=>sum+percentageMap[x],0)/3:0;
+        const base=employee?Number(employee.baseSalary||0)/2:Number(document.getElementById("payrollBaseSalary").value||0);
+        const bonus=employee?Number(employee.kpiBonusMax||0)*kpiPercentage/100/2:Number(document.getElementById("payrollBonuses").value||0);
+        const loan=employee?employeeLoans.filter(x=>x.employeeId===employee.id&&x.status==="Activo"&&(x.installmentsTotal===null||x.installmentsPaid<x.installmentsTotal)).reduce((sum,x)=>sum+(x.installmentsTotal!==null&&x.installmentsPaid+1>=x.installmentsTotal?Number(x.balance||0):Math.min(Number(x.installmentAmount||0),Number(x.balance||0))),0):0;
+        document.getElementById("payrollBaseSalary").value=base.toFixed(2);
+        document.getElementById("payrollBonuses").value=bonus.toFixed(2);
+        document.getElementById("payrollLoanDeduction").value=loan.toFixed(2);
+        const n=base+bonus-Number(document.getElementById("payrollOtherDeductions").value||0)-loan;
+        document.getElementById("payrollNetPay").value=Math.max(0,n).toFixed(2);
+        return n;
     }
     function openPayrollModal(x=null){
         editingPayrollId=x?.id||null;payrollForm.reset();refreshPersonalSelects();
         document.getElementById("payrollModalTitle").textContent=x?"Editar planilla":"Crear registro de planilla";
-        [["payrollEmployee",x?.employeeId],["payrollPeriod",x?.period?.slice(0,7)||new Date().toISOString().slice(0,7)],["payrollBaseSalary",x?.baseSalary??""],["payrollBonuses",x?.bonuses??0],["payrollOtherDeductions",x?.otherDeductions??0],["payrollLoanDeduction",x?.loanDeduction??0],["payrollPaymentDate",x?.paymentDate],["payrollStatus",x?.status||"Pendiente"],["payrollNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        [["payrollEmployee",x?.employeeId],["payrollPeriod",x?.period?.slice(0,7)||new Date().toISOString().slice(0,7)],["payrollFortnight",x?.fortnight===2?2:1],["payrollKpiComplaints",x?.kpiComplaints??""],["payrollKpiCleanliness",x?.kpiCleanliness??""],["payrollKpiDelays",x?.kpiDelays??""],["payrollBaseSalary",x?.baseSalary??0],["payrollBonuses",x?.bonuses??0],["payrollOtherDeductions",x?.otherDeductions??0],["payrollLoanDeduction",x?.loanDeduction??0],["payrollPaymentDate",x?.paymentDate],["payrollStatus",x?.status||"Pendiente"],["payrollNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
         calcPayroll();openPersonalModal("payrollModal");
     }
-    document.getElementById("payrollEmployee").addEventListener("change",()=>{
-        const x=employees.find(e=>e.id===document.getElementById("payrollEmployee").value);if(!x)return;
-        document.getElementById("payrollBaseSalary").value=x.baseSalary.toFixed(2);
-        const suggested=employeeLoans.filter(l=>l.employeeId===x.id&&l.status==="Activo"&&l.balance>0).reduce((s,l)=>s+Math.min(l.installmentAmount,l.balance),0);
-        document.getElementById("payrollLoanDeduction").value=suggested.toFixed(2);calcPayroll();
-    });
-    ["payrollBaseSalary","payrollBonuses","payrollOtherDeductions","payrollLoanDeduction"].forEach(id=>document.getElementById(id).addEventListener("input",calcPayroll));
+    document.getElementById("payrollEmployee").addEventListener("change",calcPayroll);
+    ["payrollKpiComplaints","payrollKpiCleanliness","payrollKpiDelays","payrollOtherDeductions","payrollFortnight"].forEach(id=>document.getElementById(id).addEventListener("change",calcPayroll));
+    document.getElementById("payrollOtherDeductions").addEventListener("input",calcPayroll);
     document.getElementById("addEmployeeButton").addEventListener("click",()=>openEmployeeModal());
     document.getElementById("addLoanButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openLoanModal():alert("Primero registra un trabajador activo."));
     document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
     employeeForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
-        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
-            const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
+        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
+            if(hasFinanceAccess)p.base_salary=Number(d.get("baseSalary")||0);
+            let savedEmployeeId=editingEmployeeId;
+            if(editingEmployeeId){
+                const {error}=await supabase.from("employees").update(p).eq("id",editingEmployeeId);
+                if(error)throw error;
+            }else{
+                const {data,error}=await supabase.from("employees").insert({...p,created_by:currentUserId}).select("id").single();
+                if(error)throw error;
+                savedEmployeeId=data.id;
+            }
+            if(hasFinanceAccess){
+                const {error}=await supabase.from("employee_compensation").upsert({
+                    employee_id:savedEmployeeId,
+                    monthly_kpi_bonus_max:Number(document.getElementById("employeeKpiBonusMax").value||0)
+                },{onConflict:"employee_id"});
+                if(error)throw error;
+            }
             closePersonalModal("employeeModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
     });
     loanForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=loanForm.querySelector('[type="submit"]');btn.disabled=true;
-        try{const d=new FormData(loanForm),amount=Number(d.get("amount")),balance=Number(d.get("balance"));if(balance>amount)throw Error("El saldo no puede superar el monto inicial.");
-            const p={employee_id:String(d.get("employeeId")),reason:String(d.get("reason")||"").trim(),amount,balance,installment_amount:Number(d.get("installmentAmount")),installments_total:d.get("installmentsTotal")?Number(d.get("installmentsTotal")):null,installments_paid:Number(d.get("installmentsPaid")||0),start_date:String(d.get("startDate")),status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
+        try{const d=new FormData(loanForm),amount=Number(d.get("amount")),balance=Number(d.get("balance")),installmentsTotal=Number(d.get("installmentsTotal")),installmentsPaid=Number(d.get("installmentsPaid")||0);if(balance>amount)throw Error("El saldo no puede superar el monto inicial.");if(installmentsTotal<1||installmentsTotal>12||installmentsPaid>installmentsTotal)throw Error("Las cuotas deben estar entre 1 y 12 y las pagadas no pueden superar el total.");
+            const p={employee_id:String(d.get("employeeId")),reason:String(d.get("reason")||"").trim(),amount,balance,installment_amount:Number(d.get("installmentAmount")),installments_total:installmentsTotal,installments_paid:installmentsPaid,start_date:String(d.get("startDate")),status:String(d.get("status")),notes:String(d.get("notes")||"").trim()};
             const q=editingLoanId?supabase.from("employee_loans").update(p).eq("id",editingLoanId):supabase.from("employee_loans").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
             closePersonalModal("loanModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el préstamo");}finally{btn.disabled=false;}
@@ -2218,7 +2204,7 @@
     payrollForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=payrollForm.querySelector('[type="submit"]');btn.disabled=true;
         try{const d=new FormData(payrollForm),month=String(d.get("period")),net=calcPayroll();if(!month)throw Error("Selecciona el período.");if(net<0)throw Error("Las deducciones no pueden superar los ingresos.");
-            const status=String(d.get("status")),p={employee_id:String(d.get("employeeId")),period:month+"-01",base_salary:Number(d.get("baseSalary")),bonuses:Number(d.get("bonuses")||0),other_deductions:Number(d.get("otherDeductions")||0),loan_deduction:Number(d.get("loanDeduction")||0),net_pay:Number(net.toFixed(2)),status,payment_date:status==="Pagada"?(String(d.get("paymentDate")||"")||new Date().toISOString().slice(0,10)):null,notes:String(d.get("notes")||"").trim()};
+            const status=String(d.get("status")),p={employee_id:String(d.get("employeeId")),period:month+"-01",fortnight:Number(d.get("fortnight")),kpi_complaints:Number(d.get("kpiComplaints")),kpi_cleanliness:Number(d.get("kpiCleanliness")),kpi_delays:Number(d.get("kpiDelays")),other_deductions:Number(d.get("otherDeductions")||0),status,payment_date:status==="Pagada"?(String(d.get("paymentDate")||"")||new Date().toISOString().slice(0,10)):null,notes:String(d.get("notes")||"").trim()};
             const q=editingPayrollId?supabase.from("payroll_records").update(p).eq("id",editingPayrollId):supabase.from("payroll_records").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
             closePersonalModal("payrollModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar la planilla");}finally{btn.disabled=false;}
@@ -2266,7 +2252,11 @@
         ["fuelVehicle","maintenanceVehicle","partsVehicle"].forEach(id=>document.getElementById(id).innerHTML='<option value="">Seleccionar vehículo</option>'+opts);
     }
     function renderFleetSummary(){
-        const fuel=fuelEntries.reduce((s,x)=>s+x.totalCost,0),maint=maintenanceRecords.reduce((s,x)=>s+x.cost,0),parts=vehicleParts.reduce((s,x)=>s+x.totalCost,0);
+        if(!hasFinanceAccess){
+            ["fuelTotalCost","maintenanceTotalCost","partsTotalCost","fleetTotalCost"].forEach(id=>document.getElementById(id).textContent="Solo Finanzas");
+            return;
+        }
+        const fuel=fuelEntries.reduce((s,x)=>s+(x.totalCost||0),0),maint=maintenanceRecords.reduce((s,x)=>s+(x.cost||0),0),parts=vehicleParts.reduce((s,x)=>s+(x.totalCost||0),0);
         document.getElementById("fuelTotalCost").textContent=fleetMoney(fuel);
         document.getElementById("maintenanceTotalCost").textContent=fleetMoney(maint);
         document.getElementById("partsTotalCost").textContent=fleetMoney(parts);
@@ -2275,32 +2265,45 @@
     function renderFuel(){
         const q=document.getElementById("fuelSearch").value.trim().toLowerCase(),period=document.getElementById("fuelPeriodFilter").value;
         const rows=fuelEntries.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.supplier).toLowerCase().includes(q)&&(!period||x.entryDate.startsWith(period)));
-        document.getElementById("fuelTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.entryDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td>${x.liters.toFixed(2)}</td><td>${fleetMoney(x.pricePerLiter)}</td><td><strong>${fleetMoney(x.totalCost)}</strong></td><td>${x.odometer??"—"}</td><td>${escapeHtml(x.supplier||"—")}</td><td><div class="table-actions"><button class="table-action" data-edit-fuel="${x.id}">Editar</button><button class="table-action" data-delete-fuel="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay cargas de combustible registradas.</td></tr>';
+        document.getElementById("fuelTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.entryDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td>"+x.gallons.toFixed(3)+"</td><td>"+(x.previousOdometer??"—")+"</td><td>"+(x.odometer??"—")+"</td><td>"+(x.kilometersDriven??"—")+"</td><td>"+(hasFinanceAccess?fleetMoney(x.pricePerGallon):"Solo Finanzas")+"</td><td><strong>"+(hasFinanceAccess?fleetMoney(x.totalCost):"Solo Finanzas")+"</strong></td><td>"+escapeHtml(x.supplier||"—")+"</td><td><div class='table-actions'><button class='table-action' data-edit-fuel='"+x.id+"'>Editar</button><button class='table-action' data-delete-fuel='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="10" class="empty-state">No hay cargas de combustible registradas.</td></tr>';
     }
     function renderMaintenance(){
         const q=document.getElementById("maintenanceSearch").value.trim().toLowerCase(),st=document.getElementById("maintenanceStatusFilter").value;
         const rows=maintenanceRecords.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.maintenanceType+" "+x.description+" "+x.provider).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("maintenanceTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.serviceDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td><strong>${escapeHtml(x.maintenanceType)}</strong><br><small>${escapeHtml(x.description)}</small></td><td>${escapeHtml(x.provider||"—")}</td><td>${fleetMoney(x.cost)}</td><td>${x.nextServiceDate||"—"}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-maintenance="${x.id}">Editar</button><button class="table-action" data-delete-maintenance="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay mantenimientos registrados.</td></tr>';
+        document.getElementById("maintenanceTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.serviceDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td><strong>"+escapeHtml(x.maintenanceType)+"</strong><br><small>"+escapeHtml(x.description)+"</small></td><td>"+escapeHtml(x.provider||"—")+"</td><td>"+(hasFinanceAccess?fleetMoney(x.cost):"Solo Finanzas")+"</td><td>"+(x.nextServiceDate||"—")+"</td><td><span class='status-pill'>"+escapeHtml(x.status)+"</span></td><td><div class='table-actions'><button class='table-action' data-edit-maintenance='"+x.id+"'>Editar</button><button class='table-action' data-delete-maintenance='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="8" class="empty-state">No hay mantenimientos registrados.</td></tr>';
     }
     function renderParts(){
         const q=document.getElementById("partsSearch").value.trim().toLowerCase(),action=document.getElementById("partsActionFilter").value;
         const rows=vehicleParts.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.partName+" "+x.supplier).toLowerCase().includes(q)&&(!action||x.action===action));
-        document.getElementById("partsTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.replacementDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td>${escapeHtml(x.partName)}</td><td>${x.action}</td><td>${x.quantity}</td><td><strong>${fleetMoney(x.totalCost)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td><div class="table-actions"><button class="table-action" data-edit-part="${x.id}">Editar</button><button class="table-action" data-delete-part="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay repuestos registrados.</td></tr>';
+        document.getElementById("partsTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.replacementDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td>"+escapeHtml(x.partName)+"</td><td>"+escapeHtml(x.action)+"</td><td>"+x.quantity+"</td><td><strong>"+(hasFinanceAccess?fleetMoney(x.totalCost):"Solo Finanzas")+"</strong></td><td>"+escapeHtml(x.supplier||"—")+"</td><td><div class='table-actions'><button class='table-action' data-edit-part='"+x.id+"'>Editar</button><button class='table-action' data-delete-part='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="8" class="empty-state">No hay repuestos registrados.</td></tr>';
     }
     function renderFleet(){renderFleetSummary();renderFuel();renderMaintenance();renderParts();refreshFleetVehicleOptions();}
     async function loadFlotaData(){
         try{
             const [vr,fr,mr,pr]=await Promise.all([
                 supabase.from("vehicles").select("id,code,plate,type,capacity,brand,model,status,notes").order("code"),
-                supabase.from("fuel_entries").select("*").order("entry_date",{ascending:false}),
-                supabase.from("maintenance_records").select("*").order("service_date",{ascending:false}),
-                supabase.from("vehicle_parts").select("*").order("replacement_date",{ascending:false})
+                supabase.from("fuel_entries").select("id,vehicle_id,entry_date,liters,gallons,previous_odometer,odometer,kilometers_driven,supplier,notes").order("entry_date",{ascending:false}),
+                supabase.from("maintenance_records").select("id,vehicle_id,service_date,maintenance_type,description,provider,odometer,next_service_date,status,notes").order("service_date",{ascending:false}),
+                supabase.from("vehicle_parts").select("id,vehicle_id,replacement_date,part_name,action,quantity,supplier,odometer,notes").order("replacement_date",{ascending:false})
             ]);
             if(vr.error)throw vr.error;if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
+            let financeFuelRows=[],financeMaintenanceRows=[],financePartRows=[];
+            if(hasFinanceAccess){
+                const [ff,fm,fp]=await Promise.all([
+                    supabase.from("finance_fuel_entries").select("id,price_per_gallon,total_cost"),
+                    supabase.from("finance_maintenance_records").select("id,cost"),
+                    supabase.from("finance_vehicle_parts").select("id,unit_cost,total_cost")
+                ]);
+                for(const r of [ff,fm,fp])if(r.error)throw r.error;
+                financeFuelRows=ff.data||[];financeMaintenanceRows=fm.data||[];financePartRows=fp.data||[];
+            }
+            const fuelMoney=new Map(financeFuelRows.map(x=>[x.id,x]));
+            const maintenanceMoney=new Map(financeMaintenanceRows.map(x=>[x.id,x]));
+            const partsMoney=new Map(financePartRows.map(x=>[x.id,x]));
             vehicles=(vr.data||[]).map(item=>({id:item.id,code:item.code,plate:item.plate,type:item.type,capacity:item.capacity,brand:item.brand||"",model:item.model||"",status:item.status,notes:item.notes||""}));
-            fuelEntries=(fr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,liters:Number(x.liters),pricePerLiter:Number(x.price_per_liter),totalCost:Number(x.total_cost),odometer:x.odometer,supplier:x.supplier||"",notes:x.notes||""}));
-            maintenanceRecords=(mr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:Number(x.cost),odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""}));
-            vehicleParts=(pr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:Number(x.unit_cost),totalCost:Number(x.total_cost),supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""}));
+            fuelEntries=(fr.data||[]).map(x=>{const m=fuelMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,gallons:Number(x.gallons||0),pricePerGallon:hasFinanceAccess?Number(m.price_per_gallon||0):null,totalCost:hasFinanceAccess?Number(m.total_cost||0):null,previousOdometer:x.previous_odometer,odometer:x.odometer,kilometersDriven:x.kilometers_driven,supplier:x.supplier||"",notes:x.notes||""};});
+            maintenanceRecords=(mr.data||[]).map(x=>{const m=maintenanceMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:hasFinanceAccess?Number(m.cost||0):null,odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""};});
+            vehicleParts=(pr.data||[]).map(x=>{const m=partsMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:hasFinanceAccess?Number(m.unit_cost||0):null,totalCost:hasFinanceAccess?Number(m.total_cost||0):null,supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""};});
             renderFleet();
         }catch(error){showOperationError(error,"cargar los registros de Flota y gastos");}
     }
@@ -2308,10 +2311,10 @@
     function openFuelModal(x=null){
         editingFuelId=x?.id||null;document.getElementById("fuelForm").reset();refreshFleetVehicleOptions();
         document.getElementById("fuelModalTitle").textContent=x?"Editar combustible":"Registrar combustible";
-        setFleetForm("fuelForm",{fuelVehicle:x?.vehicleId,fuelDate:x?.entryDate||fleetToday(),fuelLiters:x?.liters??"",fuelPrice:x?.pricePerLiter??"",fuelCost:x?.totalCost??"",fuelOdometer:x?.odometer,fuelSupplier:x?.supplier,fuelNotes:x?.notes});
+        setFleetForm("fuelForm",{fuelVehicle:x?.vehicleId,fuelDate:x?.entryDate||fleetToday(),fuelGallons:x?.gallons??"",fuelPricePerGallon:x?.pricePerGallon??"",fuelCost:x?.totalCost??"",fuelPreviousOdometer:x?.previousOdometer,fuelOdometer:x?.odometer,fuelSupplier:x?.supplier,fuelNotes:x?.notes});
         openFleetModal("fuelModal");
     }
-    function calculateFuel(){const cost=Number(document.getElementById("fuelLiters").value||0)*Number(document.getElementById("fuelPrice").value||0);document.getElementById("fuelCost").value=cost.toFixed(2);}
+    function calculateFuel(){const cost=Number(document.getElementById("fuelGallons").value||0)*Number(document.getElementById("fuelPricePerGallon").value||0);document.getElementById("fuelCost").value=cost.toFixed(2);}
     function openMaintenanceModal(x=null){
         editingMaintenanceId=x?.id||null;document.getElementById("maintenanceForm").reset();refreshFleetVehicleOptions();
         document.getElementById("maintenanceModalTitle").textContent=x?"Editar mantenimiento":"Registrar mantenimiento";
@@ -2325,20 +2328,38 @@
         openFleetModal("partsModal");
     }
     function calculateParts(){document.getElementById("partsCalculatedTotal").value=(Number(document.getElementById("partsQuantity").value||0)*Number(document.getElementById("partsUnitCost").value||0)).toFixed(2);}
-    ["fuelLiters","fuelPrice"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
+    ["fuelGallons","fuelPricePerGallon"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
     ["partsQuantity","partsUnitCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateParts));
     document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Operaciones."));
     document.getElementById("addMaintenanceButton").addEventListener("click",()=>vehicles.length?openMaintenanceModal():alert("Primero registra un vehículo en Operaciones."));
     document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Operaciones."));
     async function saveFleetRecord(formId,table,payload,id,action){
         const form=document.getElementById(formId),btn=form.querySelector('[type="submit"]');btn.disabled=true;
-        try{const query=id?supabase.from(table).update(payload).eq("id",id):supabase.from(table).insert({...payload,created_by:currentUserId});const {error}=await query;if(error)throw error;
+        try{
+            const safePayload={...payload};
+            if(!hasFinanceAccess){
+                const moneyFields=["price_per_liter","price_per_gallon","total_cost","cost","unit_cost"];
+                if(id){
+                    // Al editar sin Finanzas, omitir importes conserva los valores ya registrados.
+                    moneyFields.forEach(key=>delete safePayload[key]);
+                }else{
+                    // Los importes obligatorios nacen en cero y Finanzas los completa después.
+                    if(table==="fuel_entries")Object.assign(safePayload,{price_per_liter:0,price_per_gallon:0,total_cost:0});
+                    if(table==="maintenance_records")safePayload.cost=0;
+                    if(table==="vehicle_parts")Object.assign(safePayload,{unit_cost:0,total_cost:0});
+                }
+            }
+            const query=id?supabase.from(table).update(safePayload).eq("id",id):supabase.from(table).insert({...safePayload,created_by:currentUserId});const {error}=await query;if(error)throw error;
             const modal={fuel_entries:"fuelModal",maintenance_records:"maintenanceModal",vehicle_parts:"partsModal"}[table];closeFleetModal(modal);await loadFlotaData();
         }catch(error){showOperationError(error,action);}finally{btn.disabled=false;}
     }
     document.getElementById("fuelForm").addEventListener("submit",async e=>{
-        e.preventDefault();const liters=Number(document.getElementById("fuelLiters").value),price=Number(document.getElementById("fuelPrice").value),cost=Number((liters*price).toFixed(2));
-        await saveFleetRecord("fuelForm","fuel_entries",{vehicle_id:document.getElementById("fuelVehicle").value,entry_date:document.getElementById("fuelDate").value,liters,price_per_liter:price,total_cost:cost,odometer:document.getElementById("fuelOdometer").value?Number(document.getElementById("fuelOdometer").value):null,supplier:document.getElementById("fuelSupplier").value.trim(),notes:document.getElementById("fuelNotes").value.trim()},editingFuelId,"guardar el registro de combustible");
+        e.preventDefault();const gallons=Number(document.getElementById("fuelGallons").value),pricePerGallon=Number(document.getElementById("fuelPricePerGallon").value),cost=Number((gallons*pricePerGallon).toFixed(2));
+        const previousOdometer=document.getElementById("fuelPreviousOdometer").value?Number(document.getElementById("fuelPreviousOdometer").value):null;
+        const odometer=document.getElementById("fuelOdometer").value?Number(document.getElementById("fuelOdometer").value):null;
+        if(previousOdometer!==null&&odometer!==null&&odometer<previousOdometer){alert("El odómetro actual no puede ser menor que el anterior.");return;}
+        const liters=Number((gallons*3.785411784).toFixed(3)),pricePerLiter=Number((pricePerGallon/3.785411784).toFixed(4));
+        await saveFleetRecord("fuelForm","fuel_entries",{vehicle_id:document.getElementById("fuelVehicle").value,entry_date:document.getElementById("fuelDate").value,gallons,price_per_gallon:pricePerGallon,previous_odometer:previousOdometer,liters,price_per_liter:pricePerLiter,total_cost:cost,odometer,supplier:document.getElementById("fuelSupplier").value.trim(),notes:document.getElementById("fuelNotes").value.trim()},editingFuelId,"guardar el registro de combustible");
     });
     document.getElementById("maintenanceForm").addEventListener("submit",async e=>{
         e.preventDefault();const date=document.getElementById("maintenanceDate").value,next=document.getElementById("maintenanceNextDate").value;if(next&&next<date){alert("La fecha del próximo mantenimiento no puede ser anterior al servicio.");return;}
@@ -2407,8 +2428,8 @@
     // FINANZAS
     // =====================================
     let financialReceivables=[], financialCollections=[], financialExpenses=[];
-    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[];
-    let editingReceivableId=null, editingExpenseId=null;
+    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[], financeMovements=[];
+    let editingReceivableId=null, editingExpenseId=null, collectionRequestKey=null;
     const financeToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
     const financeMoney=value=>formatQuetzales(Number(value||0));
     const financeModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
@@ -2419,6 +2440,7 @@
         document.querySelectorAll("[data-finance-tab]").forEach(x=>x.classList.toggle("active",x===b));
         document.querySelectorAll("#view-finanzas .personal-panel").forEach(x=>x.classList.toggle("active",x.id==="finance-"+b.dataset.financeTab));
         if(b.dataset.financeTab==="reportes")renderFinanceReport();
+        if(b.dataset.financeTab==="movimientos")renderFinanceMovements();
     }));
     const collectionTotal=id=>financialCollections.filter(x=>x.receivable_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
     const receivableBalance=x=>Math.max(0,Number(x.amount)-collectionTotal(x.id));
@@ -2428,7 +2450,7 @@
         const rows=financialReceivables.filter(x=>(x.client_name+" "+x.description).toLowerCase().includes(q)&&(!st||receivableComputedStatus(x)===st));
         document.getElementById("receivablesTableBody").innerHTML=rows.length?rows.map(x=>{
             const paid=collectionTotal(x.id),balance=receivableBalance(x),status=receivableComputedStatus(x);
-            return `<tr><td><strong>${escapeHtml(x.client_name)}</strong></td><td>${escapeHtml(x.description)}</td><td>${x.issue_date}</td><td>${x.due_date||"—"}</td><td>${financeMoney(x.amount)}</td><td>${financeMoney(paid)}</td><td><strong>${financeMoney(balance)}</strong></td><td><span class="status-pill">${status}</span></td><td><div class="table-actions">${status!=="Pagada"&&status!=="Cancelada"?'<button class="table-action" data-add-collection="'+x.id+'">Abonar</button>':""}<button class="table-action" data-edit-receivable="${x.id}">Editar</button><button class="table-action" data-delete-receivable="${x.id}">Eliminar</button></div></td></tr>`;
+            return `<tr><td><strong>${escapeHtml(x.client_name)}</strong></td><td>${escapeHtml(x.description)}</td><td>${x.issue_date}</td><td>${x.due_date||"—"}</td><td>${financeMoney(x.amount)}</td><td>${financeMoney(paid)}</td><td><strong>${financeMoney(balance)}</strong></td><td><span class="status-pill">${status}</span></td><td><div class="table-actions">${status!=="Pagada"&&status!=="Cancelada"?'<button class="table-action" data-add-collection="'+x.id+'">Abonar</button>':""}<button class="table-action" data-edit-receivable="${x.id}">Editar</button>${paid<=0.009?'<button class="table-action" data-delete-receivable="'+x.id+'">Eliminar</button>':'<span class="table-action">Con cobros</span>'}</div></td></tr>`;
         }).join(""):'<tr><td colspan="9" class="empty-state">No hay cuentas por cobrar registradas.</td></tr>';
         const select=document.getElementById("collectionReceivable");
         const open=financialReceivables.filter(x=>receivableBalance(x)>0.009&&x.status!=="Cancelada");
@@ -2437,53 +2459,64 @@
     function renderExpenses(){
         const q=document.getElementById("expenseSearch").value.trim().toLowerCase(),st=document.getElementById("expenseStatusFilter").value;
         const rows=financialExpenses.filter(x=>(x.concept+" "+x.supplier+" "+x.category).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("expensesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.expense_date}</td><td>${escapeHtml(x.category)}</td><td><strong>${escapeHtml(x.concept)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td>${financeMoney(x.amount)}</td><td><span class="status-pill">${x.status}</span></td><td>${x.payment_date||"—"}</td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-expense="'+x.id+'">Marcar pagado</button>':""}<button class="table-action" data-edit-expense="${x.id}">Editar</button><button class="table-action" data-delete-expense="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay gastos adicionales registrados.</td></tr>';
+        document.getElementById("expensesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.expense_date}</td><td>${escapeHtml(x.category)}</td><td><strong>${escapeHtml(x.concept)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td>${financeMoney(x.amount)}</td><td><span class="status-pill">${x.status}</span></td><td>${x.payment_date||"—"}</td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-expense="'+x.id+'">Marcar pagado</button><button class="table-action" data-edit-expense="'+x.id+'">Editar</button><button class="table-action" data-delete-expense="'+x.id+'">Eliminar</button>':"Pagado · bloqueado"}</div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay gastos adicionales registrados.</td></tr>';
     }
     function financeInPeriod(date,period){return !period||String(date||"").startsWith(period);}
     function renderFinanceSummary(){
-        const income=financialCollections.reduce((s,x)=>s+Number(x.amount||0),0);
-        const fleet=financeFuel.reduce((s,x)=>s+Number(x.total_cost||0),0)+financeMaintenance.filter(x=>x.status==="Completado").reduce((s,x)=>s+Number(x.cost||0),0)+financeParts.reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const payroll=financePayroll.filter(x=>x.status==="Pagada").reduce((s,x)=>s+Number(x.net_pay||0),0);
-        const other=financialExpenses.filter(x=>x.status==="Pagado").reduce((s,x)=>s+Number(x.amount||0),0);
+        const registered=financeMovements.filter(x=>x.status==="registrado");
+        const income=registered.filter(x=>x.direction==="ingreso").reduce((s,x)=>s+Number(x.amount||0),0);
+        const expenses=registered.filter(x=>x.direction==="egreso").reduce((s,x)=>s+Number(x.amount||0),0);
         const outstanding=financialReceivables.filter(x=>x.status!=="Cancelada").reduce((s,x)=>s+receivableBalance(x),0);
-        const totalExpenses=fleet+payroll+other;
         document.getElementById("finIncome").textContent=financeMoney(income);
-        document.getElementById("finExpenses").textContent=financeMoney(totalExpenses);
-        document.getElementById("finBalance").textContent=financeMoney(income-totalExpenses);
+        document.getElementById("finExpenses").textContent=financeMoney(expenses);
+        document.getElementById("finBalance").textContent=financeMoney(income-expenses);
         document.getElementById("finReceivable").textContent=financeMoney(outstanding);
     }
     function renderFinanceReport(){
         const period=document.getElementById("financePeriodFilter").value;
-        const income=financialCollections.filter(x=>financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
-        const fuel=financeFuel.filter(x=>financeInPeriod(x.entry_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const maintenance=financeMaintenance.filter(x=>x.status==="Completado"&&financeInPeriod(x.service_date,period)).reduce((s,x)=>s+Number(x.cost||0),0);
-        const parts=financeParts.filter(x=>financeInPeriod(x.replacement_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const payroll=financePayroll.filter(x=>x.status==="Pagada"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.net_pay||0),0);
-        const other=financialExpenses.filter(x=>x.status==="Pagado"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
-        const expenseTotal=fuel+maintenance+parts+payroll+other;
+        const rows=financeMovements.filter(x=>x.status==="registrado"&&financeInPeriod(x.movement_date,period));
+        const income=rows.filter(x=>x.direction==="ingreso").reduce((s,x)=>s+Number(x.amount||0),0);
+        const expenses=rows.filter(x=>x.direction==="egreso");
+        const totalExpenses=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+        const byCategory=category=>expenses.filter(x=>x.category===category).reduce((s,x)=>s+Number(x.amount||0),0);
+        const fuel=byCategory("Combustible"),maintenance=byCategory("Mantenimiento"),parts=byCategory("Repuestos"),payroll=byCategory("Planilla");
+        const other=expenses.filter(x=>!["Combustible","Mantenimiento","Repuestos","Planilla"].includes(x.category)).reduce((s,x)=>s+Number(x.amount||0),0);
         document.getElementById("reportFuel").textContent=financeMoney(fuel);
         document.getElementById("reportMaintenance").textContent=financeMoney(maintenance);
         document.getElementById("reportParts").textContent=financeMoney(parts);
         document.getElementById("reportPayroll").textContent=financeMoney(payroll);
         document.getElementById("financeReportBody").innerHTML=[
-            ["Ingresos cobrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla pagada",payroll],["Otros gastos pagados",other],["Total de egresos",expenseTotal],["Resultado del período",income-expenseTotal]
+            ["Ingresos registrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla",payroll],["Otros egresos",other],["Total de egresos",totalExpenses],["Resultado del período",income-totalExpenses]
         ].map(([name,value])=>'<tr><td>'+name+'</td><td><strong>'+financeMoney(value)+'</strong></td></tr>').join("");
     }
-    function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
+    function renderFinanceMovements(){
+        const q=document.getElementById("movementSearch").value.trim().toLowerCase();
+        const direction=document.getElementById("movementDirectionFilter").value;
+        const rows=financeMovements.filter(x=>(!direction||x.direction===direction)&&((x.category+" "+x.concept+" "+(x.student_name||"")+" "+(x.student_code||"")+" "+(x.source_table||"")).toLowerCase().includes(q)));
+        document.getElementById("financeMovementsBody").innerHTML=rows.length?rows.map(x=>{
+            const date=new Date(x.movement_date).toLocaleString("es-GT",{dateStyle:"short",timeStyle:"short"});
+            const kind=x.direction==="ingreso"?"Ingreso":"Egreso";
+            const source=x.source_table||"Registro manual";
+            const status=x.status==="registrado"?"Registrado":x.status==="pendiente"?"Pendiente":"Anulado";
+            return "<tr><td>"+date+"</td><td>"+kind+"</td><td>"+escapeHtml(x.category)+"</td><td>"+escapeHtml(x.concept)+"</td><td>"+(x.student_name?escapeHtml(x.student_name)+" · "+escapeHtml(x.student_code||""):"—")+"</td><td><strong>"+financeMoney(x.amount)+"</strong></td><td><span class='status-pill'>"+status+"</span></td><td>"+escapeHtml(source)+"</td></tr>";
+        }).join(""):'<tr><td colspan="8" class="empty-state">No hay movimientos para los filtros seleccionados.</td></tr>';
+    }
+    function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();renderFinanceMovements();}
     async function loadFinanceData(){
         try{
             const results=await Promise.all([
                 supabase.from("financial_receivables").select("*").order("issue_date",{ascending:false}),
                 supabase.from("financial_collections").select("*").order("payment_date",{ascending:false}),
                 supabase.from("financial_expenses").select("*").order("expense_date",{ascending:false}),
-                supabase.from("fuel_entries").select("entry_date,total_cost"),
-                supabase.from("maintenance_records").select("service_date,cost,status"),
-                supabase.from("vehicle_parts").select("replacement_date,total_cost"),
-                supabase.from("payroll_records").select("payment_date,net_pay,status"),
-                supabase.from("trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
+                supabase.from("finance_fuel_entries").select("entry_date,total_cost"),
+                supabase.from("finance_maintenance_records").select("service_date,cost,status"),
+                supabase.from("finance_vehicle_parts").select("replacement_date,total_cost"),
+                supabase.from("finance_payroll_records").select("payment_date,net_pay,status"),
+                supabase.from("finance_trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false}),
+                supabase.from("finance_movements").select("id,direction,movement_date,category,concept,amount,currency,status,source_table,source_id,employee_id,student_id,student_name,student_code").order("movement_date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
-            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips]=results.map(r=>r.data||[]);
+            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips,financeMovements]=results.map(r=>r.data||[]);
             renderFinance();
         }catch(error){showOperationError(error,"cargar la información financiera");}
     }
@@ -2525,7 +2558,9 @@
     document.getElementById("receivableForm").addEventListener("submit",async e=>{
         e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
         try{
-            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),trip_id:String(d.get("tripId")||"")||null,amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:String(document.getElementById("receivableStatus").value),notes:String(d.get("notes")||"").trim()};
+            const d=new FormData(e.currentTarget),p={client_name:String(d.get("clientName")).trim(),description:String(d.get("description")).trim(),trip_id:String(d.get("tripId")||"")||null,amount:Number(d.get("amount")),issue_date:String(d.get("issueDate")),due_date:String(d.get("dueDate")||"")||null,status:"Pendiente",notes:String(d.get("notes")||"").trim()};
+            const collected=editingReceivableId?collectionTotal(editingReceivableId):0;
+            p.status=collected>0?(p.amount-collected<=0.009?"Pagada":"Parcial"):(document.getElementById("receivableStatus").value||"Pendiente");
             if(p.due_date&&p.due_date<p.issue_date)throw Error("El vencimiento no puede ser anterior a la fecha de emisión.");
             if(editingReceivableId){if(collectionTotal(editingReceivableId)>0&&p.amount<collectionTotal(editingReceivableId))throw Error("El monto no puede ser menor a los abonos ya recibidos.");const {error}=await supabase.from("financial_receivables").update(p).eq("id",editingReceivableId);if(error)throw error;}
             else {const {error}=await supabase.from("financial_receivables").insert({...p,created_by:currentUserId});if(error)throw error;}
@@ -2538,10 +2573,14 @@
             const d=new FormData(e.currentTarget),id=String(d.get("receivableId")),item=financialReceivables.find(x=>x.id===id),amount=Number(d.get("amount"));
             if(!item)throw Error("Selecciona una cuenta válida.");
             if(amount<=0||amount>receivableBalance(item)+0.009)throw Error("El abono debe ser mayor a cero y no puede superar el saldo pendiente.");
-            const p={receivable_id:id,amount,payment_date:String(d.get("paymentDate")),payment_method:String(d.get("paymentMethod")),reference:String(d.get("reference")||"").trim(),notes:String(d.get("notes")||"").trim(),created_by:currentUserId};
-            const {error}=await supabase.from("financial_collections").insert(p);if(error)throw error;
-            const newBalance=receivableBalance(item)-amount,newStatus=newBalance<=0.009?"Pagada":"Parcial";
-            const update=await supabase.from("financial_receivables").update({status:newStatus}).eq("id",id);if(update.error)throw update.error;
+            if(!collectionRequestKey)collectionRequestKey=crypto.randomUUID();
+            const {error}=await supabase.rpc("register_financial_collection",{
+                p_receivable_id:id,p_amount:amount,p_payment_date:String(d.get("paymentDate")),
+                p_payment_method:String(d.get("paymentMethod")),p_reference:String(d.get("reference")||"").trim(),
+                p_notes:String(d.get("notes")||"").trim(),p_request_key:collectionRequestKey
+            });
+            if(error)throw error;
+            collectionRequestKey=null;
             financeModalClose("collectionModal");e.currentTarget.reset();await loadFinanceData();
         }catch(error){showOperationError(error,"registrar el cobro");}finally{btn.disabled=false;}
     });
@@ -2557,9 +2596,9 @@
     });
     document.getElementById("receivablesTableBody").addEventListener("click",async e=>{
         const ab=e.target.closest("[data-add-collection]"),ed=e.target.closest("[data-edit-receivable]"),del=e.target.closest("[data-delete-receivable]");
-        if(ab){document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
+        if(ab){collectionRequestKey=crypto.randomUUID();document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
         if(ed){openReceivableModal(financialReceivables.find(x=>x.id===ed.dataset.editReceivable));return;}
-        if(del&&confirm("¿Eliminar esta cuenta y su historial de abonos?")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
+        if(del&&confirm("¿Eliminar esta cuenta? No se puede eliminar si ya tiene cobros registrados.")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
     });
     document.getElementById("expensesTableBody").addEventListener("click",async e=>{
         const ed=e.target.closest("[data-edit-expense]"),del=e.target.closest("[data-delete-expense]"),pay=e.target.closest("[data-pay-expense]");
@@ -2572,6 +2611,8 @@
     document.getElementById("expenseSearch").addEventListener("input",renderExpenses);
     document.getElementById("expenseStatusFilter").addEventListener("change",renderExpenses);
     document.getElementById("financePeriodFilter").addEventListener("change",renderFinanceReport);
+    document.getElementById("movementSearch").addEventListener("input",renderFinanceMovements);
+    document.getElementById("movementDirectionFilter").addEventListener("change",renderFinanceMovements);
     document.getElementById("receivableTrip").addEventListener("change",e=>{
         const trip=financeTrips.find(x=>x.id===e.target.value);
         if(!trip)return;
@@ -2580,6 +2621,260 @@
         if(!amount.value&&Number(trip.income)>0)amount.value=Number(trip.income).toFixed(2);
     });
 
+
+
+
+    // =====================================
+    // ABORDAJES INDEPENDIENTES
+    // =====================================
+    let transportContracts=[], transportPassengers=[], contractPassengerLinks=[], tripPassengerBoardings=[], boardingTrips=[];
+    let selectedTransportContractId=null;
+    const boardingModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
+    const boardingModalClose=id=>{const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");};
+    document.querySelectorAll("[data-close-boarding]").forEach(btn=>btn.addEventListener("click",()=>boardingModalClose(btn.dataset.closeBoarding)));
+    ["transportContractModal","transportPassengerModal","contractAssignModal","tripBoardingModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)boardingModalClose(id);}));
+    document.querySelectorAll("[data-boarding-mode]").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelectorAll("[data-boarding-mode]").forEach(x=>x.classList.toggle("active",x===btn));
+        document.querySelectorAll("#view-abordajes .personal-panel").forEach(x=>x.classList.toggle("active",x.id==="boarding-"+btn.dataset.boardingMode));
+    }));
+    async function loadBoardingsData(){
+        try{
+            const [contractsResult,passengersResult,linksResult,boardingsResult,tripsResult]=await Promise.all([
+                supabase.from("transport_contracts").select("*").order("name"),
+                supabase.from("transport_passengers").select("*").order("full_name"),
+                supabase.from("contract_passengers").select("*"),
+                supabase.from("trip_passenger_boardings").select("*").order("boarded_at",{ascending:false}),
+                supabase.rpc("get_abordajes_trips")
+            ]);
+            for(const r of [contractsResult,passengersResult,linksResult,boardingsResult,tripsResult])if(r.error)throw r.error;
+            transportContracts=contractsResult.data||[];
+            transportPassengers=passengersResult.data||[];
+            contractPassengerLinks=linksResult.data||[];
+            tripPassengerBoardings=boardingsResult.data||[];
+            boardingTrips=tripsResult.data||[];
+            renderBoardingModule();
+        }catch(error){showOperationError(error,"cargar los contratos y abordajes");}
+    }
+    function renderBoardingModule(){
+        document.getElementById("transportContractsBody").innerHTML=transportContracts.length?transportContracts.map(x=>{
+            const count=contractPassengerLinks.filter(l=>l.contract_id===x.id&&l.active).length;
+            return '<tr><td><strong>'+escapeHtml(x.name)+'</strong></td><td>'+escapeHtml(x.client_name)+'</td><td>'+(x.start_date||"—")+'</td><td>'+(x.end_date||"—")+'</td><td>'+escapeHtml(x.status)+'</td><td>'+count+'</td><td><button class="table-action" type="button" data-contract-passengers="'+x.id+'">Ver pasajeros</button></td></tr>';
+        }).join(""):'<tr><td colspan="7" class="empty-state">No hay contratos registrados.</td></tr>';
+        const q=document.getElementById("transportPassengerSearch").value.trim().toLowerCase();
+        const filteredPassengers=transportPassengers.filter(x=>(x.full_name+" "+x.contact).toLowerCase().includes(q));
+        document.getElementById("transportPassengersBody").innerHTML=filteredPassengers.length?filteredPassengers.map(x=>'<tr><td>'+escapeHtml(x.full_name)+'</td><td>'+escapeHtml(x.contact||"—")+'</td><td>'+escapeHtml(x.notes||"—")+'</td><td><button class="table-action" type="button" data-passenger-contract="'+x.id+'">Asignar a contrato</button></td></tr>').join(""):'<tr><td colspan="4" class="empty-state">No hay pasajeros registrados.</td></tr>';
+        const contractOptions=transportContracts.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.name+" · "+x.client_name)+'</option>').join("");
+        document.getElementById("tripBoardingTrip").innerHTML='<option value="">Seleccionar viaje</option>'+boardingTrips.map(x=>'<option value="'+x.trip_id+'">'+escapeHtml(x.trip_date+" · "+x.origin+" → "+x.destination)+'</option>').join("");
+        document.getElementById("tripBoardingFilter").innerHTML='<option value="">Todos los viajes</option>'+boardingTrips.map(x=>'<option value="'+x.trip_id+'">'+escapeHtml(x.trip_date+" · "+x.origin+" → "+x.destination)+'</option>').join("");
+        const passengerOptions=transportPassengers.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.full_name)+'</option>').join("");
+        document.getElementById("tripBoardingPassenger").innerHTML='<option value="">Seleccionar pasajero</option>'+passengerOptions;
+        document.getElementById("contractAssignPassenger").innerHTML='<option value="">Seleccionar pasajero</option>'+passengerOptions;
+        renderContractPassengers();
+        renderTripPassengerBoardings();
+    }
+    function renderContractPassengers(){
+        const contract=transportContracts.find(x=>x.id===selectedTransportContractId);
+        document.getElementById("contractPassengerPanel").hidden=!contract;
+        if(!contract)return;
+        document.getElementById("contractPassengerTitle").textContent="Pasajeros · "+contract.name;
+        const links=contractPassengerLinks.filter(x=>x.contract_id===contract.id);
+        document.getElementById("contractPassengerBody").innerHTML=links.length?links.map(link=>{
+            const passenger=transportPassengers.find(x=>x.id===link.passenger_id);
+            return '<tr><td>'+escapeHtml(passenger?.full_name||"Pasajero no disponible")+'</td><td>'+escapeHtml(link.pickup_point||"—")+'</td><td>'+(link.active?"Activo":"Inactivo")+'</td><td><button class="table-action" type="button" data-remove-contract-passenger="'+link.passenger_id+'">Quitar</button></td></tr>';
+        }).join(""):'<tr><td colspan="4" class="empty-state">Este contrato todavía no tiene pasajeros.</td></tr>';
+    }
+    function renderTripPassengerBoardings(){
+        const q=document.getElementById("tripBoardingSearch").value.trim().toLowerCase(),tripFilter=document.getElementById("tripBoardingFilter").value;
+        const rows=tripPassengerBoardings.filter(x=>{
+            const passenger=transportPassengers.find(p=>p.id===x.passenger_id),trip=boardingTrips.find(t=>t.trip_id===x.trip_id);
+            return (!tripFilter||x.trip_id===tripFilter)&&((passenger?.full_name||"")+" "+(trip?.origin||"")+" "+(trip?.destination||"")).toLowerCase().includes(q);
+        });
+        document.getElementById("tripBoardingsBody").innerHTML=rows.length?rows.map(x=>{
+            const passenger=transportPassengers.find(p=>p.id===x.passenger_id),trip=boardingTrips.find(t=>t.trip_id===x.trip_id);
+            return '<tr><td>'+new Date(x.boarded_at).toLocaleDateString("es-GT")+'</td><td>'+escapeHtml(passenger?.full_name||"—")+'</td><td>'+escapeHtml(trip?trip.origin+" → "+trip.destination:"Viaje")+'</td><td>'+escapeHtml(trip?.responsible||"—")+'</td><td>'+new Date(x.boarded_at).toLocaleTimeString("es-GT",{hour:"2-digit",minute:"2-digit"})+'</td><td>'+escapeHtml(x.boarding_point||"—")+'</td><td><button class="table-action" type="button" data-delete-trip-boarding="'+x.id+'">Eliminar</button></td></tr>';
+        }).join(""):'<tr><td colspan="7" class="empty-state">No hay abordajes para los filtros seleccionados.</td></tr>';
+    }
+    document.getElementById("addTransportContractButton").addEventListener("click",()=>{document.getElementById("transportContractForm").reset();boardingModalOpen("transportContractModal");});
+    document.getElementById("addTransportPassengerButton").addEventListener("click",()=>{document.getElementById("transportPassengerForm").reset();boardingModalOpen("transportPassengerModal");});
+    document.getElementById("assignContractPassengerButton").addEventListener("click",()=>{if(!selectedTransportContractId)return;document.getElementById("contractAssignForm").reset();boardingModalOpen("contractAssignModal");});
+    document.getElementById("addTripBoardingButton").addEventListener("click",()=>{
+        if(!boardingTrips.length||!transportPassengers.length){alert("Primero registra un viaje y al menos un pasajero.");return;}
+        document.getElementById("tripBoardingForm").reset();
+        const now=new Date();document.getElementById("tripBoardingAt").value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+        boardingModalOpen("tripBoardingModal");
+    });
+    document.getElementById("transportContractForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const start=document.getElementById("transportContractStart").value,end=document.getElementById("transportContractEnd").value;
+            if(start&&end&&end<start)throw Error("La fecha final no puede ser anterior a la fecha inicial.");
+            const {error}=await supabase.from("transport_contracts").insert({name:document.getElementById("transportContractName").value.trim(),client_name:document.getElementById("transportContractClient").value.trim(),status:document.getElementById("transportContractStatus").value,start_date:start||null,end_date:end||null,notes:document.getElementById("transportContractNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("transportContractModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el contrato");}finally{btn.disabled=false;}
+    });
+    document.getElementById("transportPassengerForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const {error}=await supabase.from("transport_passengers").insert({full_name:document.getElementById("transportPassengerName").value.trim(),contact:document.getElementById("transportPassengerContact").value.trim(),notes:document.getElementById("transportPassengerNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("transportPassengerModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el pasajero");}finally{btn.disabled=false;}
+    });
+    document.getElementById("contractAssignForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const {error}=await supabase.from("contract_passengers").insert({contract_id:selectedTransportContractId,passenger_id:document.getElementById("contractAssignPassenger").value,pickup_point:document.getElementById("contractAssignPoint").value.trim(),active:true});
+            if(error)throw error;boardingModalClose("contractAssignModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"asignar el pasajero al contrato");}finally{btn.disabled=false;}
+    });
+    document.getElementById("tripBoardingForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const at=document.getElementById("tripBoardingAt").value;
+            const {error}=await supabase.from("trip_passenger_boardings").insert({trip_id:document.getElementById("tripBoardingTrip").value,passenger_id:document.getElementById("tripBoardingPassenger").value,boarded_at:at?new Date(at).toISOString():new Date().toISOString(),boarding_point:document.getElementById("tripBoardingPoint").value.trim(),notes:document.getElementById("tripBoardingNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("tripBoardingModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el abordaje");}finally{btn.disabled=false;}
+    });
+    document.getElementById("transportContractsBody").addEventListener("click",e=>{
+        const button=e.target.closest("[data-contract-passengers]");if(!button)return;
+        selectedTransportContractId=button.dataset.contractPassengers;renderContractPassengers();
+    });
+    document.getElementById("transportPassengersBody").addEventListener("click",e=>{
+        const button=e.target.closest("[data-passenger-contract]");if(!button)return;
+        if(!selectedTransportContractId){alert("Selecciona primero un contrato.");return;}
+        document.getElementById("contractAssignPassenger").value=button.dataset.passengerContract;
+        document.getElementById("contractAssignPoint").value="";
+        boardingModalOpen("contractAssignModal");
+    });
+    document.getElementById("contractPassengerBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-remove-contract-passenger]");if(!button)return;
+        if(!confirm("¿Quitar este pasajero del contrato?"))return;
+        const {error}=await supabase.from("contract_passengers").delete().eq("contract_id",selectedTransportContractId).eq("passenger_id",button.dataset.removeContractPassenger);
+        if(error)showOperationError(error,"quitar el pasajero");else await loadBoardingsData();
+    });
+    document.getElementById("tripBoardingsBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-delete-trip-boarding]");if(!button)return;
+        if(!confirm("¿Eliminar este registro de abordaje?"))return;
+        const {error}=await supabase.from("trip_passenger_boardings").delete().eq("id",button.dataset.deleteTripBoarding);
+        if(error)showOperationError(error,"eliminar el abordaje");else await loadBoardingsData();
+    });
+    document.getElementById("transportPassengerSearch").addEventListener("input",renderBoardingModule);
+    document.getElementById("tripBoardingSearch").addEventListener("input",renderTripPassengerBoardings);
+    document.getElementById("tripBoardingFilter").addEventListener("change",renderTripPassengerBoardings);
+
+    // =====================================
+    // TRANSPORTE ESCOLAR
+    // =====================================
+    let schoolStudents = [];
+    let schoolFollowups = [];
+    let schoolPermissions = { can_edit_students: false, can_edit_followups: false, can_register_payments: false };
+    let editingSchoolStudentId = null;
+    let selectedSchoolStudentId = null;
+    let schoolPaymentRequestKey = null;
+    const schoolModalOpen = id => { const el=document.getElementById(id); el.classList.add("open"); el.setAttribute("aria-hidden","false"); };
+    const schoolModalClose = id => { const el=document.getElementById(id); el.classList.remove("open"); el.setAttribute("aria-hidden","true"); };
+    document.querySelectorAll("[data-close-school]").forEach(btn=>btn.addEventListener("click",()=>schoolModalClose(btn.dataset.closeSchool)));
+    ["schoolStudentModal","schoolFollowupModal","schoolPaymentModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)schoolModalClose(id);}));
+    async function loadSchoolData(){
+        try{
+            const [studentsResult,permissionsResult]=await Promise.all([
+                supabase.from("school_students").select("id,student_code,full_name,address_am,address_pm,guardian_phone,guardian_relationship,school_name,status,created_at").order("full_name"),
+                supabase.rpc("get_my_school_permissions")
+            ]);
+            if(studentsResult.error)throw studentsResult.error;
+            if(permissionsResult.error)throw permissionsResult.error;
+            schoolStudents=studentsResult.data||[];
+            schoolPermissions=permissionsResult.data?.[0]||{can_edit_students:false,can_edit_followups:false,can_register_payments:false};
+            document.getElementById("addSchoolStudentButton").hidden=!schoolPermissions.can_edit_students;
+            document.getElementById("addSchoolFollowupButton").hidden=!schoolPermissions.can_edit_followups;
+            document.getElementById("editSchoolStudentButton").hidden=!schoolPermissions.can_edit_students;
+            document.getElementById("addSchoolPaymentButton").hidden=!schoolPermissions.can_register_payments;
+            renderSchoolStudents();
+            if(selectedSchoolStudentId)await openSchoolFile(selectedSchoolStudentId);
+        }catch(error){showOperationError(error,"cargar los expedientes escolares");}
+    }
+    function renderSchoolStudents(){
+        const q=document.getElementById("schoolStudentSearch").value.trim().toLowerCase();
+        const st=document.getElementById("schoolStudentStatus").value;
+        const rows=schoolStudents.filter(x=>(x.full_name+" "+x.school_name+" "+x.guardian_phone).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("schoolStudentsTableBody").innerHTML=rows.length?rows.map(x=>`<tr>
+            <td>${x.student_code}</td><td><strong>${escapeHtml(x.full_name)}</strong></td><td>${escapeHtml(x.school_name)}</td>
+            <td>${escapeHtml(x.address_am)}</td><td>${escapeHtml(x.address_pm)}</td><td>${escapeHtml(x.guardian_phone)}<br><small>${escapeHtml(x.guardian_relationship)}</small></td>
+            <td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><button class="table-action" type="button" data-open-school-file="${x.id}">Abrir expediente</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay estudiantes registrados.</td></tr>';
+    }
+    function openSchoolStudentModal(student=null){
+        editingSchoolStudentId=student?.id||null;
+        document.getElementById("schoolStudentForm").reset();
+        document.getElementById("schoolStudentModalTitle").textContent=student?"Editar estudiante":"Agregar estudiante";
+        const values={schoolStudentName:student?.full_name,schoolAddressAm:student?.address_am,schoolAddressPm:student?.address_pm,schoolGuardianPhone:student?.guardian_phone,schoolGuardianRelationship:student?.guardian_relationship,schoolName:student?.school_name,schoolStatus:student?.status||"Activo"};
+        Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value??"");
+        schoolModalOpen("schoolStudentModal");
+    }
+    async function openSchoolFile(studentId){
+        const student=schoolStudents.find(x=>x.id===studentId);if(!student)return;
+        selectedSchoolStudentId=studentId;
+        const result=await supabase.from("school_student_followups").select("id,followup_date,subject,detail").eq("student_id",studentId).order("followup_date",{ascending:false});
+        if(result.error)throw result.error;
+        schoolFollowups=result.data||[];
+        document.getElementById("schoolStudentFile").hidden=false;
+        document.getElementById("schoolFileTitle").textContent="Expediente · "+student.full_name;
+        document.getElementById("schoolFileSubtitle").textContent="Código "+student.student_code+" · "+student.school_name;
+        document.getElementById("schoolFileDetails").innerHTML=[
+            ["Dirección AM",student.address_am],["Dirección PM",student.address_pm],
+            ["Encargado",student.guardian_phone],["Parentesco",student.guardian_relationship],
+            ["Estado",student.status]
+        ].map(([label,value])=>'<div class="stat-card"><span>'+label+'</span><h3 style="font-size:14px;margin-top:8px;">'+escapeHtml(value||"—")+'</h3></div>').join("");
+        document.getElementById("schoolFollowupsList").innerHTML=schoolFollowups.length?schoolFollowups.map(x=>'<div class="home-list-item"><div class="home-item-main"><div class="home-item-title">'+escapeHtml(x.subject)+'</div><div class="home-item-detail">'+escapeHtml(x.detail)+'</div></div><div class="home-item-meta"><span class="home-item-date">'+new Date(x.followup_date).toLocaleString("es-GT")+'</span></div></div>').join(""):'<div class="home-empty">Todavía no hay seguimientos en este expediente.</div>';
+    }
+    document.getElementById("addSchoolStudentButton").addEventListener("click",()=>openSchoolStudentModal());
+    document.getElementById("schoolStudentsTableBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-open-school-file]");if(!button)return;
+        try{await openSchoolFile(button.dataset.openSchoolFile);}catch(error){showOperationError(error,"abrir el expediente");}
+    });
+    document.getElementById("closeSchoolFileButton").addEventListener("click",()=>{selectedSchoolStudentId=null;document.getElementById("schoolStudentFile").hidden=true;});
+    document.getElementById("editSchoolStudentButton").addEventListener("click",()=>openSchoolStudentModal(schoolStudents.find(x=>x.id===selectedSchoolStudentId)));
+    document.getElementById("addSchoolFollowupButton").addEventListener("click",()=>{if(selectedSchoolStudentId){document.getElementById("schoolFollowupForm").reset();schoolModalOpen("schoolFollowupModal");}});
+    document.getElementById("addSchoolPaymentButton").addEventListener("click",()=>{
+        const student=schoolStudents.find(x=>x.id===selectedSchoolStudentId);if(!student)return;
+        document.getElementById("schoolPaymentForm").reset();
+        document.getElementById("schoolPaymentStudent").value=student.full_name+" · "+student.student_code;
+        schoolPaymentRequestKey=crypto.randomUUID();
+        schoolModalOpen("schoolPaymentModal");
+    });
+    document.getElementById("schoolStudentForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_edit_students&&!isSuperAdmin)throw Error("No tienes permiso para editar estudiantes.");
+            const p={full_name:document.getElementById("schoolStudentName").value.trim(),address_am:document.getElementById("schoolAddressAm").value.trim(),address_pm:document.getElementById("schoolAddressPm").value.trim(),guardian_phone:document.getElementById("schoolGuardianPhone").value.trim(),guardian_relationship:document.getElementById("schoolGuardianRelationship").value.trim(),school_name:document.getElementById("schoolName").value.trim(),status:document.getElementById("schoolStatus").value};
+            const query=editingSchoolStudentId?supabase.from("school_students").update(p).eq("id",editingSchoolStudentId):supabase.from("school_students").insert({...p,created_by:currentUserId});
+            const {error}=await query;if(error)throw error;schoolModalClose("schoolStudentModal");await loadSchoolData();
+        }catch(error){showOperationError(error,"guardar el estudiante");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolFollowupForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_edit_followups&&!isSuperAdmin)throw Error("No tienes permiso para agregar seguimientos.");
+            const {error}=await supabase.from("school_student_followups").insert({student_id:selectedSchoolStudentId,subject:document.getElementById("schoolFollowupSubject").value.trim(),detail:document.getElementById("schoolFollowupDetail").value.trim(),created_by:currentUserId});
+            if(error)throw error;schoolModalClose("schoolFollowupModal");await openSchoolFile(selectedSchoolStudentId);
+        }catch(error){showOperationError(error,"guardar el seguimiento");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolPaymentForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_register_payments&&!isSuperAdmin)throw Error("No tienes permiso para registrar pagos.");
+            const {data,error}=await supabase.rpc("register_school_student_payment",{
+                p_student_id:selectedSchoolStudentId,p_amount:Number(document.getElementById("schoolPaymentAmount").value),
+                p_enrollment_status:document.getElementById("schoolPaymentStatus").value,
+                p_reference:document.getElementById("schoolPaymentReference").value.trim(),
+                p_request_key:schoolPaymentRequestKey
+            });
+            if(error)throw error;
+            schoolPaymentRequestKey=null;
+            schoolModalClose("schoolPaymentModal");
+            alert("Pago registrado correctamente. Referencia: "+data);
+        }catch(error){showOperationError(error,"registrar el pago escolar");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolStudentSearch").addEventListener("input",renderSchoolStudents);
+    document.getElementById("schoolStudentStatus").addEventListener("change",renderSchoolStudents);
 
     // =====================================
     // INICIO - CENTRO DE CONTROL
@@ -2606,7 +2901,7 @@
         const hasOperations=allowedModules.has("operaciones");
         const hasFleet=allowedModules.has("flota");
         const hasPersonal=allowedModules.has("personal");
-        const hasFinance=allowedModules.has("finanzas");
+        const hasFinance=hasFinanceAccess;
         document.getElementById("homeVehicleCard").hidden=!(hasOperations||hasFleet);
         document.getElementById("homeTripCard").hidden=!hasOperations;
         document.getElementById("homeEmployeeCard").hidden=!hasPersonal;
@@ -2659,7 +2954,7 @@
         if(hasPersonal){
             payrollRecords.filter(x=>x.status==="Pendiente").forEach(x=>alerts.push({
                 title:"Planilla pendiente de pago",
-                detail:employeeName(x.employeeId)+" · "+x.period.slice(0,7)+" · "+money(x.netPay),
+                detail:employeeName(x.employeeId)+" · "+x.period.slice(0,7)+" · "+(hasFinance?money(x.netPay):"Solo Finanzas"),
                 date:x.period,action:"personal",actionLabel:"Ver planilla"
             }));
         }
@@ -2677,7 +2972,7 @@
             boardings.forEach(x=>activity.push({date:x.date,title:"Abordaje registrado",detail:x.name,status:"Registrado",action:"operaciones"}));
         }
         if(hasFleet){
-            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+fleetMoney(x.totalCost),status:"Registrado",action:"flota"}));
+            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+(hasFinance?fleetMoney(x.totalCost):"Importe reservado a Finanzas"),status:"Registrado",action:"flota"}));
             maintenanceRecords.forEach(x=>activity.push({date:x.serviceDate,title:"Mantenimiento",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.maintenanceType,status:x.status,action:"flota"}));
             vehicleParts.forEach(x=>activity.push({date:x.replacementDate,title:"Movimiento de repuesto",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.partName,status:x.action,action:"flota"}));
         }
@@ -2716,7 +3011,7 @@
         <div class="form-field full"><label>Nombre completo *</label><input name="fullName" id="employeeFullName" required maxlength="150"></div>
         <div class="form-field"><label>DPI</label><input name="dpi" id="employeeDpi" maxlength="20"></div><div class="form-field"><label>Puesto *</label><input name="position" id="employeePosition" required maxlength="100"></div>
         <div class="form-field"><label>Teléfono</label><input name="phone" id="employeePhone" maxlength="30"></div><div class="form-field"><label>Fecha de ingreso</label><input name="hireDate" id="employeeHireDate" type="date"></div>
-        <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
+        <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Bono KPI máximo mensual (Q) *</label><input id="employeeKpiBonusMax" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
         <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="employeeNotes" maxlength="1000"></textarea></div></div>
         <div class="form-actions"><button class="secondary-button" type="button" data-close-modal="employeeModal">Cancelar</button><button class="primary-button" type="submit">Guardar trabajador</button></div></form></div></div>
 
@@ -2724,19 +3019,25 @@
         <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="loanEmployee" required></select></div>
         <div class="form-field full"><label>Motivo</label><input name="reason" id="loanReason" maxlength="180"></div>
         <div class="form-field"><label>Monto inicial (Q) *</label><input name="amount" id="loanAmount" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Saldo pendiente (Q) *</label><input name="balance" id="loanBalance" type="number" min="0" step=".01" required></div>
-        <div class="form-field"><label>Cuota por período (Q) *</label><input name="installmentAmount" id="loanInstallment" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Fecha de inicio *</label><input name="startDate" id="loanStartDate" type="date" required></div>
-        <div class="form-field"><label>Número de cuotas</label><input name="installmentsTotal" id="loanInstallmentsTotal" type="number" min="1"></div><div class="form-field"><label>Cuotas pagadas</label><input name="installmentsPaid" id="loanInstallmentsPaid" type="number" min="0" value="0"></div>
+        <div class="form-field"><label>Cuota calculada por período (Q)</label><input name="installmentAmount" id="loanInstallment" type="number" min=".01" step=".01" readonly></div><div class="form-field"><label>Fecha de inicio *</label><input name="startDate" id="loanStartDate" type="date" required></div>
+        <div class="form-field"><label>Número de cuotas (máx. 12) *</label><input name="installmentsTotal" id="loanInstallmentsTotal" type="number" min="1" max="12" required></div><div class="form-field"><label>Cuotas pagadas</label><input name="installmentsPaid" id="loanInstallmentsPaid" type="number" min="0" value="0"></div>
         <div class="form-field"><label>Estado</label><select name="status" id="loanStatus"><option>Activo</option><option>Pagado</option><option>Cancelado</option></select></div><div class="form-field full"><label>Observaciones</label><textarea name="notes" id="loanNotes" maxlength="1000"></textarea></div></div>
-        <p class="form-message">Actualiza el saldo y las cuotas conforme se realicen abonos o descuentos.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="loanModal">Cancelar</button><button class="primary-button" type="submit">Guardar préstamo</button></div></form></div></div>
+        <p class="form-message">La cuota se calcula automáticamente: monto del préstamo dividido entre el número de cuotas. El último descuento ajusta cualquier diferencia de redondeo.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="loanModal">Cancelar</button><button class="primary-button" type="submit">Guardar préstamo</button></div></form></div></div>
 
     <div class="modal-backdrop" id="payrollModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="payrollModalTitle">Crear registro de planilla</h2><button class="modal-close" type="button" data-close-modal="payrollModal">×</button></div><form id="payrollForm"><div class="form-grid">
         <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="payrollEmployee" required></select></div>
-        <div class="form-field"><label>Período *</label><input name="period" id="payrollPeriod" type="month" required></div><div class="form-field"><label>Salario base (Q) *</label><input name="baseSalary" id="payrollBaseSalary" type="number" min="0" step=".01" required></div>
-        <div class="form-field"><label>Bonificaciones (Q)</label><input name="bonuses" id="payrollBonuses" type="number" min="0" step=".01" value="0"></div><div class="form-field"><label>Otras deducciones (Q)</label><input name="otherDeductions" id="payrollOtherDeductions" type="number" min="0" step=".01" value="0"></div>
-        <div class="form-field"><label>Descuento de préstamo (Q)</label><input name="loanDeduction" id="payrollLoanDeduction" type="number" min="0" step=".01" value="0"></div><div class="form-field"><label>Neto a pagar (Q)</label><input name="netPay" id="payrollNetPay" type="number" readonly value="0"></div>
+        <div class="form-field"><label>Período *</label><input name="period" id="payrollPeriod" type="month" required></div><div class="form-field"><label>Quincena *</label><select name="fortnight" id="payrollFortnight" required><option value="1">Primera quincena</option><option value="2">Segunda quincena</option></select></div>
+        <div class="form-field"><label>Quejas (1–5) *</label><select name="kpiComplaints" id="payrollKpiComplaints" required><option value="">Seleccionar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></div>
+        <div class="form-field"><label>Limpieza (1–5) *</label><select name="kpiCleanliness" id="payrollKpiCleanliness" required><option value="">Seleccionar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></div>
+        <div class="form-field"><label>Retrasos (1–5) *</label><select name="kpiDelays" id="payrollKpiDelays" required><option value="">Seleccionar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></div>
+        <div class="form-field"><label>Sueldo base quincenal (Q)</label><input name="baseSalary" id="payrollBaseSalary" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Bono KPI quincenal (Q)</label><input name="bonuses" id="payrollBonuses" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Otras deducciones (Q)</label><input name="otherDeductions" id="payrollOtherDeductions" type="number" min="0" step=".01" value="0"></div>
+        <div class="form-field"><label>Descuento de préstamo (Q)</label><input name="loanDeduction" id="payrollLoanDeduction" type="number" min="0" step=".01" readonly value="0"></div>
+        <div class="form-field"><label>Neto a pagar (Q)</label><input name="netPay" id="payrollNetPay" type="number" readonly value="0"></div>
         <div class="form-field"><label>Fecha de pago</label><input name="paymentDate" id="payrollPaymentDate" type="date"></div><div class="form-field"><label>Estado</label><select name="status" id="payrollStatus"><option>Pendiente</option><option>Pagada</option></select></div>
         <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="payrollNotes" maxlength="1000"></textarea></div></div>
-        <p class="form-message">Neto = salario + bonificaciones − otras deducciones − descuento de préstamo. El descuento de planilla no modifica automáticamente el saldo del préstamo.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="payrollModal">Cancelar</button><button class="primary-button" type="submit">Guardar planilla</button></div></form></div></div>
+        <p class="form-message">El sueldo mensual se divide entre dos. El bono KPI se calcula con el promedio de Quejas, Limpieza y Retrasos. Al marcar la quincena como pagada, el sistema aplica las cuotas de préstamo y actualiza sus saldos.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="payrollModal">Cancelar</button><button class="primary-button" type="submit">Guardar planilla</button></div></form></div></div>
 
     <div class="modal-backdrop" id="tripModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tripModalTitle">
@@ -2855,9 +3156,9 @@
 
     <div class="modal-backdrop" id="fuelModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="fuelModalTitle">Registrar combustible</h2><button class="modal-close" type="button" data-close-fleet="fuelModal">×</button></div><form id="fuelForm"><div class="form-grid">
         <div class="form-field full"><label>Vehículo *</label><select id="fuelVehicle" required></select></div>
-        <div class="form-field"><label>Fecha *</label><input id="fuelDate" type="date" required></div><div class="form-field"><label>Litros *</label><input id="fuelLiters" type="number" min=".01" step=".01" required></div>
-        <div class="form-field"><label>Precio por litro (Q) *</label><input id="fuelPrice" type="number" min="0" step=".001" required></div><div class="form-field"><label>Costo total (Q)</label><input id="fuelCost" type="number" min="0" step=".01" readonly></div>
-        <div class="form-field"><label>Odómetro (km)</label><input id="fuelOdometer" type="number" min="0" step="1"></div><div class="form-field"><label>Proveedor / gasolinera</label><input id="fuelSupplier" maxlength="150"></div>
+        <div class="form-field"><label>Fecha *</label><input id="fuelDate" type="date" required></div><div class="form-field"><label>Galones *</label><input id="fuelGallons" type="number" min=".001" step=".001" required></div>
+        <div class="form-field"><label>Precio por galón (Q) *</label><input id="fuelPricePerGallon" type="number" min="0" step=".001" required></div><div class="form-field"><label>Costo total (Q)</label><input id="fuelCost" type="number" min="0" step=".01" readonly></div>
+        <div class="form-field"><label>Odómetro anterior (km)</label><input id="fuelPreviousOdometer" type="number" min="0" step="1"></div><div class="form-field"><label>Odómetro actual (km)</label><input id="fuelOdometer" type="number" min="0" step="1"></div><div class="form-field"><label>Proveedor / gasolinera</label><input id="fuelSupplier" maxlength="150"></div>
         <div class="form-field full"><label>Observaciones</label><textarea id="fuelNotes" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="secondary-button" type="button" data-close-fleet="fuelModal">Cancelar</button><button class="primary-button" type="submit">Guardar registro</button></div></form></div></div>
 
     <div class="modal-backdrop" id="maintenanceModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="maintenanceModalTitle">Registrar mantenimiento</h2><button class="modal-close" type="button" data-close-fleet="maintenanceModal">×</button></div><form id="maintenanceForm"><div class="form-grid">
