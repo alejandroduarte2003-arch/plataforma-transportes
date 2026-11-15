@@ -648,6 +648,16 @@ tr:last-child td {
                     <div class="permissions" id="permissionsList"></div>
                 </div>
 
+                <div style="margin-top:25px">
+                    <h2 style="font-size:14px;color:var(--navy)">Permisos de Transporte escolares</h2>
+                    <p style="font-size:11px;color:var(--muted);margin-top:6px">El acceso al módulo no concede automáticamente permisos para modificar expedientes o registrar pagos.</p>
+                    <div class="permissions">
+                        <label class="permission-item"><input type="checkbox" id="canEditSchoolStudents"><span>Crear y editar información de estudiantes</span></label>
+                        <label class="permission-item"><input type="checkbox" id="canEditSchoolFollowups"><span>Agregar y editar seguimientos</span></label>
+                        <label class="permission-item"><input type="checkbox" id="canRegisterSchoolPayments"><span>Registrar pagos escolares</span></label>
+                    </div>
+                </div>
+
                 <div class="editor-actions">
                     <button class="primary-button" id="saveButton">
                         Guardar cambios
@@ -891,6 +901,27 @@ async function selectUser(user) {
     editorContent.classList.remove("hidden");
 
     await loadPermissions(user.id);
+    await loadSchoolUserPermissions(user.id);
+}
+
+async function loadSchoolUserPermissions(userId) {
+    const { data, error } = await supabase
+        .from("school_user_permissions")
+        .select("can_edit_students,can_edit_followups,can_register_payments")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+    if (error) throw error;
+    const value = data || {};
+    document.getElementById("canEditSchoolStudents").checked = value.can_edit_students === true;
+    document.getElementById("canEditSchoolFollowups").checked = value.can_edit_followups === true;
+    document.getElementById("canRegisterSchoolPayments").checked = value.can_register_payments === true;
+
+    const disabled = selectedUser?.role === "superadmin";
+    ["canEditSchoolStudents","canEditSchoolFollowups","canRegisterSchoolPayments"].forEach(id => {
+        document.getElementById(id).disabled = disabled;
+        if (disabled) document.getElementById(id).checked = true;
+    });
 }
 
 async function loadPermissions(userId) {
@@ -1045,6 +1076,18 @@ async function saveChanges() {
         if (updateError) throw updateError;
 
         if (selectedUser.role !== "superadmin") {
+            const { error: schoolPermissionError } = await supabase
+                .from("school_user_permissions")
+                .upsert({
+                    user_id: selectedUser.id,
+                    can_edit_students: document.getElementById("canEditSchoolStudents").checked,
+                    can_edit_followups: document.getElementById("canEditSchoolFollowups").checked,
+                    can_register_payments: document.getElementById("canRegisterSchoolPayments").checked,
+                    updated_by: currentUser.id,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: "user_id" });
+            if (schoolPermissionError) throw schoolPermissionError;
+
             const permissionRows = [];
 
             document
