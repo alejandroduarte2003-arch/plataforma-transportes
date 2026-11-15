@@ -1190,6 +1190,7 @@
                     <div class="personal-tabs">
                         <button class="personal-tab active" data-finance-tab="cobros">Cobros</button>
                         <button class="personal-tab" data-finance-tab="pagos">Pagos</button>
+                        <button class="personal-tab" data-finance-tab="movimientos">Libro de movimientos</button>
                         <button class="personal-tab" data-finance-tab="reportes">Reportes</button>
                     </div>
                     <div class="personal-panel active" id="finance-cobros">
@@ -1208,6 +1209,14 @@
                         <div class="toolbar-filters"><input class="field-control" id="expenseSearch" type="search" placeholder="Buscar concepto o proveedor"><select class="field-control" id="expenseStatusFilter"><option value="">Todos los estados</option><option>Pendiente</option><option>Pagado</option><option>Cancelado</option></select></div>
                         <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Proveedor</th><th>Monto</th><th>Estado</th><th>Fecha de pago</th><th>Acciones</th></tr></thead><tbody id="expensesTableBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                         <p class="personal-hint">Los gastos de combustible, mantenimiento y repuestos se toman automáticamente de Flota y gastos. No los registres otra vez aquí.</p>
+                    </div>
+                    <div class="personal-panel" id="finance-movimientos">
+                        <div class="section-toolbar"><div><h3>Libro central de movimientos</h3><p class="personal-hint">Ingresos y egresos sincronizados desde las operaciones y Finanzas.</p></div></div>
+                        <div class="toolbar-filters">
+                            <input class="field-control" id="movementSearch" type="search" placeholder="Buscar concepto o categoría">
+                            <select class="field-control" id="movementDirectionFilter"><option value="">Ingresos y egresos</option><option value="ingreso">Ingresos</option><option value="egreso">Egresos</option></select>
+                        </div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Origen</th></tr></thead><tbody id="financeMovementsBody"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                     </div>
                     <div class="personal-panel" id="finance-reportes">
                         <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><input class="field-control" id="financePeriodFilter" type="month"></div>
@@ -2384,6 +2393,7 @@
         document.querySelectorAll("[data-finance-tab]").forEach(x=>x.classList.toggle("active",x===b));
         document.querySelectorAll("#view-finanzas .personal-panel").forEach(x=>x.classList.toggle("active",x.id==="finance-"+b.dataset.financeTab));
         if(b.dataset.financeTab==="reportes")renderFinanceReport();
+        if(b.dataset.financeTab==="movimientos")renderFinanceMovements();
     }));
     const collectionTotal=id=>financialCollections.filter(x=>x.receivable_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
     const receivableBalance=x=>Math.max(0,Number(x.amount)-collectionTotal(x.id));
@@ -2432,7 +2442,19 @@
             ["Ingresos registrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla",payroll],["Otros egresos",other],["Total de egresos",totalExpenses],["Resultado del período",income-totalExpenses]
         ].map(([name,value])=>'<tr><td>'+name+'</td><td><strong>'+financeMoney(value)+'</strong></td></tr>').join("");
     }
-    function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
+    function renderFinanceMovements(){
+        const q=document.getElementById("movementSearch").value.trim().toLowerCase();
+        const direction=document.getElementById("movementDirectionFilter").value;
+        const rows=financeMovements.filter(x=>(!direction||x.direction===direction)&&((x.category+" "+x.concept+" "+(x.source_table||"")).toLowerCase().includes(q)));
+        document.getElementById("financeMovementsBody").innerHTML=rows.length?rows.map(x=>{
+            const date=new Date(x.movement_date).toLocaleString("es-GT",{dateStyle:"short",timeStyle:"short"});
+            const kind=x.direction==="ingreso"?"Ingreso":"Egreso";
+            const source=x.source_table||"Registro manual";
+            const status=x.status==="registrado"?"Registrado":x.status==="pendiente"?"Pendiente":"Anulado";
+            return "<tr><td>"+date+"</td><td>"+kind+"</td><td>"+escapeHtml(x.category)+"</td><td>"+escapeHtml(x.concept)+"</td><td><strong>"+financeMoney(x.amount)+"</strong></td><td><span class='status-pill'>"+status+"</span></td><td>"+escapeHtml(source)+"</td></tr>";
+        }).join(""):'<tr><td colspan="7" class="empty-state">No hay movimientos para los filtros seleccionados.</td></tr>';
+    }
+    function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();renderFinanceMovements();}
     async function loadFinanceData(){
         try{
             const results=await Promise.all([
@@ -2536,6 +2558,8 @@
     document.getElementById("expenseSearch").addEventListener("input",renderExpenses);
     document.getElementById("expenseStatusFilter").addEventListener("change",renderExpenses);
     document.getElementById("financePeriodFilter").addEventListener("change",renderFinanceReport);
+    document.getElementById("movementSearch").addEventListener("input",renderFinanceMovements);
+    document.getElementById("movementDirectionFilter").addEventListener("change",renderFinanceMovements);
     document.getElementById("receivableTrip").addEventListener("change",e=>{
         const trip=financeTrips.find(x=>x.id===e.target.value);
         if(!trip)return;
