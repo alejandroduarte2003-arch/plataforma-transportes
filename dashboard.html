@@ -1501,6 +1501,10 @@
             }
 
             hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
+            const salaryField = document.getElementById("employeeBaseSalary");
+            if (salaryField) salaryField.closest(".form-field").hidden = !hasFinanceAccess;
+            document.getElementById("addLoanButton").hidden = !hasFinanceAccess;
+            document.getElementById("addPayrollButton").hidden = !hasFinanceAccess;
             applyModulePermissions();
             accessReady = true;
             openView("inicio");
@@ -2051,36 +2055,49 @@
     function renderPersonalSummary(){
         document.getElementById("employeeActiveTotal").textContent=employees.filter(x=>x.status==="Activo").length;
         document.getElementById("loanActiveTotal").textContent=employeeLoans.filter(x=>x.status==="Activo"&&x.balance>0).length;
-        document.getElementById("loanBalanceTotal").textContent=money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+x.balance,0));
-        document.getElementById("payrollPendingTotal").textContent=money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+x.netPay,0));
+        document.getElementById("loanBalanceTotal").textContent=hasFinanceAccess?money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+(x.balance||0),0)):"Solo Finanzas";
+        document.getElementById("payrollPendingTotal").textContent=hasFinanceAccess?money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+(x.netPay||0),0)):"Solo Finanzas";
     }
     function renderEmployees(){
         const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
         const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
+        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
     }
     function renderLoans(){
         const q=document.getElementById("loanSearch").value.trim().toLowerCase(),st=document.getElementById("loanStatusFilter").value;
         const rows=employeeLoans.filter(x=>(employeeName(x.employeeId)+" "+x.reason).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("loansTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${escapeHtml(x.reason||"—")}</td><td>${money(x.amount)}</td><td>${money(x.balance)}</td><td>${money(x.installmentAmount)}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-loan="${x.id}">Editar</button><button class="table-action" data-delete-loan="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron préstamos.</td></tr>';
+        document.getElementById("loansTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${escapeHtml(x.reason||"—")}</td><td>${hasFinanceAccess?money(x.amount):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.balance):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.installmentAmount):"Solo Finanzas"}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${hasFinanceAccess?'<button class="table-action" data-edit-loan="'+x.id+'">Editar</button><button class="table-action" data-delete-loan="'+x.id+'">Eliminar</button>':"Solo Finanzas"}</div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron préstamos.</td></tr>';
     }
     function renderPayroll(){
         const q=document.getElementById("payrollSearch").value.trim().toLowerCase(),period=document.getElementById("payrollPeriodFilter").value,st=document.getElementById("payrollStatusFilter").value;
         const rows=payrollRecords.filter(x=>employeeName(x.employeeId).toLowerCase().includes(q)&&(!period||x.period.startsWith(period))&&(!st||x.status===st));
-        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.period.slice(0,7)}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${money(x.baseSalary)}</td><td>${money(x.bonuses)}</td><td>${money(x.otherDeductions)}</td><td>${money(x.loanDeduction)}</td><td><strong>${money(x.netPay)}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button>':""}<button class="table-action" data-edit-payroll="${x.id}">Editar</button><button class="table-action" data-delete-payroll="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="9" class="empty-state">No se encontraron registros de planilla.</td></tr>';
+        document.getElementById("payrollTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.period.slice(0,7)}</td><td>${escapeHtml(employeeName(x.employeeId))}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.bonuses):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.otherDeductions):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.loanDeduction):"Solo Finanzas"}</td><td><strong>${hasFinanceAccess?money(x.netPay):"Solo Finanzas"}</strong></td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions">${x.status==="Pendiente"?'<button class="table-action" data-pay-payroll="'+x.id+'">Marcar pagada</button>':""}<button class="table-action" data-edit-payroll="${x.id}">Editar</button><button class="table-action" data-delete-payroll="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="9" class="empty-state">No se encontraron registros de planilla.</td></tr>';
     }
     function renderPersonal(){renderPersonalSummary();renderEmployees();renderLoans();renderPayroll();refreshPersonalSelects();}
     async function loadPersonalData(){
         try{
             const [er,lr,pr]=await Promise.all([
-                supabase.from("employees").select("*").order("full_name"),
-                supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
-                supabase.from("payroll_records").select("*").order("period",{ascending:false})
+                supabase.from("employees").select("id,full_name,dpi,position,phone,hire_date,status,notes").order("full_name"),
+                supabase.from("employee_loans").select("id,employee_id,reason,installments_total,installments_paid,start_date,status,notes,created_at").order("created_at",{ascending:false}),
+                supabase.from("payroll_records").select("id,employee_id,period,fortnight,kpi_complaints,kpi_cleanliness,kpi_delays,status,payment_date,notes").order("period",{ascending:false})
             ]);
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
-            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(x.base_salary||0),status:x.status,notes:x.notes||""}));
-            employeeLoans=(lr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:Number(x.amount),balance:Number(x.balance),installmentAmount:Number(x.installment_amount),installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""}));
-            payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
+            let compensation=[],loanAmounts=[],payrollAmounts=[];
+            if(hasFinanceAccess){
+                const [cr,lar,par]=await Promise.all([
+                    supabase.from("finance_employees").select("id,monthly_base_salary,monthly_kpi_bonus_max"),
+                    supabase.from("finance_employee_loans").select("id,amount,balance,installment_amount"),
+                    supabase.from("finance_payroll_records").select("id,base_salary,bonuses,other_deductions,loan_deduction,net_pay,kpi_percentage")
+                ]);
+                for(const r of [cr,lar,par])if(r.error)throw r.error;
+                compensation=cr.data||[];loanAmounts=lar.data||[];payrollAmounts=par.data||[];
+            }
+            const compById=new Map(compensation.map(x=>[x.id,x]));
+            const loanById=new Map(loanAmounts.map(x=>[x.id,x]));
+            const payrollById=new Map(payrollAmounts.map(x=>[x.id,x]));
+            employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:Number(compById.get(x.id)?.monthly_base_salary||0),kpiBonusMax:Number(compById.get(x.id)?.monthly_kpi_bonus_max||0),status:x.status,notes:x.notes||""}));
+            employeeLoans=(lr.data||[]).map(x=>{const m=loanById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:hasFinanceAccess?Number(m.amount||0):null,balance:hasFinanceAccess?Number(m.balance||0):null,installmentAmount:hasFinanceAccess?Number(m.installment_amount||0):null,installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""};});
+            payrollRecords=(pr.data||[]).map(x=>{const m=payrollById.get(x.id)||{};return {id:x.id,employeeId:x.employee_id,period:x.period,fortnight:x.fortnight,baseSalary:hasFinanceAccess?Number(m.base_salary||0):null,bonuses:hasFinanceAccess?Number(m.bonuses||0):null,otherDeductions:hasFinanceAccess?Number(m.other_deductions||0):null,loanDeduction:hasFinanceAccess?Number(m.loan_deduction||0):null,netPay:hasFinanceAccess?Number(m.net_pay||0):null,kpiPercentage:hasFinanceAccess?m.kpi_percentage:null,status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""};});
             renderPersonal();
         }catch(error){showOperationError(error,"cargar los registros de Personal");}
     }
