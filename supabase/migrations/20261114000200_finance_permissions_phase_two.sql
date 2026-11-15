@@ -1,0 +1,248 @@
+-- INCOROVA Transportes — finance and permissions phase 2.
+-- Branch-only migration. Do not apply to production until frontend is migrated
+-- to the RPCs and the security review is complete.
+
+begin;
+
+-- Correct the ledger's idempotency model: one source can generate many events
+-- (e.g. multiple partial collections), but one request key must never duplicate.
+alter table public.financial_movements
+  drop constraint if exists financial_movements_source_table_source_id_key,
+  add column if not exists idempotency_key uuid;
+
+create unique index if not exists financial_movements_idempotency_key_uidx
+  on public.financial_movements (idempotency_key)
+  where idempotency_key is not null;
+
+alter table public.financial_movements
+  add constraint financial_movements_student_id_fkey
+  foreign key (student_id) references public.school_students(id) on delete restrict;
+
+-- The source key belongs to the event, not only to its source record.
+alter table public.school_student_payments
+  add column if not exists request_key uuid;
+
+create unique index if not exists school_student_payments_request_key_uidx
+  on public.school_student_payments (request_key)
+  where request_key is not null;
+
+-- Per-user capabilities for the school module. Module access alone does not
+-- grant edit rights or payment registration.
+create table if not exists public.school_user_permissions (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  can_edit_students boolean not null default false,
+  can_edit_followups boolean not null default false,
+  can_register_payments boolean not null default false,
+  updated_by uuid references public.profiles(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.school_user_permissions enable row level security;
+
+create policy school_user_permissions_superadmin_manage
+  on public.school_user_permissions for all to authenticated
+  using (public.is_superadmin())
+  with check (public.is_superadmin());
+
+-- Read access is still controlled by the school module. Restrictive write
+-- policies override the broad module policy created in phase 1.
+create policy school_students_write_capability
+  on public.school_students as restrictive for all to authenticated
+  using (
+    public.is_superadmin()
+    or exists (
+      select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true
+    )
+  )
+  with check (
+    public.is_superadmin()
+    or exists (
+      select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true
+    )
+  );
+
+create policy school_student_followups_write_capability
+  on public.school_student_followups as restrictive for all to authenticated
+  using (
+    public.is_superadmin()
+    or exists (
+      select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true
+    )
+  )
+  with check (
+    public.is_superadmin()
+    or exists (
+      select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true
+    )
+  );
+
+-- A server-side KPI calculation guarantees equal weighting and the agreed
+-- 1..5 => 0,25,50,75,100 conversion.
+create or replace function public.calculate_kpi_percentage(
+  p_complaints smallint,
+  p_cleanliness smallint,
+  p_delays smallint
+) returns numeric
+language sql immutable
+set search_path = public
+as $$
+  select round((
+    ((p_complaints - 1) * 25.0) +
+    ((p_cleanliness - 1) * 25.0) +
+    ((p_delays - 1) * 25.0)
+  ) / 3.0, 2)
+  where p_complaints between 1 and 5
+    and p_cleanliness between 1 and 5
+    and p_delays between 1 and 5;
+$$;
+
+create or replace function public.set_payroll_kpi_percentage()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.kpi_complaints is not null
+     and new.kpi_cleanliness is not null
+     and new.kpi_delays is not null then
+    new.kpi_percentage := public.calculate_kpi_percentage(
+      new.kpi_complaints, new.kpi_cleanliness, new.kpi_delays
+    );
+  else
+    new.kpi_percentage := null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists payroll_records_calculate_kpi on public.payroll_records;
+create trigger payroll_records_calculate_kpi
+before insert or update of kpi_complaints, kpi_cleanliness, kpi_delays
+on public.payroll_records
+for each row execute function public.set_payroll_kpi_percentage();
+
+-- Keep employee compensation values in the protected table. Existing monthly
+-- salary values are copied without changing the source records.
+insert into public.employee_compensation (employee_id, monthly_base_salary, monthly_kpi_bonus_max)
+select e.id, e.base_salary, 0
+from public.employees e
+on conflict (employee_id) do nothing;
+
+-- Loan terms are limited to the agreed maximum of twelve installments.
+alter table public.employee_loans
+  add constraint employee_loans_installments_max_12
+  check (installments_total is null or installments_total between 1 and 12);
+
+-- Fuel records preserve historical liters while allowing new gallon-based
+-- capture. Kilometer difference is calculated only when both odometer values
+-- exist and never permits a negative distance.
+alter table public.fuel_entries
+  add column if not exists gallons numeric(12,3),
+  add column if not exists previous_odometer integer,
+  add column if not exists kilometers_driven integer
+    generated always as (
+      case
+        when odometer is not null and previous_odometer is not null
+          then odometer - previous_odometer
+        else null
+      end
+    ) stored;
+
+alter table public.fuel_entries
+  add constraint fuel_entries_gallons_positive
+    check (gallons is null or gallons > 0),
+  add constraint fuel_entries_odometer_order
+    check (
+      odometer is null or previous_odometer is null
+      or odometer >= previous_odometer
+    );
+
+-- School payment RPC: atomic payment + income ledger insertion.
+-- User can register payment only if explicitly enabled by superadmin.
+create or replace function public.register_school_student_payment(
+  p_student_id uuid,
+  p_amount numeric,
+  p_enrollment_status text,
+  p_reference text default '',
+  p_request_key uuid default gen_random_uuid()
+) returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_payment_id uuid;
+  v_user_id uuid := auth.uid();
+  v_allowed boolean := false;
+begin
+  if v_user_id is null then
+    raise exception 'Autenticación requerida';
+  end if;
+
+  if p_amount is null or p_amount <= 0 then
+    raise exception 'El monto debe ser mayor que cero';
+  end if;
+
+  if p_enrollment_status not in ('Vigente', 'No vigente') then
+    raise exception 'Estado de vigencia inválido';
+  end if;
+
+  select public.is_superadmin() into v_allowed;
+  if not v_allowed then
+    select exists (
+      select 1
+      from public.profiles p
+      join public.user_module_permissions ump on ump.user_id = p.id
+      join public.school_user_permissions sup on sup.user_id = p.id
+      where p.id = v_user_id
+        and p.status = 'active'
+        and ump.module_code = 'escolares'
+        and ump.can_access = true
+        and sup.can_register_payments = true
+    ) into v_allowed;
+  end if;
+
+  if not v_allowed then
+    raise exception 'No tienes permiso para registrar pagos escolares';
+  end if;
+
+  -- Idempotency: a retry returns the already-created payment.
+  select id into v_payment_id
+  from public.school_student_payments
+  where request_key = p_request_key;
+
+  if v_payment_id is not null then
+    return v_payment_id;
+  end if;
+
+  insert into public.school_student_payments (
+    student_id, amount, currency, payment_status,
+    enrollment_status, reference, created_by, request_key
+  ) values (
+    p_student_id, round(p_amount, 2), 'GTQ', 'Realizado',
+    p_enrollment_status, coalesce(p_reference, ''), v_user_id, p_request_key
+  )
+  returning id into v_payment_id;
+
+  insert into public.financial_movements (
+    direction, movement_date, category, concept, amount, currency,
+    status, source_table, source_id, student_id, created_by, idempotency_key
+  ) values (
+    'ingreso', now(), 'Transporte escolar', 'Pago de transporte escolar',
+    round(p_amount, 2), 'GTQ', 'registrado',
+    'school_student_payments', v_payment_id, p_student_id, v_user_id,
+    p_request_key
+  );
+
+  return v_payment_id;
+end;
+$$;
+
+revoke all on function public.register_school_student_payment(uuid,numeric,text,text,uuid) from public;
+grant execute on function public.register_school_student_payment(uuid,numeric,text,text,uuid) to authenticated;
+
+commit;
