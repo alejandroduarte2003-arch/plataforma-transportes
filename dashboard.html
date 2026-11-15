@@ -2164,6 +2164,7 @@
     async function openEmployeeProfile(employeeId){
         const worker=employees.find(x=>x.id===employeeId);if(!worker)return;
         const target=document.getElementById("employeeProfileContent");
+        target.dataset.employeeId=employeeId;
         document.getElementById("employeeProfileTitle").textContent=worker.fullName;
         target.innerHTML='<p class="form-message">Cargando historial de planillas...</p>';
         openPersonalModal("employeeProfileModal");
@@ -2278,7 +2279,7 @@
     document.getElementById("employeeProfileContent").addEventListener("click",async e=>{
         const button=e.target.closest("[data-profile-payroll-paid]");if(!button)return;
         const payrollId=button.dataset.profilePayrollPaid;
-        const employeeId=employees.find(x=>x.fullName===document.getElementById("employeeProfileTitle").textContent)?.id;
+        const employeeId=document.getElementById("employeeProfileContent").dataset.employeeId;
         if(!employeeId)return;
         if(!confirm("¿Confirmas que esta quincena ya fue pagada? Se actualizará el saldo de préstamos y los totales financieros."))return;
         button.disabled=true;button.textContent="Procesando...";
