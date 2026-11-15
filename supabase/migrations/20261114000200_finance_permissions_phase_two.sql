@@ -39,6 +39,9 @@ create table if not exists public.school_user_permissions (
 
 alter table public.school_user_permissions enable row level security;
 
+grant select, insert, update, delete on public.school_user_permissions to authenticated;
+revoke all on public.school_user_permissions from anon;
+
 create policy school_user_permissions_superadmin_manage
   on public.school_user_permissions for all to authenticated
   using (public.is_superadmin())
