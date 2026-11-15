@@ -6,7 +6,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 let userId = null, isAdmin = false, allowed = new Set();
 let contracts = [], passengers = [], assignments = [], trips = [], tripBoardings = [];
-let students = [], schoolFollowups = [], schoolCaps = {}, editingStudentId = null, selectedSchoolStudentId = null;
+let students = [], schoolFollowups = [], educationCenters = [], schoolCaps = {}, editingStudentId = null, selectedSchoolStudentId = null;
 let employees = [], compensation = [], loans = [], payroll = [];
 let fuel = [], vehicles = [], editingFuelId = null, editingTripId = null, renderingFuel = false;
 
@@ -28,7 +28,7 @@ function makePage(id, title, subtitle) {
 function showPage(id) {
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + id));
   document.querySelectorAll(".nav-button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === id));
-  $("pageTitle").textContent = ({ abordajes:"Abordajes", escolares:"Transporte escolares", finanzas:"Finanzas" })[id] || id;
+  $("pageTitle").textContent = ({ abordajes:"Abordajes", escolares:"Transporte escolar", finanzas:"Finanzas" })[id] || id;
   $("sidebar")?.classList.remove("open");
 }
 function nav(id, label) {
@@ -60,8 +60,8 @@ async function init() {
       await initBoardings();
     }
     if (allowed.has("escolares")) {
-      nav("escolares", "Transporte escolares");
-      makePage("escolares", "Transporte escolares", "Expedientes de alumnos, seguimientos y registro de pagos.");
+      nav("escolares", "Transporte escolar");
+      makePage("escolares", "Transporte escolar", "Expedientes de alumnos, seguimientos y registro de pagos.");
       await initSchool();
     }
     if (allowed.has("finanzas")) await initFinance();
@@ -278,22 +278,27 @@ async function loadBoardingsData() {
   $("extTripBoardingsTable").innerHTML='<table><thead><tr><th>Fecha</th><th>Viaje</th><th>Pasajero</th><th>Punto</th><th></th></tr></thead><tbody>'+tripBoardings.map(x=>{const t=trips.find(t=>t.id===x.trip_id);return '<tr><td>'+esc(new Date(x.boarded_at).toLocaleString("es-GT"))+'</td><td>'+esc(t?(t.origin+" → "+t.destination):"—")+'</td><td>'+esc(passengers.find(p=>p.id===x.passenger_id)?.full_name||"—")+'</td><td>'+esc(x.boarding_point)+'</td><td><button class="ext-action light" data-del-trip-boarding="'+x.id+'">Eliminar</button></td></tr>';}).join("")+'</tbody></table>';
 }
 
-// ---------------- TRANSPORTE ESCOLARES ----------------
+// ---------------- TRANSPORTE ESCOLAR ----------------
 async function initSchool() {
   $("ext-escolares").innerHTML =
     '<div class="ext-school-accordions">' +
       '<details class="ext-school-accordion"><summary>Nuevo alumno<small>Información del estudiante y su encargado</small></summary><div class="ext-school-accordion-body"><form id="extStudentForm" class="ext-form">' +
         '<label class="full">Nombre completo del alumno<input name="full_name" required maxlength="160"></label>' +
         '<label>Nombre del encargado<input name="guardian_name" required maxlength="160"></label><label>Teléfono del encargado<input name="guardian_phone" maxlength="40"></label>' +
-        '<label>Parentesco<input name="guardian_relationship" maxlength="80"></label><label>Centro educativo<input name="school_name" maxlength="160"></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option></select></label>' +
+        '<label>Parentesco<input name="guardian_relationship" maxlength="80"></label><label>Centro educativo<select name="education_center_id" id="extStudentCenter" required></select></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option></select></label>' +
         '<label class="full">Dirección mañana<input name="address_am" maxlength="250"></label><label class="full">Dirección tarde<input name="address_pm" maxlength="250"></label>' +
         '<button class="full" type="submit">Guardar alumno</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Nuevo centro educativo<small>Registrar el colegio y su dirección</small></summary><div class="ext-school-accordion-body"><form id="extSchoolCenterForm" class="ext-form">' +
+        '<label class="full">Nombre del colegio<input name="name" required maxlength="160"></label>' +
+        '<label class="full">Dirección del colegio<input name="address" required maxlength="250"></label>' +
+        '<button class="full" type="submit">Guardar centro educativo</button></form></div></details>' +
       '<details class="ext-school-accordion"><summary>Nuevo seguimiento<small>Registrar una nota para un alumno</small></summary><div class="ext-school-accordion-body"><form id="extFollowupForm" class="ext-form">' +
         '<label class="full">Alumno<select name="student_id" id="extFollowupStudent" required></select></label>' +
         '<label class="full">Asunto<input name="subject" required maxlength="160"></label><label class="full">Detalle<textarea name="detail" required></textarea></label>' +
         '<button class="full" type="submit">Guardar seguimiento</button></form></div></details>' +
       '<details class="ext-school-accordion"><summary>Registrar pago<small>Registrar un pago escolar</small></summary><div class="ext-school-accordion-body"><div id="extSchoolPaymentBox"></div></div></details>' +
     '</div>' +
+    '<div class="ext-card"><h3>Centros educativos registrados</h3><div id="extSchoolCentersTable" class="ext-table"></div><p class="ext-note">La dirección se administra una sola vez aquí y queda asociada a los alumnos.</p></div>' +
     '<div class="ext-card"><h3>Alumnos registrados</h3><div id="extStudentsTable" class="ext-table"></div><div id="extStudentFollowupsPanel" class="ext-student-followups"><p class="ext-note">Selecciona “Seguimientos” en un alumno para consultar su historial individual.</p></div></div>' +
     '<div class="ext-card" id="extSchoolPaymentsHistory"></div>';
 
@@ -301,7 +306,10 @@ async function initSchool() {
   if (ce) throw ce;
   schoolCaps = caps || {};
   if (isAdmin) schoolCaps = {can_edit_students:true,can_edit_followups:true,can_register_payments:true};
-  if (!schoolCaps.can_edit_students) $("extStudentForm").closest("details").classList.add("ext-hidden");
+  if (!schoolCaps.can_edit_students) {
+    $("extStudentForm").closest("details").classList.add("ext-hidden");
+    $("extSchoolCenterForm").closest("details").classList.add("ext-hidden");
+  }
   if (!schoolCaps.can_edit_followups) $("extFollowupForm").closest("details").classList.add("ext-hidden");
 
   if (schoolCaps.can_register_payments || allowed.has("finanzas")) {
@@ -322,6 +330,36 @@ async function initSchool() {
     $("extSchoolPaymentBox").closest("details").classList.add("ext-hidden");
   }
 
+  $("extSchoolCenterForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
+    if(button.disabled)return;
+    button.disabled=true;button.textContent="Guardando...";
+    try{
+      const p=Object.fromEntries(new FormData(form).entries());
+      p.name=p.name.trim();p.address=p.address.trim();p.created_by=userId;
+      const {error}=await supabase.from("school_education_centers").insert(p);
+      if(error)throw error;
+      form.reset();await loadSchoolData();
+      form.closest("details").open=false;
+      notify("Centro educativo guardado correctamente.");
+    }catch(error){fail("guardar el centro educativo",error);}
+    finally{button.disabled=false;button.textContent="Guardar centro educativo";}
+  });
+
+  $("extSchoolCentersTable").addEventListener("click",async e=>{
+    const edit=e.target.closest("[data-edit-school-center]");
+    if(!edit)return;
+    const center=educationCenters.find(x=>x.id===edit.dataset.editSchoolCenter);
+    if(!center)return;
+    const name=prompt("Nombre del colegio",center.name);if(name===null)return;
+    const address=prompt("Dirección del colegio",center.address||"");if(address===null)return;
+    if(!name.trim()||!address.trim())return notify("El nombre y la dirección son obligatorios.");
+    const {error}=await supabase.from("school_education_centers").update({name:name.trim(),address:address.trim(),updated_at:new Date().toISOString()}).eq("id",center.id);
+    if(error)return fail("actualizar el centro educativo",error);
+    await loadSchoolData();notify("Centro educativo actualizado correctamente.");
+  });
+
   $("extStudentForm").addEventListener("submit",async e=>{
     e.preventDefault();
     const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
@@ -329,6 +367,9 @@ async function initSchool() {
     button.disabled=true;button.textContent="Guardando...";
     try{
       const p=Object.fromEntries(new FormData(form).entries());p.created_by=userId;
+      const center=educationCenters.find(x=>x.id===p.education_center_id);
+      if(!center)throw new Error("Selecciona un centro educativo válido.");
+      p.school_name=center.name;
       const q=editingStudentId ? supabase.from("school_students").update(p).eq("id",editingStudentId) : supabase.from("school_students").insert(p);
       const {error}=await q;
       if(error)throw error;
@@ -373,7 +414,8 @@ async function initSchool() {
       const x=students.find(s=>s.id===edit.dataset.editStudent);if(!x)return;
       editingStudentId=x.id;
       const form=$("extStudentForm");
-      Object.entries({full_name:x.full_name,guardian_name:x.guardian_name,guardian_phone:x.guardian_phone,guardian_relationship:x.guardian_relationship,school_name:x.school_name,status:x.status,address_am:x.address_am,address_pm:x.address_pm}).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||"";});
+      const centerId=x.education_center_id||educationCenters.find(c=>c.name.trim().toLowerCase()===(x.school_name||"").trim().toLowerCase())?.id||"";
+      Object.entries({full_name:x.full_name,guardian_name:x.guardian_name,guardian_phone:x.guardian_phone,guardian_relationship:x.guardian_relationship,education_center_id:centerId,status:x.status,address_am:x.address_am,address_pm:x.address_pm}).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||"";});
       form.querySelector("button[type=submit]").textContent="Actualizar alumno";
       form.closest("details").open=true;
       form.scrollIntoView({behavior:"smooth",block:"center"});
@@ -411,17 +453,22 @@ async function initSchool() {
 }
 
 async function loadSchoolData() {
-  const [sr,fr]=await Promise.all([
+  const [sr,fr,cr]=await Promise.all([
     supabase.from("school_students").select("*").order("student_code",{ascending:false}),
-    supabase.from("school_student_followups").select("*").order("followup_date",{ascending:false})
+    supabase.from("school_student_followups").select("*").order("followup_date",{ascending:false}),
+    supabase.from("school_education_centers").select("*").order("name")
   ]);
-  if(sr.error)throw sr.error;if(fr.error)throw fr.error;
+  if(sr.error)throw sr.error;if(fr.error)throw fr.error;if(cr.error)throw cr.error;
   students=sr.data||[];
   schoolFollowups=fr.data||[];
+  educationCenters=cr.data||[];
+  const centerOptions='<option value="">Seleccionar centro educativo</option>'+educationCenters.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join("");
+  $("extStudentCenter").innerHTML=centerOptions;
   const options='<option value="">Seleccionar alumno</option>'+students.map(s=>'<option value="'+s.id+'">'+esc(s.student_code)+' · '+esc(s.full_name)+'</option>').join("");
   $("extFollowupStudent").innerHTML=options;
   if($("extPaymentStudent"))$("extPaymentStudent").innerHTML=options;
-  $("extStudentsTable").innerHTML='<table><thead><tr><th>ID</th><th>Alumno</th><th>Centro educativo</th><th>Encargado</th><th>Estado</th><th></th></tr></thead><tbody>'+students.map(s=>'<tr><td>'+esc(s.student_code)+'</td><td>'+esc(s.full_name)+'</td><td>'+esc(s.school_name)+'</td><td>'+esc(s.guardian_name)+'<br>'+esc(s.guardian_phone)+'<br>'+esc(s.guardian_relationship)+'</td><td>'+esc(s.status)+'</td><td><div class="ext-actions"><button class="ext-action light" data-student-followups="'+s.id+'">Seguimientos</button>'+(schoolCaps.can_edit_students||isAdmin?'<button class="ext-action light" data-edit-student="'+s.id+'">Editar</button><button class="ext-action light" data-del-student="'+s.id+'">Eliminar</button>':"")+'</div></td></tr>').join("")+'</tbody></table>';
+  $("extSchoolCentersTable").innerHTML='<table><thead><tr><th>Centro educativo</th><th>Dirección</th><th>Alumnos</th><th></th></tr></thead><tbody>'+educationCenters.map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.address||"—")+'</td><td>'+students.filter(s=>s.education_center_id===c.id).length+'</td><td>'+(schoolCaps.can_edit_students||isAdmin?'<button class="ext-action light" data-edit-school-center="'+c.id+'">Editar</button>':"")+'</td></tr>').join("")+'</tbody></table>';
+  $("extStudentsTable").innerHTML='<table><thead><tr><th>ID</th><th>Alumno</th><th>Centro educativo</th><th>Encargado</th><th>Estado</th><th></th></tr></thead><tbody>'+students.map(s=>'<tr><td>'+esc(s.student_code)+'</td><td>'+esc(s.full_name)+'</td><td>'+esc(educationCenters.find(c=>c.id===s.education_center_id)?.name||s.school_name||"—")+'</td><td>'+esc(s.guardian_name)+'<br>'+esc(s.guardian_phone)+'<br>'+esc(s.guardian_relationship)+'</td><td>'+esc(s.status)+'</td><td><div class="ext-actions"><button class="ext-action light" data-student-followups="'+s.id+'">Seguimientos</button>'+(schoolCaps.can_edit_students||isAdmin?'<button class="ext-action light" data-edit-student="'+s.id+'">Editar</button><button class="ext-action light" data-del-student="'+s.id+'">Eliminar</button>':"")+'</div></td></tr>').join("")+'</tbody></table>';
   if(selectedSchoolStudentId&&!students.some(s=>s.id===selectedSchoolStudentId))selectedSchoolStudentId=null;
   renderSchoolStudentFollowups();
 }
