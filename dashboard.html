@@ -2133,8 +2133,15 @@
         editingLoanId=x?.id||null;loanForm.reset();refreshPersonalSelects();
         document.getElementById("loanModalTitle").textContent=x?"Editar préstamo":"Registrar préstamo";
         [["loanEmployee",x?.employeeId],["loanReason",x?.reason],["loanAmount",x?.amount],["loanBalance",x?.balance],["loanInstallment",x?.installmentAmount],["loanStartDate",x?.startDate||new Date().toISOString().slice(0,10)],["loanInstallmentsTotal",x?.installmentsTotal],["loanInstallmentsPaid",x?.installmentsPaid??0],["loanStatus",x?.status||"Activo"],["loanNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v??"");
+        calculateLoanInstallment();
         openPersonalModal("loanModal");
     }
+    function calculateLoanInstallment(){
+        const amount=Number(document.getElementById("loanAmount").value||0);
+        const total=Number(document.getElementById("loanInstallmentsTotal").value||0);
+        document.getElementById("loanInstallment").value=amount>0&&total>0?(amount/total).toFixed(2):"";
+    }
+    ["loanAmount","loanInstallmentsTotal"].forEach(id=>document.getElementById(id).addEventListener("input",calculateLoanInstallment));
     function calcPayroll(){
         const employee=employees.find(x=>x.id===document.getElementById("payrollEmployee").value);
         const ratingIds=["payrollKpiComplaints","payrollKpiCleanliness","payrollKpiDelays"];
@@ -2995,10 +3002,10 @@
         <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="loanEmployee" required></select></div>
         <div class="form-field full"><label>Motivo</label><input name="reason" id="loanReason" maxlength="180"></div>
         <div class="form-field"><label>Monto inicial (Q) *</label><input name="amount" id="loanAmount" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Saldo pendiente (Q) *</label><input name="balance" id="loanBalance" type="number" min="0" step=".01" required></div>
-        <div class="form-field"><label>Cuota por período (Q) *</label><input name="installmentAmount" id="loanInstallment" type="number" min=".01" step=".01" required></div><div class="form-field"><label>Fecha de inicio *</label><input name="startDate" id="loanStartDate" type="date" required></div>
+        <div class="form-field"><label>Cuota calculada por período (Q)</label><input name="installmentAmount" id="loanInstallment" type="number" min=".01" step=".01" readonly></div><div class="form-field"><label>Fecha de inicio *</label><input name="startDate" id="loanStartDate" type="date" required></div>
         <div class="form-field"><label>Número de cuotas (máx. 12) *</label><input name="installmentsTotal" id="loanInstallmentsTotal" type="number" min="1" max="12" required></div><div class="form-field"><label>Cuotas pagadas</label><input name="installmentsPaid" id="loanInstallmentsPaid" type="number" min="0" value="0"></div>
         <div class="form-field"><label>Estado</label><select name="status" id="loanStatus"><option>Activo</option><option>Pagado</option><option>Cancelado</option></select></div><div class="form-field full"><label>Observaciones</label><textarea name="notes" id="loanNotes" maxlength="1000"></textarea></div></div>
-        <p class="form-message">Actualiza el saldo y las cuotas conforme se realicen abonos o descuentos.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="loanModal">Cancelar</button><button class="primary-button" type="submit">Guardar préstamo</button></div></form></div></div>
+        <p class="form-message">La cuota se calcula automáticamente: monto del préstamo dividido entre el número de cuotas. El último descuento ajusta cualquier diferencia de redondeo.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-modal="loanModal">Cancelar</button><button class="primary-button" type="submit">Guardar préstamo</button></div></form></div></div>
 
     <div class="modal-backdrop" id="payrollModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="payrollModalTitle">Crear registro de planilla</h2><button class="modal-close" type="button" data-close-modal="payrollModal">×</button></div><form id="payrollForm"><div class="form-grid">
         <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="payrollEmployee" required></select></div>
