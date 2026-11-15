@@ -1345,6 +1345,7 @@
     let redirecting = false;
     let accessReady = false;
     let currentUserId = null;
+    let isSuperAdmin = false;
 
     function showOperationError(error, action) {
         console.error("Error en " + action + ":", error);
@@ -1401,6 +1402,7 @@
             }
 
             currentUserId = session.user.id;
+            isSuperAdmin = profile.role === "superadmin";
             userEmail.textContent = profile.full_name || session.user.email;
 
             // Inicio está disponible para todo usuario activo.
@@ -1543,13 +1545,25 @@
 
     // Registros operativos cargados desde Supabase.
     let trips = [];
+    let editingTripId = null;
 
-    function openTripModal() {
+    function openTripModal(trip = null) {
         refreshTripVehicleOptions();
         tripForm.reset();
-        document.getElementById("tripDate").value =
-            new Date().toISOString().slice(0, 10);
-        refreshTripVehicleOptions();
+        editingTripId = trip?.id || null;
+        document.getElementById("tripModalTitle").textContent = editingTripId ? "Editar viaje" : "Registrar viaje";
+        tripForm.querySelector('button[type="submit"]').textContent = editingTripId ? "Guardar cambios" : "Guardar viaje";
+        document.getElementById("tripDate").value = trip?.date || new Date().toISOString().slice(0, 10);
+        if (trip) {
+            document.getElementById("tripVehicle").value = trip.vehicleId;
+            document.getElementById("tripOrigin").value = trip.origin;
+            document.getElementById("tripDestination").value = trip.destination;
+            document.getElementById("tripResponsible").value = trip.responsible;
+            document.getElementById("tripServiceType").value = trip.serviceType;
+            document.getElementById("tripIncomeInput").value = trip.income;
+            document.getElementById("tripStatus").value = trip.status;
+            document.getElementById("tripNotes").value = trip.notes || "";
+        }
         tripModal.classList.add("open");
         tripModal.setAttribute("aria-hidden", "false");
     }
@@ -1557,6 +1571,7 @@
     function closeTripModal() {
         tripModal.classList.remove("open");
         tripModal.setAttribute("aria-hidden", "true");
+        editingTripId = null;
     }
 
     function refreshTripVehicleOptions() {
@@ -1628,7 +1643,7 @@
                     <td>${escapeHtml(trip.serviceType)}</td>
                     <td>${formatQuetzales(trip.income)}</td>
                     <td><span class="status-pill">${escapeHtml(trip.status)}</span></td>
-                    <td><button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
+                    <td>${isSuperAdmin ? `<button class="table-action" type="button" data-edit-trip="${trip.id}">Editar</button>` : ""} <button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
                 </tr>
             `;
         }).join("");
@@ -1683,12 +1698,17 @@
                 service_type: String(formData.get("serviceType")),
                 income,
                 status: String(formData.get("status")),
-                notes: String(formData.get("notes")).trim(),
-                created_by: currentUserId
+                notes: String(formData.get("notes")).trim()
             };
 
-            const { error } = await supabase.from("trips").insert(payload);
-            if (error) throw error;
+            if (editingTripId) {
+                if (!isSuperAdmin) throw new Error("Solo el superadministrador puede editar viajes.");
+                const { error } = await supabase.from("trips").update(payload).eq("id", editingTripId);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from("trips").insert({ ...payload, created_by: currentUserId });
+                if (error) throw error;
+            }
 
             await loadOperationalData();
             closeTripModal();
@@ -1701,6 +1721,16 @@
     });
 
     tripsTableBody.addEventListener("click", async event => {
+        const editButton = event.target.closest("[data-edit-trip]");
+        if (editButton) {
+            if (!isSuperAdmin) {
+                alert("Solo el superadministrador puede editar viajes.");
+                return;
+            }
+            const trip = trips.find(item => item.id === editButton.dataset.editTrip);
+            if (trip) openTripModal(trip);
+            return;
+        }
         const button = event.target.closest("[data-delete-trip]");
         if (!button) return;
         if (!confirm("¿Eliminar este viaje y todos sus abordajes registrados?")) return;
