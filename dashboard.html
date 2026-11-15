@@ -1502,9 +1502,15 @@
 
             hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
             const salaryField = document.getElementById("employeeBaseSalary");
-            if (salaryField) salaryField.closest(".form-field").hidden = !hasFinanceAccess;
+            if (salaryField) { salaryField.closest(".form-field").hidden = !hasFinanceAccess; salaryField.required = hasFinanceAccess; }
             document.getElementById("addLoanButton").hidden = !hasFinanceAccess;
             document.getElementById("addPayrollButton").hidden = !hasFinanceAccess;
+            ["fuelPricePerGallon","fuelCost","maintenanceCost","partsUnitCost","partsCalculatedTotal"].forEach(id => {
+                const field = document.getElementById(id);
+                if (field) { field.closest(".form-field").hidden = !hasFinanceAccess; field.disabled = !hasFinanceAccess; field.required = hasFinanceAccess && !["fuelCost","partsCalculatedTotal"].includes(id); }
+            });
+            const tripIncomeField = document.getElementById("tripIncomeInput");
+            if (tripIncomeField) tripIncomeField.required = hasFinanceAccess;
             applyModulePermissions();
             accessReady = true;
             openView("inicio");
@@ -2200,7 +2206,11 @@
         ["fuelVehicle","maintenanceVehicle","partsVehicle"].forEach(id=>document.getElementById(id).innerHTML='<option value="">Seleccionar vehículo</option>'+opts);
     }
     function renderFleetSummary(){
-        const fuel=fuelEntries.reduce((s,x)=>s+x.totalCost,0),maint=maintenanceRecords.reduce((s,x)=>s+x.cost,0),parts=vehicleParts.reduce((s,x)=>s+x.totalCost,0);
+        if(!hasFinanceAccess){
+            ["fuelTotalCost","maintenanceTotalCost","partsTotalCost","fleetTotalCost"].forEach(id=>document.getElementById(id).textContent="Solo Finanzas");
+            return;
+        }
+        const fuel=fuelEntries.reduce((s,x)=>s+(x.totalCost||0),0),maint=maintenanceRecords.reduce((s,x)=>s+(x.cost||0),0),parts=vehicleParts.reduce((s,x)=>s+(x.totalCost||0),0);
         document.getElementById("fuelTotalCost").textContent=fleetMoney(fuel);
         document.getElementById("maintenanceTotalCost").textContent=fleetMoney(maint);
         document.getElementById("partsTotalCost").textContent=fleetMoney(parts);
@@ -2209,32 +2219,45 @@
     function renderFuel(){
         const q=document.getElementById("fuelSearch").value.trim().toLowerCase(),period=document.getElementById("fuelPeriodFilter").value;
         const rows=fuelEntries.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.supplier).toLowerCase().includes(q)&&(!period||x.entryDate.startsWith(period)));
-        document.getElementById("fuelTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.entryDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td>"+x.gallons.toFixed(3)+"</td><td>"+(x.previousOdometer??"—")+"</td><td>"+(x.odometer??"—")+"</td><td>"+(x.kilometersDriven??"—")+"</td><td>"+fleetMoney(x.pricePerGallon)+"</td><td><strong>"+fleetMoney(x.totalCost)+"</strong></td><td>"+escapeHtml(x.supplier||"—")+"</td><td><div class='table-actions'><button class='table-action' data-edit-fuel='"+x.id+"'>Editar</button><button class='table-action' data-delete-fuel='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="10" class="empty-state">No hay cargas de combustible registradas.</td></tr>';
+        document.getElementById("fuelTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.entryDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td>"+x.gallons.toFixed(3)+"</td><td>"+(x.previousOdometer??"—")+"</td><td>"+(x.odometer??"—")+"</td><td>"+(x.kilometersDriven??"—")+"</td><td>"+(hasFinanceAccess?fleetMoney(x.pricePerGallon):"Solo Finanzas")+"</td><td><strong>"+(hasFinanceAccess?fleetMoney(x.totalCost):"Solo Finanzas")+"</strong></td><td>"+escapeHtml(x.supplier||"—")+"</td><td><div class='table-actions'><button class='table-action' data-edit-fuel='"+x.id+"'>Editar</button><button class='table-action' data-delete-fuel='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="10" class="empty-state">No hay cargas de combustible registradas.</td></tr>';
     }
     function renderMaintenance(){
         const q=document.getElementById("maintenanceSearch").value.trim().toLowerCase(),st=document.getElementById("maintenanceStatusFilter").value;
         const rows=maintenanceRecords.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.maintenanceType+" "+x.description+" "+x.provider).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("maintenanceTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.serviceDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td><strong>${escapeHtml(x.maintenanceType)}</strong><br><small>${escapeHtml(x.description)}</small></td><td>${escapeHtml(x.provider||"—")}</td><td>${fleetMoney(x.cost)}</td><td>${x.nextServiceDate||"—"}</td><td><span class="status-pill">${x.status}</span></td><td><div class="table-actions"><button class="table-action" data-edit-maintenance="${x.id}">Editar</button><button class="table-action" data-delete-maintenance="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay mantenimientos registrados.</td></tr>';
+        document.getElementById("maintenanceTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.serviceDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td><strong>"+escapeHtml(x.maintenanceType)+"</strong><br><small>"+escapeHtml(x.description)+"</small></td><td>"+escapeHtml(x.provider||"—")+"</td><td>"+(hasFinanceAccess?fleetMoney(x.cost):"Solo Finanzas")+"</td><td>"+(x.nextServiceDate||"—")+"</td><td><span class='status-pill'>"+escapeHtml(x.status)+"</span></td><td><div class='table-actions'><button class='table-action' data-edit-maintenance='"+x.id+"'>Editar</button><button class='table-action' data-delete-maintenance='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="8" class="empty-state">No hay mantenimientos registrados.</td></tr>';
     }
     function renderParts(){
         const q=document.getElementById("partsSearch").value.trim().toLowerCase(),action=document.getElementById("partsActionFilter").value;
         const rows=vehicleParts.filter(x=>(fleetVehicleLabel(x.vehicleId)+" "+x.partName+" "+x.supplier).toLowerCase().includes(q)&&(!action||x.action===action));
-        document.getElementById("partsTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.replacementDate}</td><td>${escapeHtml(fleetVehicleLabel(x.vehicleId))}</td><td>${escapeHtml(x.partName)}</td><td>${x.action}</td><td>${x.quantity}</td><td><strong>${fleetMoney(x.totalCost)}</strong></td><td>${escapeHtml(x.supplier||"—")}</td><td><div class="table-actions"><button class="table-action" data-edit-part="${x.id}">Editar</button><button class="table-action" data-delete-part="${x.id}">Eliminar</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay repuestos registrados.</td></tr>';
+        document.getElementById("partsTableBody").innerHTML=rows.length?rows.map(x=>"<tr><td>"+x.replacementDate+"</td><td>"+escapeHtml(fleetVehicleLabel(x.vehicleId))+"</td><td>"+escapeHtml(x.partName)+"</td><td>"+escapeHtml(x.action)+"</td><td>"+x.quantity+"</td><td><strong>"+(hasFinanceAccess?fleetMoney(x.totalCost):"Solo Finanzas")+"</strong></td><td>"+escapeHtml(x.supplier||"—")+"</td><td><div class='table-actions'><button class='table-action' data-edit-part='"+x.id+"'>Editar</button><button class='table-action' data-delete-part='"+x.id+"'>Eliminar</button></div></td></tr>").join(""):'<tr><td colspan="8" class="empty-state">No hay repuestos registrados.</td></tr>';
     }
     function renderFleet(){renderFleetSummary();renderFuel();renderMaintenance();renderParts();refreshFleetVehicleOptions();}
     async function loadFlotaData(){
         try{
             const [vr,fr,mr,pr]=await Promise.all([
                 supabase.from("vehicles").select("id,code,plate,type,capacity,brand,model,status,notes").order("code"),
-                supabase.from("fuel_entries").select("*").order("entry_date",{ascending:false}),
-                supabase.from("maintenance_records").select("*").order("service_date",{ascending:false}),
-                supabase.from("vehicle_parts").select("*").order("replacement_date",{ascending:false})
+                supabase.from("fuel_entries").select("id,vehicle_id,entry_date,liters,gallons,previous_odometer,odometer,kilometers_driven,supplier,notes").order("entry_date",{ascending:false}),
+                supabase.from("maintenance_records").select("id,vehicle_id,service_date,maintenance_type,description,provider,odometer,next_service_date,status,notes").order("service_date",{ascending:false}),
+                supabase.from("vehicle_parts").select("id,vehicle_id,replacement_date,part_name,action,quantity,supplier,odometer,notes").order("replacement_date",{ascending:false})
             ]);
             if(vr.error)throw vr.error;if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
+            let financeFuelRows=[],financeMaintenanceRows=[],financePartRows=[];
+            if(hasFinanceAccess){
+                const [ff,fm,fp]=await Promise.all([
+                    supabase.from("finance_fuel_entries").select("id,price_per_gallon,total_cost"),
+                    supabase.from("finance_maintenance_records").select("id,cost"),
+                    supabase.from("finance_vehicle_parts").select("id,unit_cost,total_cost")
+                ]);
+                for(const r of [ff,fm,fp])if(r.error)throw r.error;
+                financeFuelRows=ff.data||[];financeMaintenanceRows=fm.data||[];financePartRows=fp.data||[];
+            }
+            const fuelMoney=new Map(financeFuelRows.map(x=>[x.id,x]));
+            const maintenanceMoney=new Map(financeMaintenanceRows.map(x=>[x.id,x]));
+            const partsMoney=new Map(financePartRows.map(x=>[x.id,x]));
             vehicles=(vr.data||[]).map(item=>({id:item.id,code:item.code,plate:item.plate,type:item.type,capacity:item.capacity,brand:item.brand||"",model:item.model||"",status:item.status,notes:item.notes||""}));
-            fuelEntries=(fr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,gallons:Number(x.gallons||0),pricePerGallon:Number(x.price_per_gallon||0),totalCost:Number(x.total_cost||0),previousOdometer:x.previous_odometer,odometer:x.odometer,kilometersDriven:x.kilometers_driven,supplier:x.supplier||"",notes:x.notes||""}));
-            maintenanceRecords=(mr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:Number(x.cost),odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""}));
-            vehicleParts=(pr.data||[]).map(x=>({id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:Number(x.unit_cost),totalCost:Number(x.total_cost),supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""}));
+            fuelEntries=(fr.data||[]).map(x=>{const m=fuelMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,entryDate:x.entry_date,gallons:Number(x.gallons||0),pricePerGallon:hasFinanceAccess?Number(m.price_per_gallon||0):null,totalCost:hasFinanceAccess?Number(m.total_cost||0):null,previousOdometer:x.previous_odometer,odometer:x.odometer,kilometersDriven:x.kilometers_driven,supplier:x.supplier||"",notes:x.notes||""};});
+            maintenanceRecords=(mr.data||[]).map(x=>{const m=maintenanceMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,serviceDate:x.service_date,maintenanceType:x.maintenance_type,description:x.description||"",provider:x.provider||"",cost:hasFinanceAccess?Number(m.cost||0):null,odometer:x.odometer,nextServiceDate:x.next_service_date||"",status:x.status,notes:x.notes||""};});
+            vehicleParts=(pr.data||[]).map(x=>{const m=partsMoney.get(x.id)||{};return {id:x.id,vehicleId:x.vehicle_id,replacementDate:x.replacement_date,partName:x.part_name,action:x.action,quantity:Number(x.quantity),unitCost:hasFinanceAccess?Number(m.unit_cost||0):null,totalCost:hasFinanceAccess?Number(m.total_cost||0):null,supplier:x.supplier||"",odometer:x.odometer,notes:x.notes||""};});
             renderFleet();
         }catch(error){showOperationError(error,"cargar los registros de Flota y gastos");}
     }
@@ -2266,7 +2289,10 @@
     document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Operaciones."));
     async function saveFleetRecord(formId,table,payload,id,action){
         const form=document.getElementById(formId),btn=form.querySelector('[type="submit"]');btn.disabled=true;
-        try{const query=id?supabase.from(table).update(payload).eq("id",id):supabase.from(table).insert({...payload,created_by:currentUserId});const {error}=await query;if(error)throw error;
+        try{
+            const safePayload={...payload};
+            if(id&&!hasFinanceAccess)["price_per_liter","price_per_gallon","total_cost","cost","unit_cost"].forEach(key=>delete safePayload[key]);
+            const query=id?supabase.from(table).update(safePayload).eq("id",id):supabase.from(table).insert({...safePayload,created_by:currentUserId});const {error}=await query;if(error)throw error;
             const modal={fuel_entries:"fuelModal",maintenance_records:"maintenanceModal",vehicle_parts:"partsModal"}[table];closeFleetModal(modal);await loadFlotaData();
         }catch(error){showOperationError(error,action);}finally{btn.disabled=false;}
     }
