@@ -631,7 +631,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_collection_id uuid;
   v_receivable_amount numeric(12,2);
@@ -712,7 +712,7 @@ begin
 
   return v_collection_id;
 end;
-$;
+$$;
 
 revoke all on function public.register_financial_collection(
   uuid, numeric, date, text, text, text, uuid
