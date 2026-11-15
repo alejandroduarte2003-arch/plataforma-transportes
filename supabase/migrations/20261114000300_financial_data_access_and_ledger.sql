@@ -647,6 +647,7 @@ as $$
 declare
   v_collection_id uuid;
   v_receivable_amount numeric(12,2);
+  v_receivable_status text;
   v_collected numeric(12,2);
   v_remaining numeric(12,2);
   v_payment_amount numeric(12,2);
@@ -667,13 +668,16 @@ begin
     return v_collection_id;
   end if;
 
-  select amount into v_receivable_amount
+  select amount, status into v_receivable_amount, v_receivable_status
   from public.financial_receivables
   where id = p_receivable_id
   for update;
 
   if not found then
     raise exception 'La cuenta por cobrar no existe';
+  end if;
+  if v_receivable_status = 'Cancelada' then
+    raise exception 'No se puede registrar un cobro en una cuenta cancelada';
   end if;
 
   -- Recheck after the receivable lock to serialize concurrent collection attempts.
