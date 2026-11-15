@@ -134,6 +134,15 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - El panel de Finanzas consulta el libro central para los totales, reportes y una nueva pestaña de movimientos.
 - Se añadieron permisos explícitos de Data API para las tablas nuevas y la secuencia del código de estudiante. RLS sigue controlando qué filas puede utilizar cada usuario.
 
+### Planilla quincenal y préstamos — cálculo preparado
+- El sueldo mensual se divide automáticamente entre dos para cada quincena.
+- La evaluación KPI solicita Quejas, Limpieza y Retrasos con escala 1–5: 0%, 25%, 50%, 75% y 100%.
+- El porcentaje KPI es el promedio de los tres resultados. El bono se calcula a partir del máximo mensual individual, dividido entre dos para cada quincena.
+- El descuento de préstamos se calcula con la menor cantidad entre la cuota programada y el saldo pendiente.
+- La cuota programada se calcula automáticamente como monto del préstamo dividido entre 1–12 cuotas. La última cuota absorbe diferencias de redondeo.
+- Al marcar una quincena como pagada, la base de datos descuenta las cuotas, actualiza saldos y cuenta de cuotas pagadas en una sola transacción. La marca de aplicación evita repetir el descuento.
+- Una planilla pagada queda bloqueada para edición o eliminación. Los registros históricos con quincena 0 no se recalculan ni se usan para aplicar descuentos.
+
 ### Cambios de interfaz relacionados
 - Operaciones muestra el ingreso del viaje solo a usuarios con Finanzas.
 - Personal oculta sueldos, montos de préstamos y planilla a usuarios sin Finanzas.
