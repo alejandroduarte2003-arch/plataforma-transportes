@@ -1080,70 +1080,27 @@
             <!-- ================================= -->
 
             <section class="view" id="view-abordajes">
-
-                <div class="page-heading">
-                    <h1>Abordajes</h1>
-                    <p>Registro y control de las personas que utilizan cada servicio de transporte.</p>
+                <div class="page-heading"><h1>Abordajes</h1><p>Administra pasajeros por contrato y registra quién aborda en cada viaje.</p></div>
+                <div class="personal-tabs">
+                    <button class="personal-tab active" type="button" data-boarding-mode="contracts">Por contrato</button>
+                    <button class="personal-tab" type="button" data-boarding-mode="trips">Por viaje</button>
                 </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span>Personas registradas</span>
-                        <h2 id="boardingTotal">0</h2>
-                        <p>Registros de abordaje</p>
-                    </div>
-                    <div class="stat-card">
-                        <span>Viajes con pasajeros</span>
-                        <h2 id="boardingTrips">0</h2>
-                        <p>Viajes con abordajes registrados</p>
-                    </div>
-                    <div class="stat-card">
-                        <span>Abordajes de hoy</span>
-                        <h2 id="boardingToday">0</h2>
-                        <p>Personas registradas hoy</p>
-                    </div>
+                <div class="personal-panel active" id="boarding-contracts">
+                    <div class="section-toolbar"><div><h3>Contratos</h3><p class="personal-hint">Pasajeros asignados de forma permanente a cada contrato.</p></div><button class="primary-button" id="addTransportContractButton" type="button">+ Nuevo contrato</button></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Contrato</th><th>Cliente</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Pasajeros</th><th></th></tr></thead><tbody id="transportContractsBody"></tbody></table></div></div>
+                    <div class="section-toolbar" style="margin-top:24px;"><div><h3>Registro de pasajeros</h3><p class="personal-hint">Cada pasajero se registra una vez y puede estar en varios contratos y viajes.</p></div><button class="primary-button" id="addTransportPassengerButton" type="button">+ Nuevo pasajero</button></div>
+                    <div class="toolbar-filters"><input class="field-control" id="transportPassengerSearch" type="search" placeholder="Buscar pasajero"></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Observaciones</th><th></th></tr></thead><tbody id="transportPassengersBody"></tbody></table></div></div>
+                    <section class="panel" id="contractPassengerPanel" hidden style="margin-top:18px;padding:20px;">
+                        <div class="section-toolbar"><div><h3 id="contractPassengerTitle">Pasajeros del contrato</h3><p class="personal-hint">Asigna pasajeros al contrato seleccionado.</p></div><button class="primary-button" id="assignContractPassengerButton" type="button">+ Asignar pasajero</button></div>
+                        <div class="table-wrapper"><table><thead><tr><th>Pasajero</th><th>Punto de abordaje</th><th>Estado</th><th></th></tr></thead><tbody id="contractPassengerBody"></tbody></table></div>
+                    </section>
                 </div>
-
-                <div class="section-toolbar">
-                    <button class="secondary-button" type="button" id="backFromBoardings">Volver a Operaciones</button>
-                    <button class="primary-button" type="button" id="addBoardingButton">+ Registrar abordaje</button>
+                <div class="personal-panel" id="boarding-trips">
+                    <div class="section-toolbar"><div><h3>Abordajes por viaje</h3><p class="personal-hint">Registra a cada pasajero en el viaje concreto. Un pasajero puede aparecer en muchos viajes.</p></div><button class="primary-button" id="addTripBoardingButton" type="button">+ Registrar abordaje</button></div>
+                    <div class="toolbar-filters"><select class="field-control" id="tripBoardingFilter"><option value="">Todos los viajes</option></select><input class="field-control" id="tripBoardingSearch" type="search" placeholder="Buscar pasajero o destino"></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Pasajero</th><th>Viaje</th><th>Responsable</th><th>Hora</th><th>Punto</th><th></th></tr></thead><tbody id="tripBoardingsBody"></tbody></table></div></div>
                 </div>
-
-                <div class="panel">
-                    <div class="section-toolbar">
-                        <div>
-                            <h3 style="font-size:14px;margin-bottom:5px;">Personas registradas</h3>
-                            <p style="font-size:11px;color:var(--texto);">Cada persona queda vinculada al viaje seleccionado y a su vehículo asignado.</p>
-                        </div>
-                        <div class="toolbar-filters">
-                            <input class="field-control" id="boardingSearch" type="search" placeholder="Buscar nombre o destino">
-                            <select class="field-control" id="boardingTripFilter">
-                                <option value="">Todos los viajes</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>FECHA</th>
-                                    <th>PERSONA</th>
-                                    <th>VIAJE</th>
-                                    <th>VEHÍCULO</th>
-                                    <th>HORA</th>
-                                    <th>PUNTO DE ABORDAJE</th>
-                                    <th>CONTACTO</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="boardingsTableBody">
-                                <tr><td colspan="8" class="empty-state">No hay abordajes registrados todavía.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </section>
 
             <!-- ================================= -->
@@ -1314,6 +1271,39 @@
 <!-- ================================= -->
 
 
+<!-- MODALES DE ABORDAJES -->
+<div class="modal-backdrop" id="transportContractModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Nuevo contrato</h2><button class="modal-close" type="button" data-close-boarding="transportContractModal">×</button></div>
+<form id="transportContractForm"><div class="form-grid">
+<div class="form-field full"><label>Nombre del contrato *</label><input id="transportContractName" required maxlength="160"></div>
+<div class="form-field"><label>Cliente *</label><input id="transportContractClient" required maxlength="160"></div>
+<div class="form-field"><label>Estado</label><select id="transportContractStatus"><option>Activo</option><option>Inactivo</option><option>Finalizado</option></select></div>
+<div class="form-field"><label>Fecha de inicio</label><input id="transportContractStart" type="date"></div>
+<div class="form-field"><label>Fecha de finalización</label><input id="transportContractEnd" type="date"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="transportContractNotes"></textarea></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="transportContractModal">Cancelar</button><button class="primary-button" type="submit">Guardar contrato</button></div></form></div></div>
+<div class="modal-backdrop" id="transportPassengerModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Nuevo pasajero</h2><button class="modal-close" type="button" data-close-boarding="transportPassengerModal">×</button></div>
+<form id="transportPassengerForm"><div class="form-grid">
+<div class="form-field full"><label>Nombre completo *</label><input id="transportPassengerName" required maxlength="160"></div>
+<div class="form-field full"><label>Contacto</label><input id="transportPassengerContact" maxlength="60"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="transportPassengerNotes"></textarea></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="transportPassengerModal">Cancelar</button><button class="primary-button" type="submit">Guardar pasajero</button></div></form></div></div>
+<div class="modal-backdrop" id="contractAssignModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Asignar pasajero al contrato</h2><button class="modal-close" type="button" data-close-boarding="contractAssignModal">×</button></div>
+<form id="contractAssignForm"><div class="form-grid">
+<div class="form-field full"><label>Pasajero *</label><select id="contractAssignPassenger" required></select></div>
+<div class="form-field full"><label>Punto de abordaje</label><input id="contractAssignPoint" maxlength="180"></div>
+</div><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="contractAssignModal">Cancelar</button><button class="primary-button" type="submit">Asignar</button></div></form></div></div>
+<div class="modal-backdrop" id="tripBoardingModal" aria-hidden="true"><div class="modal">
+<div class="modal-header"><h2>Registrar abordaje por viaje</h2><button class="modal-close" type="button" data-close-boarding="tripBoardingModal">×</button></div>
+<form id="tripBoardingForm"><div class="form-grid">
+<div class="form-field full"><label>Viaje *</label><select id="tripBoardingTrip" required></select></div>
+<div class="form-field full"><label>Pasajero *</label><select id="tripBoardingPassenger" required></select></div>
+<div class="form-field"><label>Fecha y hora</label><input id="tripBoardingAt" type="datetime-local"></div>
+<div class="form-field"><label>Punto de abordaje</label><input id="tripBoardingPoint" maxlength="180"></div>
+<div class="form-field full"><label>Observaciones</label><textarea id="tripBoardingNotes"></textarea></div>
+</div><p class="form-message">El mismo pasajero puede registrarse en diferentes viajes. No se permiten duplicados dentro de un mismo viaje.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-boarding="tripBoardingModal">Cancelar</button><button class="primary-button" type="submit">Guardar abordaje</button></div></form></div></div>
 <!-- MODALES DE TRANSPORTE ESCOLAR -->
 <div class="modal-backdrop" id="schoolStudentModal" aria-hidden="true"><div class="modal">
     <div class="modal-header"><h2 id="schoolStudentModalTitle">Agregar estudiante</h2><button class="modal-close" type="button" data-close-school="schoolStudentModal">×</button></div>
