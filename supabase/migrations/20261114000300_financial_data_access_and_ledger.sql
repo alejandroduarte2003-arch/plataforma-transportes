@@ -420,7 +420,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_monthly_salary numeric(12,2);
   v_monthly_bonus_max numeric(12,2);
