@@ -244,7 +244,8 @@ create policy employee_loans_finance_update
   with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy employee_loans_finance_delete
   on public.employee_loans as restrictive for delete to authenticated
-  using (public.is_superadmin() or incorova_private.has_finance_access());
+  using ((public.is_superadmin() or incorova_private.has_finance_access())
+    and installments_paid = 0 and status = 'Activo');
 
 create policy payroll_records_finance_write
   on public.payroll_records as restrictive for insert to authenticated
@@ -258,6 +259,17 @@ create policy payroll_records_finance_delete
   on public.payroll_records as restrictive for delete to authenticated
   using ((public.is_superadmin() or incorova_private.has_finance_access())
     and status <> 'Pagada');
+
+create policy financial_expenses_finance_update
+  on public.financial_expenses as restrictive for update to authenticated
+  using ((public.is_superadmin() or incorova_private.has_finance_access())
+    and status <> 'Pagado')
+  with check (public.is_superadmin() or incorova_private.has_finance_access());
+create policy financial_expenses_finance_delete
+  on public.financial_expenses as restrictive for delete to authenticated
+  using ((public.is_superadmin() or incorova_private.has_finance_access())
+    and status <> 'Pagado');
+
 
 -- A Finance user may create or update employee salary; other staff may still
 -- manage the non-financial employee profile.
@@ -404,6 +416,7 @@ for each row execute function incorova_private.protect_legacy_financial_updates(
 -- sessions. Their writes happen through database triggers and checked RPCs.
 revoke insert, update, delete on public.financial_movements from authenticated;
 revoke insert, update, delete on public.financial_collections from authenticated;
+revoke insert, update, delete on public.school_student_payments from authenticated;
 
 -- Never cascade-delete a receivable that already has real collections.
 create or replace function incorova_private.prevent_receivable_delete_with_collections()
