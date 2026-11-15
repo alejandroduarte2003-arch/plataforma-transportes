@@ -517,7 +517,7 @@ async function initFinance() {
     const {data:dupe,error:de}=await supabase.from("payroll_records").select("id").eq("employee_id",p.employee_id).eq("period",period).eq("fortnight",fortnight).maybeSingle();
     if(de)return fail("verificar la quincena",de);
     if(dupe)return notify("Ya existe una planilla para ese trabajador y quincena. No se modificó el registro existente.");
-    const payload={employee_id:p.employee_id,period,fortnight,kpi_complaints:p.kpi_complaints?Number(p.kpi_complaints):null,kpi_cleanliness:p.kpi_cleanliness?Number(p.kpi_cleanliness):null,kpi_delays:p.kpi_delays?Number(p.kpi_delays):null,other_deductions:Number(p.other_deductions||0),base_salary:0,bonuses:0,loan_deduction:0,net_pay:0,status:"Pendiente",notes:"",created_by:userId};
+    const payload={employee_id:p.employee_id,period,fortnight,kpi_complaints:p.kpi_complaints?Number(p.kpi_complaints):null,kpi_cleanliness:p.kpi_cleanliness?Number(p.kpi_cleanliness):null,kpi_delays:p.kpi_delays?Number(p.kpi_delays):null,kpi_percentage:calc.kpiPercentage,other_deductions:calc.otherDeductions,base_salary:calc.baseSalary,bonuses:calc.bonus,loan_deduction:calc.loanDeduction,net_pay:calc.netPay,status:"Pendiente",notes:"",created_by:userId};
     button.disabled=true;button.textContent="Guardando...";
     try{
       const {data:saved,error}=await supabase.from("payroll_records").insert(payload).select("*").single();
