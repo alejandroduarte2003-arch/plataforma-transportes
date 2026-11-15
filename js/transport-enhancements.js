@@ -89,7 +89,7 @@ function securePersonalView() {
   if (salaryField) salaryField.classList.add("ext-hidden");
   if (!finance) {
     const style = document.createElement("style");
-    style.textContent = "#view-flota .stats-grid{display:none!important}#view-flota #fuelTableBody td:nth-child(4),#view-flota #fuelTableBody td:nth-child(5),#view-flota #fuelTableBody td:nth-child(7),#view-flota #maintenanceTableBody td:nth-child(5),#view-flota #partsTableBody td:nth-child(6),#view-viajes #tripIncome{display:none!important}";
+    style.textContent = "#view-flota .stats-grid{display:none!important}#view-flota #fuelTableBody td:nth-child(4),#view-flota #fuelTableBody td:nth-child(5),#view-flota #fleet-fuel table th:nth-child(4),#view-flota #fleet-fuel table th:nth-child(5),#view-flota #fleet-maintenance table th:nth-child(5),#view-flota #fleet-maintenance table td:nth-child(5),#view-flota #fleet-parts table th:nth-child(6),#view-flota #fleet-parts table td:nth-child(6),#view-flota #maintenanceTableBody td:nth-child(5),#view-flota #partsTableBody td:nth-child(6),#view-viajes #tripIncome{display:none!important}";
     document.head.appendChild(style);
     const tripIncome = $("tripIncome")?.closest(".stat-card");
     if (tripIncome) tripIncome.classList.add("ext-hidden");
@@ -99,6 +99,7 @@ function securePersonalView() {
     ["fuelPrice","fuelCost","maintenanceCost","partsUnitCost","partsTotalCost","partsCalculatedTotal","tripIncomeInput"].forEach(id=>{
       const field=$(id);if(field){const box=field.closest(".form-field");if(box)box.classList.add("ext-hidden");field.value="0";}
     });
+    if($("fuelPrice"))$("fuelPrice").required=false;
   }
 }
 
