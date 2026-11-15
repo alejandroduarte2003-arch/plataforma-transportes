@@ -400,6 +400,34 @@ create trigger protect_parts_financial_update
 before insert or update on public.vehicle_parts
 for each row execute function incorova_private.protect_legacy_financial_updates();
 
+-- The central ledger and received collections are append-only for client
+-- sessions. Their writes happen through database triggers and checked RPCs.
+revoke insert, update, delete on public.financial_movements from authenticated;
+revoke insert, update, delete on public.financial_collections from authenticated;
+
+-- Never cascade-delete a receivable that already has real collections.
+create or replace function incorova_private.prevent_receivable_delete_with_collections()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if exists (
+    select 1 from public.financial_collections c
+    where c.receivable_id = old.id
+  ) then
+    raise exception 'No se puede eliminar una cuenta que ya tiene cobros registrados';
+  end if;
+  return old;
+end;
+$;
+
+drop trigger if exists prevent_receivable_delete_with_collections on public.financial_receivables;
+create trigger prevent_receivable_delete_with_collections
+before delete on public.financial_receivables
+for each row execute function incorova_private.prevent_receivable_delete_with_collections();
+
 -- These tables are finance-only already at the RLS layer. Remove anonymous
 -- SQL privileges explicitly as a second boundary.
 revoke all on public.financial_receivables, public.financial_collections,
