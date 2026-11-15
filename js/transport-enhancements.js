@@ -604,11 +604,11 @@ async function loadFinanceDataExt() {
   $("extCompTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Sueldo mensual</th><th>Bono KPI mensual</th></tr></thead><tbody>'+compensation.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.monthly_base_salary)+'</td><td>'+money(x.monthly_kpi_bonus_max)+'</td></tr>').join("")+'</tbody></table>';
   $("extLoansTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Monto</th><th>Saldo</th><th>Cuota</th><th>Cuotas</th><th>Estado</th><th></th></tr></thead><tbody>'+loans.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.amount)+'</td><td>'+money(x.balance)+'</td><td>'+money(x.installment_amount)+'</td><td>'+x.installments_paid+'/'+x.installments_total+'</td><td>'+esc(x.status)+'</td><td>'+(x.status==="Activo"?'<button class="ext-action light" data-cancel-loan="'+x.id+'">Cancelar</button>':"")+'</td></tr>').join("")+'</tbody></table>';
   $("extPayrollTable").innerHTML='<table><thead><tr><th>Mes / quincena</th><th>Trabajador</th><th>Base</th><th>KPI</th><th>Bono</th><th>Préstamo</th><th>Neto</th><th>Estado</th><th></th></tr></thead><tbody>'+payroll.map(x=>'<tr><td>'+esc(String(x.period).slice(0,7))+' · '+(x.fortnight===1?"1.ª":"2.ª")+'</td><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?"—":Number(x.kpi_percentage).toFixed(0)+"%")+'</td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td>'+esc(x.status)+'</td><td>'+(x.status==="Pendiente"?'<button class="ext-action" data-payroll-paid="'+x.id+'">Marcar pagada</button>':"")+'</td></tr>').join("")+'</tbody></table>';
-  $("extCompEmployee").addEventListener("change",()=>{
+  $("extCompEmployee").onchange=()=>{
     const x=compensation.find(c=>c.employee_id===$("extCompEmployee").value);
     $("extCompForm").querySelector('[name="monthly_base_salary"]').value=x?.monthly_base_salary??"";
     $("extCompForm").querySelector('[name="monthly_kpi_bonus_max"]').value=x?.monthly_kpi_bonus_max??0;
-  });
+  };
   renderPayrollPreview();
 }
 
