@@ -169,6 +169,12 @@ revoke all on public.finance_trips,
   public.finance_movements
 from anon;
 
+-- These operational tables have no anonymous API access.
+revoke all on public.trips, public.fuel_entries, public.maintenance_records,
+  public.vehicle_parts, public.employees, public.employee_loans,
+  public.payroll_records
+from anon;
+
 -- Remove broad table-level SELECT, then allow only operational columns.
 -- Existing INSERT/UPDATE/DELETE policies remain in force; sensitive values
 -- are still written by their owning module but cannot be read back there.
@@ -293,22 +299,27 @@ begin
     return new;
   end if;
 
-  if tg_table_name = 'fuel_entries'
-     and (old.price_per_liter is distinct from new.price_per_liter
-       or old.total_cost is distinct from new.total_cost
-       or old.price_per_gallon is distinct from new.price_per_gallon) then
-    raise exception 'Solo Finanzas puede modificar importes de combustible';
-  elsif tg_table_name = 'maintenance_records'
-     and old.cost is distinct from new.cost then
-    raise exception 'Solo Finanzas puede modificar el costo de mantenimiento';
-  elsif tg_table_name = 'vehicle_parts'
-     and (old.unit_cost is distinct from new.unit_cost
-       or old.total_cost is distinct from new.total_cost) then
-    raise exception 'Solo Finanzas puede modificar costos de repuestos';
-  elsif tg_table_name = 'trips'
-     and old.income is distinct from new.income then
-    raise exception 'Solo Finanzas puede modificar el ingreso del viaje';
-  end if;
+  case tg_table_name
+    when 'fuel_entries' then
+      if old.price_per_liter is distinct from new.price_per_liter
+         or old.total_cost is distinct from new.total_cost
+         or old.price_per_gallon is distinct from new.price_per_gallon then
+        raise exception 'Solo Finanzas puede modificar importes de combustible';
+      end if;
+    when 'maintenance_records' then
+      if old.cost is distinct from new.cost then
+        raise exception 'Solo Finanzas puede modificar el costo de mantenimiento';
+      end if;
+    when 'vehicle_parts' then
+      if old.unit_cost is distinct from new.unit_cost
+         or old.total_cost is distinct from new.total_cost then
+        raise exception 'Solo Finanzas puede modificar costos de repuestos';
+      end if;
+    when 'trips' then
+      if old.income is distinct from new.income then
+        raise exception 'Solo Finanzas puede modificar el ingreso del viaje';
+      end if;
+  end case;
   return new;
 end;
 $$;
