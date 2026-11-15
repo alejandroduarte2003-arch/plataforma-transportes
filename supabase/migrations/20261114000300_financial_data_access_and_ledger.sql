@@ -637,6 +637,7 @@ declare
   v_receivable_amount numeric(12,2);
   v_collected numeric(12,2);
   v_remaining numeric(12,2);
+  v_payment_amount numeric(12,2);
 begin
   if not (public.is_superadmin() or incorova_private.has_finance_access()) then
     raise exception 'No tienes permiso para registrar cobros';
@@ -678,7 +679,8 @@ begin
 
   v_remaining := v_receivable_amount - v_collected;
 
-  if p_amount is null or p_amount <= 0 or p_amount > v_remaining + 0.009 then
+  v_payment_amount := round(coalesce(p_amount, 0), 2);
+  if v_payment_amount <= 0 or v_payment_amount > v_remaining then
     raise exception 'El abono debe ser mayor a cero y no puede superar el saldo pendiente';
   end if;
 
@@ -686,7 +688,7 @@ begin
     receivable_id, amount, payment_date, payment_method,
     reference, notes, created_by, request_key
   ) values (
-    p_receivable_id, round(p_amount, 2), coalesce(p_payment_date, current_date),
+    p_receivable_id, v_payment_amount, coalesce(p_payment_date, current_date),
     coalesce(nullif(p_payment_method, ''), 'Transferencia'),
     coalesce(p_reference, ''), coalesce(p_notes, ''), auth.uid(), p_request_key
   )
@@ -701,7 +703,7 @@ begin
     return v_collection_id;
   end if;
 
-  v_remaining := v_remaining - round(p_amount, 2);
+  v_remaining := v_remaining - v_payment_amount;
 
   update public.financial_receivables
   set status = case when v_remaining <= 0.009 then 'Pagada' else 'Parcial' end,
