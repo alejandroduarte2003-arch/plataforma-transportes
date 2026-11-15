@@ -2929,7 +2929,7 @@
         if(hasPersonal){
             payrollRecords.filter(x=>x.status==="Pendiente").forEach(x=>alerts.push({
                 title:"Planilla pendiente de pago",
-                detail:employeeName(x.employeeId)+" · "+x.period.slice(0,7)+" · "+money(x.netPay),
+                detail:employeeName(x.employeeId)+" · "+x.period.slice(0,7)+" · "+(hasFinance?money(x.netPay):"Solo Finanzas"),
                 date:x.period,action:"personal",actionLabel:"Ver planilla"
             }));
         }
@@ -2947,7 +2947,7 @@
             boardings.forEach(x=>activity.push({date:x.date,title:"Abordaje registrado",detail:x.name,status:"Registrado",action:"operaciones"}));
         }
         if(hasFleet){
-            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+fleetMoney(x.totalCost),status:"Registrado",action:"flota"}));
+            fuelEntries.forEach(x=>activity.push({date:x.entryDate,title:"Carga de combustible",detail:fleetVehicleLabel(x.vehicleId)+" · "+(hasFinance?fleetMoney(x.totalCost):"Importe reservado a Finanzas"),status:"Registrado",action:"flota"}));
             maintenanceRecords.forEach(x=>activity.push({date:x.serviceDate,title:"Mantenimiento",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.maintenanceType,status:x.status,action:"flota"}));
             vehicleParts.forEach(x=>activity.push({date:x.replacementDate,title:"Movimiento de repuesto",detail:fleetVehicleLabel(x.vehicleId)+" · "+x.partName,status:x.action,action:"flota"}));
         }
