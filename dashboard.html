@@ -2100,7 +2100,7 @@
             const [er,lr,pr]=await Promise.all([
                 supabase.from("employees").select("id,full_name,dpi,position,phone,hire_date,status,notes").order("full_name"),
                 supabase.from("employee_loans").select("id,employee_id,reason,installments_total,installments_paid,start_date,status,notes,created_at").order("created_at",{ascending:false}),
-                supabase.from("payroll_records").select("id,employee_id,period,fortnight,kpi_complaints,kpi_cleanliness,kpi_delays,status,payment_date,notes").order("period",{ascending:false})
+                supabase.from("payroll_records").select("id,employee_id,period,fortnight,kpi_complaints,kpi_cleanliness,kpi_delays,status,payment_date,notes").order("period",{ascending:false}).order("fortnight",{ascending:false})
             ]);
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
             let compensation=[],loanAmounts=[],payrollAmounts=[];
