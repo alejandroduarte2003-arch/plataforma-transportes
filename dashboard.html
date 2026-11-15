@@ -2150,7 +2150,7 @@
         const kpiPercentage=ratings.every(x=>x!==null)?ratings.reduce((sum,x)=>sum+percentageMap[x],0)/3:0;
         const base=employee?Number(employee.baseSalary||0)/2:Number(document.getElementById("payrollBaseSalary").value||0);
         const bonus=employee?Number(employee.kpiBonusMax||0)*kpiPercentage/100/2:Number(document.getElementById("payrollBonuses").value||0);
-        const loan=employee?employeeLoans.filter(x=>x.employeeId===employee.id&&x.status==="Activo"&&(x.installmentsTotal===null||x.installmentsPaid<x.installmentsTotal)).reduce((sum,x)=>sum+Math.min(Number(x.installmentAmount||0),Number(x.balance||0)),0):0;
+        const loan=employee?employeeLoans.filter(x=>x.employeeId===employee.id&&x.status==="Activo"&&(x.installmentsTotal===null||x.installmentsPaid<x.installmentsTotal)).reduce((sum,x)=>sum+(x.installmentsTotal!==null&&x.installmentsPaid+1>=x.installmentsTotal?Number(x.balance||0):Math.min(Number(x.installmentAmount||0),Number(x.balance||0))),0):0;
         document.getElementById("payrollBaseSalary").value=base.toFixed(2);
         document.getElementById("payrollBonuses").value=bonus.toFixed(2);
         document.getElementById("payrollLoanDeduction").value=loan.toFixed(2);
