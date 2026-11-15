@@ -2440,11 +2440,11 @@
                 supabase.from("financial_receivables").select("*").order("issue_date",{ascending:false}),
                 supabase.from("financial_collections").select("*").order("payment_date",{ascending:false}),
                 supabase.from("financial_expenses").select("*").order("expense_date",{ascending:false}),
-                supabase.from("fuel_entries").select("entry_date,total_cost"),
-                supabase.from("maintenance_records").select("service_date,cost,status"),
-                supabase.from("vehicle_parts").select("replacement_date,total_cost"),
-                supabase.from("payroll_records").select("payment_date,net_pay,status"),
-                supabase.from("trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
+                supabase.from("finance_fuel_entries").select("entry_date,total_cost"),
+                supabase.from("finance_maintenance_records").select("service_date,cost,status"),
+                supabase.from("finance_vehicle_parts").select("replacement_date,total_cost"),
+                supabase.from("finance_payroll_records").select("payment_date,net_pay,status"),
+                supabase.from("finance_trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
             [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips]=results.map(r=>r.data||[]);
