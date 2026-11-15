@@ -224,6 +224,14 @@ grant select (id, employee_id, period, fortnight, kpi_complaints,
   created_at, updated_at)
 on public.payroll_records to authenticated;
 
+-- The idempotency marker is only writable by the database trigger.
+revoke update on public.payroll_records from authenticated;
+grant update (employee_id, period, fortnight, base_salary, bonuses,
+  other_deductions, loan_deduction, net_pay, kpi_complaints,
+  kpi_cleanliness, kpi_delays, kpi_percentage, status, payment_date,
+  notes, updated_at)
+on public.payroll_records to authenticated;
+
 -- Finance is the only role allowed to create or modify monetary loan and
 -- payroll records. Personal-module users can still read the non-monetary fields.
 create policy employee_loans_finance_write
@@ -510,8 +518,8 @@ drop function if exists public.set_payroll_kpi_percentage();
 drop trigger if exists payroll_records_prepare_calculation on public.payroll_records;
 create trigger payroll_records_prepare_calculation
 before insert or update of employee_id, period, fortnight, kpi_complaints,
-  kpi_cleanliness, kpi_delays, other_deductions, loan_deduction,
-  base_salary, bonuses, net_pay, status
+  kpi_cleanliness, kpi_delays, kpi_percentage, other_deductions,
+  loan_deduction, base_salary, bonuses, net_pay, status
 on public.payroll_records
 for each row execute function incorova_private.prepare_payroll_calculation();
 
