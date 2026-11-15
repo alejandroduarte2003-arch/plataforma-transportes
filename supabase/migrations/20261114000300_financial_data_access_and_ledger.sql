@@ -242,11 +242,13 @@ create policy payroll_records_finance_write
   with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy payroll_records_finance_update
   on public.payroll_records as restrictive for update to authenticated
-  using (public.is_superadmin() or incorova_private.has_finance_access())
+  using ((public.is_superadmin() or incorova_private.has_finance_access())
+    and status <> 'Pagada')
   with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy payroll_records_finance_delete
   on public.payroll_records as restrictive for delete to authenticated
-  using (public.is_superadmin() or incorova_private.has_finance_access());
+  using ((public.is_superadmin() or incorova_private.has_finance_access())
+    and status <> 'Pagada');
 
 -- A Finance user may create or update employee salary; other staff may still
 -- manage the non-financial employee profile.
