@@ -1502,12 +1502,12 @@
 
             hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
             const salaryField = document.getElementById("employeeBaseSalary");
-            if (salaryField) { salaryField.closest(".form-field").hidden = !hasFinanceAccess; salaryField.required = hasFinanceAccess; }
-            document.getElementById("addLoanButton").hidden = !hasFinanceAccess;
-            document.getElementById("addPayrollButton").hidden = !hasFinanceAccess;
+            if (salaryField) { salaryField.closest(".form-field").style.display = hasFinanceAccess ? "" : "none"; salaryField.required = hasFinanceAccess; }
+            document.getElementById("addLoanButton").style.display = hasFinanceAccess ? "" : "none";
+            document.getElementById("addPayrollButton").style.display = hasFinanceAccess ? "" : "none";
             ["fuelPricePerGallon","fuelCost","maintenanceCost","partsUnitCost","partsCalculatedTotal"].forEach(id => {
                 const field = document.getElementById(id);
-                if (field) { field.closest(".form-field").hidden = !hasFinanceAccess; field.disabled = !hasFinanceAccess; field.required = hasFinanceAccess && !["fuelCost","partsCalculatedTotal"].includes(id); }
+                if (field) { field.closest(".form-field").style.display = hasFinanceAccess ? "" : "none"; field.disabled = !hasFinanceAccess; field.required = hasFinanceAccess && !["fuelCost","partsCalculatedTotal"].includes(id); }
             });
             const tripIncomeField = document.getElementById("tripIncomeInput");
             if (tripIncomeField) tripIncomeField.required = hasFinanceAccess;
@@ -2142,8 +2142,9 @@
     document.getElementById("addPayrollButton").addEventListener("click",()=>employees.some(x=>x.status==="Activo")?openPayrollModal():alert("Primero registra un trabajador activo."));
     employeeForm.addEventListener("submit",async e=>{
         e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
-        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,base_salary:Number(d.get("baseSalary")),status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
-            const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;if(error)throw error;
+        try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
+            if(hasFinanceAccess)p.base_salary=Number(d.get("baseSalary")||0);
+            const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;
             closePersonalModal("employeeModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
     });
