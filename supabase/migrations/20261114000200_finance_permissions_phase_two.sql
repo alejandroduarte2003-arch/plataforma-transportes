@@ -162,7 +162,20 @@ alter table public.employee_loans
 -- exist and never permits a negative distance.
 alter table public.fuel_entries
   add column if not exists gallons numeric(12,3),
-  add column if not exists previous_odometer integer,
+  add column if not exists price_per_gallon numeric(12,3),
+  add column if not exists previous_odometer integer;
+
+-- Convert historical fuel records without changing their original cost.
+update public.fuel_entries
+set gallons = round((liters / 3.785411784)::numeric, 3),
+    price_per_gallon = round((price_per_liter * 3.785411784)::numeric, 3)
+where gallons is null or price_per_gallon is null;
+
+alter table public.fuel_entries
+  alter column gallons set not null,
+  alter column price_per_gallon set not null;
+
+alter table public.fuel_entries
   add column if not exists kilometers_driven integer
     generated always as (
       case
@@ -173,13 +186,11 @@ alter table public.fuel_entries
     ) stored;
 
 alter table public.fuel_entries
-  add constraint fuel_entries_gallons_positive
-    check (gallons is null or gallons > 0),
-  add constraint fuel_entries_odometer_order
-    check (
-      odometer is null or previous_odometer is null
-      or odometer >= previous_odometer
-    );
+  add constraint fuel_entries_gallons_positive check (gallons > 0),
+  add constraint fuel_entries_price_per_gallon_nonnegative check (price_per_gallon >= 0),
+  add constraint fuel_entries_odometer_order check (
+    odometer is null or previous_odometer is null or odometer >= previous_odometer
+  );
 
 -- School payment RPC: atomic payment + income ledger insertion.
 -- User can register payment only if explicitly enabled by superadmin.
