@@ -503,7 +503,17 @@ async function initFinance() {
     if(dupe)return notify("Ya existe una planilla para ese trabajador y quincena.");
     const payload={employee_id:p.employee_id,period,fortnight,kpi_complaints:p.kpi_complaints?Number(p.kpi_complaints):null,kpi_cleanliness:p.kpi_cleanliness?Number(p.kpi_cleanliness):null,kpi_delays:p.kpi_delays?Number(p.kpi_delays):null,other_deductions:Number(p.other_deductions||0),base_salary:0,bonuses:0,loan_deduction:0,net_pay:0,status:"Pendiente",notes:"",created_by:userId};
     const {error}=await supabase.from("payroll_records").insert(payload);
-    if(error)return fail("calcular y guardar la quincena",error);
+    if(error){
+      if(error.code==="23505"){
+        await loadFinanceDataExt();
+        const existing=payroll.find(x=>x.employee_id===p.employee_id&&String(x.period).slice(0,7)===p.period&&Number(x.fortnight)===fortnight);
+        const employeeName=employees.find(x=>x.id===p.employee_id)?.full_name||"Este trabajador";
+        return notify(existing
+          ? employeeName+" ya tiene registrada la "+(fortnight===1?"primera":"segunda")+" quincena de "+p.period+". Estado: "+existing.status+". No se modificó el registro existente."
+          : "Ya existe una planilla para ese trabajador, mes y quincena. No se creó ni modificó ningún registro.");
+      }
+      return fail("calcular y guardar la quincena",error);
+    }
     e.currentTarget.reset();$("extPayrollForm").querySelector('[name="period"]').value=today().slice(0,7);await loadFinanceDataExt();
   });
   $("extLoansTable").addEventListener("click",async e=>{
