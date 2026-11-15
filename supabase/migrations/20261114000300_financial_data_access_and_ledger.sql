@@ -609,6 +609,116 @@ create trigger payroll_apply_loan_deductions
 after insert or update of status on public.payroll_records
 for each row execute function incorova_private.apply_payroll_loan_deductions();
 
+-- Atomic receivable collection: insert the collection, update the balance
+-- status and let the ledger trigger run in the same database transaction.
+alter table public.financial_collections
+  add column if not exists request_key uuid;
+
+create unique index if not exists financial_collections_request_key_uidx
+  on public.financial_collections(request_key)
+  where request_key is not null;
+
+create or replace function public.register_financial_collection(
+  p_receivable_id uuid,
+  p_amount numeric,
+  p_payment_date date,
+  p_payment_method text,
+  p_reference text,
+  p_notes text,
+  p_request_key uuid
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_collection_id uuid;
+  v_receivable_amount numeric(12,2);
+  v_collected numeric(12,2);
+  v_remaining numeric(12,2);
+begin
+  if not (public.is_superadmin() or incorova_private.has_finance_access()) then
+    raise exception 'No tienes permiso para registrar cobros';
+  end if;
+
+  if p_request_key is null then
+    raise exception 'Se requiere una clave de solicitud para evitar cobros duplicados';
+  end if;
+
+  select id into v_collection_id
+  from public.financial_collections
+  where request_key = p_request_key;
+
+  if v_collection_id is not null then
+    return v_collection_id;
+  end if;
+
+  select amount into v_receivable_amount
+  from public.financial_receivables
+  where id = p_receivable_id
+  for update;
+
+  if not found then
+    raise exception 'La cuenta por cobrar no existe';
+  end if;
+
+  -- Recheck after the receivable lock to serialize concurrent collection attempts.
+  select id into v_collection_id
+  from public.financial_collections
+  where request_key = p_request_key;
+
+  if v_collection_id is not null then
+    return v_collection_id;
+  end if;
+
+  select coalesce(sum(amount), 0) into v_collected
+  from public.financial_collections
+  where receivable_id = p_receivable_id;
+
+  v_remaining := v_receivable_amount - v_collected;
+
+  if p_amount is null or p_amount <= 0 or p_amount > v_remaining + 0.009 then
+    raise exception 'El abono debe ser mayor a cero y no puede superar el saldo pendiente';
+  end if;
+
+  insert into public.financial_collections (
+    receivable_id, amount, payment_date, payment_method,
+    reference, notes, created_by, request_key
+  ) values (
+    p_receivable_id, round(p_amount, 2), coalesce(p_payment_date, current_date),
+    coalesce(nullif(p_payment_method, ''), 'Transferencia'),
+    coalesce(p_reference, ''), coalesce(p_notes, ''), auth.uid(), p_request_key
+  )
+  on conflict (request_key) where request_key is not null
+  do nothing
+  returning id into v_collection_id;
+
+  if v_collection_id is null then
+    select id into v_collection_id
+    from public.financial_collections
+    where request_key = p_request_key;
+    return v_collection_id;
+  end if;
+
+  v_remaining := v_remaining - round(p_amount, 2);
+
+  update public.financial_receivables
+  set status = case when v_remaining <= 0.009 then 'Pagada' else 'Parcial' end,
+      updated_at = now()
+  where id = p_receivable_id;
+
+  return v_collection_id;
+end;
+$;
+
+revoke all on function public.register_financial_collection(
+  uuid, numeric, date, text, text, text, uuid
+) from public, anon;
+grant execute on function public.register_financial_collection(
+  uuid, numeric, date, text, text, text, uuid
+) to authenticated;
+
 -- Synchronize legacy cash events into the central ledger. The deterministic
 -- key makes replays and retries safe; deleting a source row annuls its movement.
 create or replace function incorova_private.sync_legacy_financial_movement()
