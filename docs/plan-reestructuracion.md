@@ -25,7 +25,7 @@ Rama de trabajo: `changes/transport-school-finance-restructure`
 - Las políticas actuales permiten acceso a tablas completas por permiso de módulo. Por tanto, un usuario con acceso a Personal/Flota/Operaciones puede leer columnas monetarias de esas tablas si la política lo autoriza.
 - `payroll_records` tiene una restricción única por trabajador y mes y una validación que obliga a que `period` sea el primer día del mes. No admite dos registros quincenales en su estado actual.
 - `boardings` solo permite asociar un nombre directamente a un viaje. No existe todavía un catálogo de pasajeros por contrato.
-- En el diagnóstico inicial no había carpeta `supabase/migrations` en el repositorio. Durante esta reestructuración se añadieron cuatro migraciones versionadas en la rama de trabajo; todavía no están aplicadas en Supabase.
+- En el diagnóstico inicial no había carpeta `supabase/migrations` en el repositorio. Durante esta reestructuración se añadieron cuatro migraciones versionadas y ya se aplicaron al proyecto Supabase de Transportes.
 
 ## Modelo objetivo propuesto
 
@@ -110,7 +110,7 @@ El monto máximo del bono es mensual y diferente para cada trabajador. El porcen
 - La administración de usuarios permite asignar permisos individuales para editar estudiantes, agregar seguimientos y registrar pagos escolares.
 - El registro de combustible ahora captura galones, odómetro anterior y odómetro actual; presenta la diferencia de kilómetros recorridos.
 
-### Base de datos — migraciones creadas, no aplicadas
+### Base de datos — cuatro migraciones aplicadas en Supabase de Transportes
 - `supabase/migrations/20261114000100_transport_restructure_foundation.sql`
   - Módulos nuevos, estructura de planilla quincenal con valor histórico 0, campos KPI, compensación individual, libro financiero, contratos/pasajeros/abordajes y expedientes escolares.
   - RLS para tablas nuevas y política restrictiva para edición de viajes solo por superadministrador.
@@ -163,24 +163,22 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Las funciones SQL nuevas de la tercera migración tienen delimitadores balanceados; la migración contiene 8 vistas protegidas y triggers de sincronización financiera.
 - Se confirmó que las tres migraciones nuevas siguen fuera del proyecto Supabase activo: no existen aún sus tablas ni columnas nuevas.
 
-### Orden de liberación obligatorio
-La tercera migración retira permisos de lectura directa sobre columnas monetarias y reserva algunos registros para RPCs. Por eso, **no se debe aplicar a producción antes de desplegar la versión de interfaz que consulta las vistas y llama a esos RPCs**. La migración y el frontend deben liberarse de forma coordinada. No se creará una rama/proyecto de Supabase ni se contratarán recursos de pago para pruebas; por esa razón, la validación disponible en esta etapa es estática y de solo lectura, no una prueba funcional aislada de PostgreSQL.
+### Orden de liberación y compatibilidad
+Las cuatro migraciones ya están aplicadas en el proyecto Supabase de Transportes y la interfaz compatible permanece en la rama de pruebas de GitHub. No usar la interfaz antigua de `main` contra este esquema: sus consultas `select(*)` sobre tablas operativas ya no tienen acceso a las columnas financieras. La versión de prueba debe publicarse desde esta rama. No se creó otro proyecto ni una rama de Supabase.
 
-### Pendiente antes de activar
+### Estado actual de la entrega de pruebas
 
-La implementación de interfaz y las tres migraciones están preparadas en esta rama, pero todavía no se puede considerar lista para producción. El estado real es:
+- **GitHub:** cambios en `changes/transport-school-finance-restructure`; `main` sigue intacta. PR #1 permanece en borrador.
+- **Supabase:** las cuatro migraciones están aplicadas al proyecto de Transportes y registradas en su historial. No se tocó ningún otro proyecto.
+- **Compatibilidad:** la interfaz de esta rama es la que corresponde al esquema actualizado. La interfaz anterior de `main` no debe usarse contra esta base porque consulta columnas financieras que ahora están protegidas.
+- **Validación automática:** GitHub Actions terminó correctamente la validación HTML/JavaScript del commit `07fe40de35eab67ba69daa188637301a06d67630`.
+- **Validación SQL:** se ejecutaron las cuatro migraciones dentro de una transacción reversible antes de aplicarlas. Después de aplicarlas, se simuló un usuario autenticado sin Finanzas: pudo registrar viaje, combustible sin importes, mantenimiento, repuestos y trabajador; las vistas financieras no devolvieron importes y los permisos escolares quedaron denegados por defecto. La transacción se revirtió y se comprobó que no quedaron registros de prueba ni permisos temporales.
+- **Pendiente para abrir la URL de pruebas:** el workflow de GitHub Pages ya está en la rama, pero su primer intento de publicación terminó con error. La página aún no tiene una URL de pruebas confirmada. No se ha desplegado a otro servicio.
+- **Prueba visual de navegador:** no se ha realizado desde esta sesión; la validación automatizada no sustituye el recorrido de usuario en navegador.
 
-- **GitHub:** cambios guardados únicamente en `changes/transport-school-finance-restructure`; `main` no se modifica.
-- **Supabase activo:** solo lectura durante esta etapa. Las tres migraciones nuevas no están aplicadas; no se han creado tablas/columnas nuevas en producción.
-- **Vercel:** no se ha desplegado esta rama.
-- **Validación de frontend:** los scripts inline de `dashboard.html` y `administracion.html` pasan compilación sintáctica después de retirar las declaraciones de importación para el chequeo; no se encontraron IDs HTML duplicados.
-- **Validación de base:** se inspeccionaron columnas, restricciones y políticas RLS actuales para comparar con las migraciones. No se ejecutaron las migraciones ni pruebas transaccionales reales.
-- **Pruebas pendientes:** autenticación y permisos por rol, altas/ediciones/borrados, abordajes, expedientes escolares, pagos idempotentes, cálculos KPI, planilla quincenal, descuentos de préstamos, vistas financieras y libro central.
-- **Seguridad pendiente:** revisar las advertencias actuales de Supabase sobre funciones `SECURITY DEFINER` expuestas y protección de contraseñas filtradas. No se modificaron porque no son parte de las migraciones nuevas y requieren una decisión separada.
+### Para publicar la versión de prueba
 
-### Condición para considerar la entrega supervisable
-
-Antes de que el propietario solo tenga que hacer una revisión visual y aprobar la publicación, todavía hace falta una validación funcional completa. Sin un entorno aislado y sin ejecutar las migraciones en producción, no es correcto afirmar que los cambios de base de datos funcionan. La siguiente ruta sin costos adicionales es completar revisión estática del SQL y del frontend en GitHub, corregir inconsistencias detectables, y dejar documentada la secuencia exacta de activación. La validación final de RLS y transacciones tendrá que realizarse cuando exista un entorno de pruebas gratuito o cuando se autorice una ventana controlada sobre el proyecto activo, con respaldo y despliegue coordinado.
+En el repositorio de GitHub, habilitar `Settings → Pages → Build and deployment → Source: GitHub Actions`. Después se puede volver a ejecutar el workflow `Deploy transport test page`; no requiere contratar un servicio. Hasta que el workflow termine correctamente, no debe darse por publicada una URL de pruebas.
 
 
 ## Validación automatizada sin costo
