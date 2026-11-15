@@ -1,6 +1,6 @@
 -- INCOROVA Transportes — finance data access boundary and legacy ledger sync.
--- Branch-only migration. Do not apply to the active project until the frontend
--- has been migrated to the safe column lists and finance views below.
+-- Branch-only migration. Do not apply to the active project until all three
+-- migrations have been reviewed and tested in an isolated database environment.
 --
 -- Monetary values remain in their source tables for compatibility, but
 -- authenticated users can no longer SELECT those columns directly.
