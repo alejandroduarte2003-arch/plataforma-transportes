@@ -103,19 +103,35 @@ El monto máximo del bono es mensual y diferente para cada trabajador. El porcen
 - La lógica vuelve a validar el rol antes de enviar el UPDATE.
 - La protección definitiva depende de aplicar la política RLS restrictiva incluida en la migración; mientras la migración no esté aplicada, no se debe considerar cerrada la autorización en base de datos.
 
-### Base de datos — migración de preparación creada, no aplicada
-Archivo: `supabase/migrations/20261114000100_transport_restructure_foundation.sql`
+### Interfaz — cambios incorporados en la rama
+- Se agregó el módulo independiente **Abordajes**, con pestañas para contratos y viajes, catálogo de pasajeros, asignación de pasajeros a contratos y registro de abordajes por viaje.
+- Se agregó **Transporte escolares**, con listado de estudiantes, expediente individual, seguimientos y formulario para pagos vinculados al alumno.
+- La edición de viajes aparece solo para superadministrador y la interfaz valida el rol antes de guardar.
+- La administración de usuarios permite asignar permisos individuales para editar estudiantes, agregar seguimientos y registrar pagos escolares.
+- El registro de combustible ahora captura galones, odómetro anterior y odómetro actual; presenta la diferencia de kilómetros recorridos.
 
-Incluye:
-- Dos módulos nuevos: Abordajes y Transporte escolares.
-- Planilla con identificador de quincena: 0 para registros históricos mensuales existentes, 1 y 2 para nuevos pagos quincenales. No duplica registros históricos.
-- Campos de evaluaciones KPI por quincena.
-- Estructura separada para sueldo mensual y bono máximo KPI individual mensual.
-- Libro central de movimientos financieros como base para la migración de ingresos y egresos.
-- Contratos, pasajeros, relaciones de pasajeros por contrato y abordajes por viaje.
-- Expedientes de estudiantes, seguimientos y tabla de pagos escolares.
-- Registro de combustible preparado para migrar a galones en una fase posterior (las columnas históricas se conservan).
-- RLS en las tablas nuevas y una política restrictiva para que solo superadmin pueda actualizar viajes.
+### Base de datos — migraciones creadas, no aplicadas
+- `supabase/migrations/20261114000100_transport_restructure_foundation.sql`
+  - Módulos nuevos, estructura de planilla quincenal con valor histórico 0, campos KPI, compensación individual, libro financiero, contratos/pasajeros/abordajes y expedientes escolares.
+  - RLS para tablas nuevas y política restrictiva para edición de viajes solo por superadministrador.
+- `supabase/migrations/20261114000200_finance_permissions_phase_two.sql`
+  - Permisos de edición escolar separados del permiso de acceso al módulo.
+  - Cálculo de porcentaje KPI en base de datos.
+  - RPC transaccional para registrar un pago escolar y generar el ingreso financiero relacionado al estudiante.
+  - Clave idempotente para evitar duplicados incluso ante reintentos concurrentes.
+  - Restricción de préstamos a un máximo de 12 cuotas.
+  - Conversión histórica de litros a galones, precio por galón y cálculo de kilómetros recorridos por diferencia de odómetro.
+
+### Validaciones realizadas sobre la rama
+- Sintaxis JavaScript de los scripts de `dashboard.html` y `administracion.html`: comprobada mediante compilación sintáctica.
+- IDs HTML duplicados en `dashboard.html`: no se encontraron.
+- Referencias literales a elementos DOM inexistentes en el script principal: no se encontraron.
+- Restricciones y columnas actuales de planilla, préstamos y combustible consultadas en Supabase para ajustar las migraciones. No había préstamos existentes que impidieran imponer el límite de 12 cuotas.
+- Se corrigieron delimitadores SQL de dos funciones y se reforzó la idempotencia del RPC de pagos escolares.
 
 ### Pendiente antes de activar
-Esta migración es deliberadamente aditiva. No elimina columnas ni datos históricos. Tampoco se aplicó al proyecto Supabase activo. La migración de importes históricos al libro central, la separación completa de las columnas financieras actualmente expuestas en tablas operativas, los RPC transaccionales y el frontend integrado deben completarse y probarse antes de aplicar esta migración. En particular, el acceso a importes en las tablas antiguas de Personal y Flota todavía requiere una segunda fase de seguridad; no se considera resuelto por esta migración.
+**Ninguna migración se ha aplicado al proyecto Supabase activo y no se ha desplegado producción.** La base financiera central todavía es una estructura inicial: falta migrar ingresos y egresos históricos de viajes, combustible, mantenimiento, repuestos, préstamos y planilla; mover o proteger los importes que hoy siguen expuestos en tablas operativas; y completar RPC transaccionales para esas operaciones.
+
+También falta terminar la interfaz de KPI y planilla quincenal, automatizar el descuento de préstamos en cada quincena y conectar todos los ingresos/egresos a Finanzas. El cambio de galones ya está reflejado en el formulario y requiere aplicar primero la migración 2 para que existan las columnas nuevas.
+
+Por lo anterior, esta rama representa una implementación parcial en desarrollo, no una versión lista para activar ni entregar.
