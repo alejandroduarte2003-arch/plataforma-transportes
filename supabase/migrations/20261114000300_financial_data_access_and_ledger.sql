@@ -331,22 +331,35 @@ begin
 
   case tg_table_name
     when 'fuel_entries' then
-      if old.price_per_liter is distinct from new.price_per_liter
+      if tg_op = 'INSERT' then
+        if new.price_per_liter <> 0 or new.total_cost <> 0
+           or new.price_per_gallon <> 0 then
+          raise exception 'Solo Finanzas puede asignar importes de combustible';
+        end if;
+      elsif old.price_per_liter is distinct from new.price_per_liter
          or old.total_cost is distinct from new.total_cost
          or old.price_per_gallon is distinct from new.price_per_gallon then
         raise exception 'Solo Finanzas puede modificar importes de combustible';
       end if;
     when 'maintenance_records' then
-      if old.cost is distinct from new.cost then
+      if tg_op = 'INSERT' then
+        if new.cost <> 0 then raise exception 'Solo Finanzas puede asignar el costo de mantenimiento'; end if;
+      elsif old.cost is distinct from new.cost then
         raise exception 'Solo Finanzas puede modificar el costo de mantenimiento';
       end if;
     when 'vehicle_parts' then
-      if old.unit_cost is distinct from new.unit_cost
+      if tg_op = 'INSERT' then
+        if new.unit_cost <> 0 or new.total_cost <> 0 then
+          raise exception 'Solo Finanzas puede asignar costos de repuestos';
+        end if;
+      elsif old.unit_cost is distinct from new.unit_cost
          or old.total_cost is distinct from new.total_cost then
         raise exception 'Solo Finanzas puede modificar costos de repuestos';
       end if;
     when 'trips' then
-      if old.income is distinct from new.income then
+      if tg_op = 'INSERT' then
+        if new.income <> 0 then raise exception 'Solo Finanzas puede asignar el ingreso del viaje'; end if;
+      elsif old.income is distinct from new.income then
         raise exception 'Solo Finanzas puede modificar el ingreso del viaje';
       end if;
   end case;
@@ -356,22 +369,22 @@ $$;
 
 drop trigger if exists protect_trip_financial_update on public.trips;
 create trigger protect_trip_financial_update
-before update on public.trips
+before insert or update on public.trips
 for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_fuel_financial_update on public.fuel_entries;
 create trigger protect_fuel_financial_update
-before update on public.fuel_entries
+before insert or update on public.fuel_entries
 for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_maintenance_financial_update on public.maintenance_records;
 create trigger protect_maintenance_financial_update
-before update on public.maintenance_records
+before insert or update on public.maintenance_records
 for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_parts_financial_update on public.vehicle_parts;
 create trigger protect_parts_financial_update
-before update on public.vehicle_parts
+before insert or update on public.vehicle_parts
 for each row execute function incorova_private.protect_legacy_financial_updates();
 
 -- These tables are finance-only already at the RLS layer. Remove anonymous
