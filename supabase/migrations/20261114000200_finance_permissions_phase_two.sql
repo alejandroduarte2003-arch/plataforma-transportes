@@ -277,7 +277,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $$
   select
     public.is_superadmin() or coalesce(sup.can_edit_students, false),
     public.is_superadmin() or coalesce(sup.can_edit_followups, false),
@@ -305,7 +305,7 @@ language plpgsql
 stable
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_allowed boolean;
 begin
