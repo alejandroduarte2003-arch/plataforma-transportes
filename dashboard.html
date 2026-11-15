@@ -2890,7 +2890,7 @@
         const hasOperations=allowedModules.has("operaciones");
         const hasFleet=allowedModules.has("flota");
         const hasPersonal=allowedModules.has("personal");
-        const hasFinance=allowedModules.has("finanzas");
+        const hasFinance=hasFinanceAccess;
         document.getElementById("homeVehicleCard").hidden=!(hasOperations||hasFleet);
         document.getElementById("homeTripCard").hidden=!hasOperations;
         document.getElementById("homeEmployeeCard").hidden=!hasPersonal;
