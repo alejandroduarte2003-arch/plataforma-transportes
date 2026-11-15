@@ -1659,7 +1659,8 @@
         tripForm.querySelector('button[type="submit"]').textContent = editingTripId ? "Guardar cambios" : "Guardar viaje";
         document.getElementById("tripDate").value = trip?.date || new Date().toISOString().slice(0, 10);
         const incomeField = document.getElementById("tripIncomeInput");
-        incomeField.closest(".form-field").hidden = !hasFinanceAccess;
+        incomeField.closest(".form-field").style.display = hasFinanceAccess ? "" : "none";
+        incomeField.required = hasFinanceAccess;
         incomeField.value = hasFinanceAccess ? (trip?.income ?? 0) : 0;
         if (trip) {
             document.getElementById("tripVehicle").value = trip.vehicleId;
@@ -1667,7 +1668,7 @@
             document.getElementById("tripDestination").value = trip.destination;
             document.getElementById("tripResponsible").value = trip.responsible;
             document.getElementById("tripServiceType").value = trip.serviceType;
-            document.getElementById("tripIncomeInput").value = trip.income;
+            if (hasFinanceAccess) document.getElementById("tripIncomeInput").value = trip.income;
             document.getElementById("tripStatus").value = trip.status;
             document.getElementById("tripNotes").value = trip.notes || "";
         }
