@@ -90,6 +90,6 @@ Los módulos operativos no volverán a guardar copias independientes de importes
 - No crear otro proyecto, rama de Supabase o servicio externo de pago.
 - Cada cambio debe quedar en esta rama de GitHub y ser verificable antes de pasar a producción.
 
-## Decisión que requiere validación antes de automatizar el bono
+## Regla confirmada del bono KPI
 
-La definición confirmada establece el monto máximo individual del bono, pero aún hay que decidir si ese máximo corresponde a **cada quincena** o al **mes completo**. La implementación debe conservar esa distinción; no asumirla silenciosamente.
+El monto máximo del bono es mensual y diferente para cada trabajador. El porcentaje KPI se aplica al máximo mensual individual y el bono mensual obtenido se divide entre dos para pagar la mitad en cada quincena. Ejemplo: máximo mensual Q500 con KPI 75% = bono mensual ganado Q375; cada quincena recibe Q187.50. El sueldo base mensual también se divide entre dos. Los descuentos de préstamos se aplican en cada quincena.
