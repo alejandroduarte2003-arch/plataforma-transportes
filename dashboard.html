@@ -1733,10 +1733,23 @@
 
     // Vehículos cargados desde Supabase.
     let vehicles = [];
+    let editingVehicleId = null;
 
-    function openVehicleModal() {
+    function openVehicleModal(vehicle = null) {
         vehicleForm.reset();
-        document.getElementById("vehicleModalTitle").textContent = "Registrar vehículo";
+        editingVehicleId = vehicle ? vehicle.id : null;
+        document.getElementById("vehicleModalTitle").textContent = vehicle ? "Editar información del vehículo" : "Registrar vehículo";
+        vehicleForm.querySelector('button[type="submit"]').textContent = vehicle ? "Guardar cambios" : "Guardar vehículo";
+        if (vehicle) {
+            vehicleForm.elements.code.value = vehicle.code || "";
+            vehicleForm.elements.plate.value = vehicle.plate || "";
+            vehicleForm.elements.type.value = vehicle.type || "";
+            vehicleForm.elements.capacity.value = vehicle.capacity ?? "";
+            vehicleForm.elements.brand.value = vehicle.brand || "";
+            vehicleForm.elements.model.value = vehicle.model || "";
+            vehicleForm.elements.status.value = vehicle.status || "Disponible";
+            vehicleForm.elements.notes.value = vehicle.notes || "";
+        }
         vehicleModal.classList.add("open");
         vehicleModal.setAttribute("aria-hidden", "false");
     }
@@ -1780,7 +1793,7 @@
                 <td>${escapeHtml([vehicle.brand, vehicle.model].filter(Boolean).join(" ") || "—")}</td>
                 <td>${vehicle.capacity} pasajeros</td>
                 <td><span class="status-pill">${escapeHtml(vehicle.status)}</span></td>
-                <td><button class="table-action" type="button" data-delete-vehicle="${vehicle.id}">Eliminar</button></td>
+                <td><button class="table-action" type="button" data-edit-vehicle="${vehicle.id}">Editar información</button> <button class="table-action" type="button" data-delete-vehicle="${vehicle.id}">Eliminar</button></td>
             </tr>
         `).join("");
     }
@@ -1827,11 +1840,12 @@
                 brand: String(formData.get("brand")).trim(),
                 model: String(formData.get("model")).trim(),
                 status: String(formData.get("status")),
-                notes: String(formData.get("notes")).trim(),
-                created_by: currentUserId
+                notes: String(formData.get("notes")).trim()
             };
 
-            const { error } = await supabase.from("vehicles").insert(payload);
+            const { error } = editingVehicleId
+                ? await supabase.from("vehicles").update(payload).eq("id", editingVehicleId)
+                : await supabase.from("vehicles").insert({ ...payload, created_by: currentUserId });
             if (error) throw error;
 
             await loadOperationalData();
@@ -1845,6 +1859,13 @@
     });
 
     vehiclesTableBody.addEventListener("click", async event => {
+        const editButton = event.target.closest("[data-edit-vehicle]");
+        if (editButton) {
+            const vehicle = vehicles.find(item => String(item.id) === editButton.dataset.editVehicle);
+            if (vehicle) openVehicleModal(vehicle);
+            return;
+        }
+
         const button = event.target.closest("[data-delete-vehicle]");
         if (!button) return;
         if (!confirm("¿Eliminar este vehículo? También se eliminarán sus viajes y abordajes relacionados.")) return;
