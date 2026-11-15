@@ -403,6 +403,12 @@ create trigger employees_create_compensation
 after insert on public.employees
 for each row execute function incorova_private.create_employee_compensation_row();
 
+-- New loan records must track a valid installment count and cannot mark
+-- more installments paid than were agreed. Existing null counts remain historical.
+alter table public.employee_loans
+  add constraint employee_loans_installments_paid_not_over_total
+  check (installments_total is null or installments_paid <= installments_total);
+
 -- Quincenal payroll: the database calculates salary, KPI bonus and loan
 -- deductions. Historical rows (fortnight = 0) are deliberately left untouched.
 alter table public.payroll_records
