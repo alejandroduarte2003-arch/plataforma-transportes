@@ -229,8 +229,10 @@ async function initSchool() {
       const p={student_id:d.student_id,amount:Number(d.amount),reference:d.reference||"",paid_at:new Date().toISOString(),payment_status:"Realizado",enrollment_status:"Vigente",created_by:userId,request_key:crypto.randomUUID()};
       const {error}=await supabase.from("school_student_payments").insert(p);
       if(error)return fail("registrar el pago del alumno",error);
-      e.currentTarget.reset();notify("Pago registrado. El detalle económico se consulta desde Finanzas.");
-      if(allowed.has("finanzas")) await loadSchoolPayments();
+      e.currentTarget.reset();
+      if ($("extFinanceSchoolPayments")) await loadFinanceDataExt();
+      if ($("extSchoolPaymentsHistory")) await loadSchoolPayments();
+      notify("Pago registrado y actualizado en Finanzas.");
     });
   } else {
     $("extSchoolPaymentBox").innerHTML = '<p class="ext-note">No tienes permiso para registrar pagos.</p>';
