@@ -181,7 +181,7 @@ async function loadBoardingsData() {
     supabase.from("transport_contracts").select("*").order("created_at",{ascending:false}),
     supabase.from("transport_passengers").select("*").order("full_name"),
     supabase.from("contract_passengers").select("*"),
-    supabase.from("trips").select("id,date,origin,destination,responsible").order("date",{ascending:false}),
+    supabase.from("trips").select(allowed.has("finanzas")?"id,date,vehicle_id,origin,destination,responsible,service_type,income,status,notes":"id,date,vehicle_id,origin,destination,responsible,service_type,status,notes").order("date",{ascending:false}),
     supabase.from("trip_passenger_boardings").select("*").order("boarded_at",{ascending:false})
   ]);
   for (const r of [c,p,a,t,b]) if (r.error) throw r.error;
