@@ -1434,7 +1434,13 @@
 
             applyModulePermissions();
             accessReady = true;
-            openView("inicio");
+
+            // Restaurar el módulo indicado en la URL al recargar la página.
+            const requestedView = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+            const initialView = requestedView && allowedModules.has(requestedView)
+                ? requestedView
+                : "inicio";
+            openView(initialView);
 
             if (["vehiculos", "viajes", "abordajes"].some(module => allowedModules.has(module))) {
                 await loadOperationalData();
@@ -1521,8 +1527,24 @@
 
         pageTitle.textContent = moduleNames[viewName] || "Inicio";
         sidebar.classList.remove("open");
+
+        // Mantener la sección activa en la URL para conservarla al recargar.
+        if (window.location.hash !== "#" + viewName) {
+            window.history.replaceState(null, "", "#" + viewName);
+        }
+
         if (viewName === "inicio") renderHomeDashboard();
     }
+
+    // Permitir que atrás/adelante del navegador cambie entre módulos.
+    window.addEventListener("hashchange", () => {
+        const requestedView = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+        if (requestedView && allowedModules.has(requestedView)) {
+            openView(requestedView);
+        } else if (accessReady) {
+            openView("inicio");
+        }
+    });
 
     document.querySelectorAll(".nav-button").forEach(button => {
         button.addEventListener("click", () => {
