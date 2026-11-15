@@ -409,6 +409,26 @@ alter table public.employee_loans
   add constraint employee_loans_installments_paid_not_over_total
   check (installments_total is null or installments_paid <= installments_total);
 
+-- Derive the scheduled installment from the principal and agreed count.
+create or replace function incorova_private.calculate_loan_installment()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if new.installments_total is not null then
+    new.installment_amount := round(new.amount / new.installments_total, 2);
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists employee_loans_calculate_installment on public.employee_loans;
+create trigger employee_loans_calculate_installment
+before insert or update of amount, installments_total, installment_amount
+on public.employee_loans
+for each row execute function incorova_private.calculate_loan_installment();
+
 -- Quincenal payroll: the database calculates salary, KPI bonus and loan
 -- deductions. Historical rows (fortnight = 0) are deliberately left untouched.
 alter table public.payroll_records
@@ -461,7 +481,13 @@ begin
   new.kpi_percentage := v_kpi_percentage;
   new.bonuses := round(v_monthly_bonus_max * coalesce(v_kpi_percentage, 0) / 100 / 2, 2);
 
-  select coalesce(sum(least(l.installment_amount, l.balance)), 0)
+  select coalesce(sum(
+    case
+      when l.installments_total is not null
+           and l.installments_paid + 1 >= l.installments_total then l.balance
+      else least(l.installment_amount, l.balance)
+    end
+  ), 0)
     into v_loan_deduction
   from public.employee_loans l
   where l.employee_id = new.employee_id
@@ -521,7 +547,15 @@ begin
   loop
     exit when v_remaining <= 0;
 
-    v_deduction := least(v_loan.installment_amount, v_loan.balance, v_remaining);
+    v_deduction := least(
+      v_loan.balance,
+      v_remaining,
+      case
+        when v_loan.installments_total is not null
+             and v_loan.installments_paid + 1 >= v_loan.installments_total then v_loan.balance
+        else v_loan.installment_amount
+      end
+    );
     if v_deduction <= 0 then
       continue;
     end if;
