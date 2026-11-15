@@ -290,4 +290,44 @@ $;
 revoke all on function public.get_my_school_permissions() from public;
 grant execute on function public.get_my_school_permissions() to authenticated;
 
+
+-- Safe trip picker for Abordajes: exposes operational fields only, never trip income.
+create or replace function public.get_abordajes_trips()
+returns table (
+  trip_id uuid,
+  trip_date date,
+  origin text,
+  destination text,
+  responsible text,
+  status text
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $
+declare
+  v_allowed boolean;
+begin
+  select public.is_superadmin() or exists (
+    select 1 from public.profiles p
+    join public.user_module_permissions ump on ump.user_id = p.id
+    where p.id = auth.uid() and p.status = 'active'
+      and ump.module_code = 'abordajes' and ump.can_access = true
+  ) into v_allowed;
+
+  if not v_allowed then
+    raise exception 'No tienes permiso para consultar los viajes de Abordajes';
+  end if;
+
+  return query
+  select t.id, t.date, t.origin, t.destination, t.responsible, t.status
+  from public.trips t
+  order by t.date desc;
+end;
+$;
+
+revoke all on function public.get_abordajes_trips() from public;
+grant execute on function public.get_abordajes_trips() to authenticated;
+
 commit;
