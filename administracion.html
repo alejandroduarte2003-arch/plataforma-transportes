@@ -807,7 +807,7 @@ async function loadData() {
     // Solo se administran los módulos principales visibles en el dashboard.
     // Inicio es común y Administración es exclusiva del superadmin.
     modules = (moduleData || []).filter(module =>
-        ["operaciones", "personal", "flota", "finanzas", "abordajes", "escolares"].includes(module.code)
+        ["vehiculos", "viajes", "personal", "flota", "finanzas", "abordajes", "escolares"].includes(module.code)
     );
 
     updateSummary();
