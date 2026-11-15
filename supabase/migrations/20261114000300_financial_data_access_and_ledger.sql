@@ -29,8 +29,13 @@ as $$
       and ump.module_code = 'finanzas'
       and ump.can_access = true
   );
-$$;
+$;
 
+-- RLS policies need this one boolean helper. Client sessions cannot execute
+-- any trigger helper directly.
+grant usage on schema incorova_private to authenticated;
+revoke execute on all functions in schema incorova_private from public, anon, authenticated;
+grant execute on function incorova_private.has_finance_access() to authenticated;
 
 -- Finance views deliberately run with the view owner's privileges. Each view
 -- has its own explicit finance authorization predicate; do not remove it.
