@@ -2166,8 +2166,7 @@
             if(hasFinanceAccess){
                 const {error}=await supabase.from("employee_compensation").upsert({
                     employee_id:savedEmployeeId,
-                    monthly_kpi_bonus_max:Number(document.getElementById("employeeKpiBonusMax").value||0),
-                    updated_at:new Date().toISOString()
+                    monthly_kpi_bonus_max:Number(document.getElementById("employeeKpiBonusMax").value||0)
                 },{onConflict:"employee_id"});
                 if(error)throw error;
             }
