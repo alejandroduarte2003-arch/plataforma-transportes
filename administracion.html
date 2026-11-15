@@ -668,6 +668,15 @@ tr:last-child td {
                     </p>
 
                     <div class="permissions" id="permissionsList"></div>
+                    <div id="schoolCapabilities" style="margin-top:18px;display:none">
+                        <h3 style="font-size:13px;color:var(--navy)">Permisos de Transporte escolares</h3>
+                        <p style="font-size:11px;color:var(--muted);margin:6px 0 10px">Define qué puede modificar este usuario dentro del módulo escolar.</p>
+                        <div class="permissions">
+                            <label class="permission-item"><input type="checkbox" id="schoolCanEditStudents"><span class="permission-copy"><span class="permission-name">Editar expedientes</span><span class="permission-description">Crear, modificar y eliminar estudiantes.</span></span></label>
+                            <label class="permission-item"><input type="checkbox" id="schoolCanEditFollowups"><span class="permission-copy"><span class="permission-name">Editar seguimientos</span><span class="permission-description">Registrar y modificar seguimientos.</span></span></label>
+                            <label class="permission-item"><input type="checkbox" id="schoolCanRegisterPayments"><span class="permission-copy"><span class="permission-name">Registrar pagos</span><span class="permission-description">Registrar pagos asociados al alumno; los montos solo se consultan en Finanzas.</span></span></label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="editor-actions">
@@ -798,7 +807,7 @@ async function loadData() {
     // Solo se administran los módulos principales visibles en el dashboard.
     // Inicio es común y Administración es exclusiva del superadmin.
     modules = (moduleData || []).filter(module =>
-        ["operaciones", "personal", "flota", "finanzas"].includes(module.code)
+        ["operaciones", "personal", "flota", "finanzas", "abordajes", "escolares"].includes(module.code)
     );
 
     updateSummary();
@@ -936,6 +945,22 @@ async function loadPermissions(userId) {
     const permissionMap = new Map(
         (data || []).map(item => [item.module_code, item.can_access])
     );
+
+    const schoolBox = document.getElementById("schoolCapabilities");
+    schoolBox.style.display = selectedUser.role === "superadmin" ? "none" :
+        (permissionMap.get("escolares") === true ? "block" : "none");
+    const { data: schoolPermission, error: schoolPermissionError } = await supabase
+        .from("school_user_permissions")
+        .select("can_edit_students, can_edit_followups, can_register_payments")
+        .eq("user_id", userId)
+        .maybeSingle();
+    if (schoolPermissionError) throw schoolPermissionError;
+    document.getElementById("schoolCanEditStudents").checked = schoolPermission?.can_edit_students === true;
+    document.getElementById("schoolCanEditFollowups").checked = schoolPermission?.can_edit_followups === true;
+    document.getElementById("schoolCanRegisterPayments").checked = schoolPermission?.can_register_payments === true;
+    ["schoolCanEditStudents","schoolCanEditFollowups","schoolCanRegisterPayments"].forEach(id => {
+        document.getElementById(id).disabled = selectedUser.role === "superadmin" || permissionMap.get("escolares") !== true;
+    });
 
     permissionsList.innerHTML = "";
 
@@ -1100,6 +1125,26 @@ async function saveChanges() {
                     });
 
                 if (permissionError) throw permissionError;
+            }
+
+            const schoolAccess = permissionRows.some(row => row.module_code === "escolares" && row.can_access);
+            if (schoolAccess) {
+                const { error: schoolError } = await supabase
+                    .from("school_user_permissions")
+                    .upsert({
+                        user_id: selectedUser.id,
+                        can_edit_students: document.getElementById("schoolCanEditStudents").checked,
+                        can_edit_followups: document.getElementById("schoolCanEditFollowups").checked,
+                        can_register_payments: document.getElementById("schoolCanRegisterPayments").checked,
+                        updated_by: currentUser.id
+                    }, { onConflict: "user_id" });
+                if (schoolError) throw schoolError;
+            } else {
+                const { error: schoolError } = await supabase
+                    .from("school_user_permissions")
+                    .delete()
+                    .eq("user_id", selectedUser.id);
+                if (schoolError) throw schoolError;
             }
         }
 
