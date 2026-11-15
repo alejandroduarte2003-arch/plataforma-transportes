@@ -161,7 +161,7 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Restricciones y columnas actuales de planilla, préstamos, combustible y módulos consultadas en Supabase para ajustar las migraciones. La restricción real de planilla mensual se elimina por su nombre verificado y se reemplaza por la clave quincenal.
 - Scripts de `dashboard.html` y `administracion.html`: sintaxis verificada, IDs duplicados no encontrados y referencias literales al DOM revisadas.
 - Las funciones SQL nuevas de la tercera migración tienen delimitadores balanceados; la migración contiene 8 vistas protegidas y triggers de sincronización financiera.
-- Se confirmó que las tres migraciones nuevas siguen fuera del proyecto Supabase activo: no existen aún sus tablas ni columnas nuevas.
+- Se confirmó en el proyecto Supabase de Transportes que existen las nuevas tablas, columnas, vistas y funciones; las cuatro migraciones están registradas en su historial.
 
 ### Orden de liberación y compatibilidad
 Las cuatro migraciones ya están aplicadas en el proyecto Supabase de Transportes y la interfaz compatible permanece en la rama de pruebas de GitHub. No usar la interfaz antigua de `main` contra este esquema: sus consultas `select(*)` sobre tablas operativas ya no tienen acceso a las columnas financieras. La versión de prueba debe publicarse desde esta rama. No se creó otro proyecto ni una rama de Supabase.
@@ -189,18 +189,18 @@ En el repositorio de GitHub, habilitar `Settings → Pages → Build and deploym
 - El PR de revisión es `#1`; se mantiene en borrador y no se fusiona a `main`.
 
 
-### Seguridad Auth — migración adicional preparada
+### Seguridad Auth — migración adicional aplicada
 Archivo: `supabase/migrations/20261114000400_auth_function_execution_hardening.sql`
 
 - Se revoca la ejecución directa de `handle_new_user()` a `anon` y `authenticated`; la función permanece disponible para el trigger interno de creación de perfiles.
 - Se revoca la ejecución anónima de `is_superadmin()` y se conserva únicamente para usuarios autenticados, porque las políticas RLS actuales dependen de esa comprobación.
 - Esta medida reduce la superficie de ejecución pública sin cambiar la lógica de autenticación.
-- La migración también está pendiente de aplicación en Supabase.
+- La migración `20261114000400_auth_function_execution_hardening.sql` ya está aplicada en Supabase de Transportes.
 
 
-## Resultados de pruebas SQL en transacción reversible
+## Prevalidación SQL en transacción reversible (antes de aplicar)
 
-Las cuatro migraciones se ejecutaron juntas en una transacción temporal contra el esquema real de Supabase. Se ejecutaron las pruebas y se hizo `ROLLBACK` al final. No se guardó ningún cambio en el proyecto activo.
+Antes de aplicar los cambios, las cuatro migraciones se ejecutaron juntas en una transacción temporal contra el esquema real de Supabase y se hizo `ROLLBACK`. Esa prevalidación no guardó cambios. Después, las cuatro migraciones se aplicaron formalmente al proyecto Supabase de Transportes y se verificó el historial.
 
 Pruebas que pasaron:
 
@@ -212,6 +212,6 @@ Pruebas que pasaron:
 - Usuario de Personal puede consultar campos operativos permitidos, pero no puede leer importes mediante columnas sensibles ni vistas financieras.
 - Se denegó acceso a 16 columnas monetarias sensibles en viajes, combustible, mantenimiento, repuestos, empleados, préstamos y planilla.
 - Permisos de ejecución: funciones de creación de usuario y RPC escolares no quedan ejecutables por `anon`; `is_superadmin()` queda disponible solo para `authenticated`, como requieren las políticas RLS.
-- Se verificó después del rollback que no quedaron creadas las tablas ni columnas de las migraciones y que el historial de migraciones Supabase no cambió.
+- En esa prevalidación se verificó que el rollback dejaba el esquema intacto. Luego se aplicaron formalmente las migraciones; el estado actual está descrito en “Estado actual de la entrega de pruebas”.
 
 Estas pruebas validan ejecución SQL, cálculos y límites de privilegios dentro de una transacción reversible. No sustituyen pruebas en navegador ni recorridos E2E con sesiones reales.
