@@ -381,28 +381,6 @@ revoke all on public.financial_receivables, public.financial_collections,
   public.employee_compensation, public.school_student_payments
 from anon;
 
--- Keep the legacy salary column out of new employee writes. The authoritative
--- salary lives in employee_compensation, populated for old employees in phase 2.
-create or replace function incorova_private.create_employee_compensation_row()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  insert into public.employee_compensation
-    (employee_id, monthly_base_salary, monthly_kpi_bonus_max, currency)
-  values (new.id, 0, 0, 'GTQ')
-  on conflict (employee_id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists employees_create_compensation on public.employees;
-create trigger employees_create_compensation
-after insert on public.employees
-for each row execute function incorova_private.create_employee_compensation_row();
-
 -- New loan records must track a valid installment count and cannot mark
 -- more installments paid than were agreed. Existing null counts remain historical.
 alter table public.employee_loans
@@ -440,14 +418,19 @@ alter table public.payroll_records
 create or replace function incorova_private.prepare_payroll_calculation()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
-as $$
+as $
 declare
   v_monthly_salary numeric(12,2);
   v_monthly_bonus_max numeric(12,2);
   v_kpi_percentage numeric(5,2);
   v_loan_deduction numeric(12,2);
 begin
+  if not (public.is_superadmin() or incorova_private.has_finance_access()) then
+    raise exception 'Solo Finanzas puede calcular y registrar planilla';
+  end if;
+
   if tg_op = 'UPDATE' and old.status = 'Pagada' and new.status <> 'Pagada' then
     raise exception 'Una quincena pagada no puede volver a estado pendiente';
   end if;
@@ -529,6 +512,10 @@ declare
   v_remaining numeric(12,2);
   v_deduction numeric(12,2);
 begin
+  if not (public.is_superadmin() or incorova_private.has_finance_access()) then
+    raise exception 'Solo Finanzas puede aplicar descuentos de préstamos';
+  end if;
+
   if new.fortnight not in (1, 2)
      or new.status <> 'Pagada'
      or new.loan_deduction_applied_at is not null then
