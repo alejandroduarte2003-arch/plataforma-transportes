@@ -265,4 +265,29 @@ $$;
 revoke all on function public.register_school_student_payment(uuid,numeric,text,text,uuid) from public;
 grant execute on function public.register_school_student_payment(uuid,numeric,text,text,uuid) to authenticated;
 
+
+-- Frontend can read only the signed-in user's school capabilities.
+create or replace function public.get_my_school_permissions()
+returns table (
+  can_edit_students boolean,
+  can_edit_followups boolean,
+  can_register_payments boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select
+    public.is_superadmin() or coalesce(sup.can_edit_students, false),
+    public.is_superadmin() or coalesce(sup.can_edit_followups, false),
+    public.is_superadmin() or coalesce(sup.can_register_payments, false)
+  from (select auth.uid() as user_id) u
+  left join public.school_user_permissions sup on sup.user_id = u.user_id
+  where u.user_id is not null;
+$;
+
+revoke all on function public.get_my_school_permissions() from public;
+grant execute on function public.get_my_school_permissions() to authenticated;
+
 commit;
