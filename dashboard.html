@@ -2554,12 +2554,8 @@
         const payrollTotal=sum(payroll,"net_pay");
         const otherTotal=sum(expenses,"amount");
         const expenseTotal=fuelTotal+maintenanceTotal+partsTotal+payrollTotal+otherTotal;
-        const rows=[
-            ["REPORTE FINANCIERO"],
-            ["Período",period||"Todos los períodos","Generado",new Date().toLocaleString("es-GT")],
-            [],
-            ["RESUMEN"],
-            ["Concepto","Total (Q)"],
+        const money=value=>"Q "+Number(value||0).toLocaleString("es-GT",{minimumFractionDigits:2,maximumFractionDigits:2});
+        const summary=[
             ["Ingresos cobrados",incomeTotal],
             ["Combustible",fuelTotal],
             ["Mantenimiento",maintenanceTotal],
@@ -2567,10 +2563,7 @@
             ["Planilla pagada",payrollTotal],
             ["Otros gastos pagados",otherTotal],
             ["Total de egresos",expenseTotal],
-            ["Resultado del período",incomeTotal-expenseTotal],
-            [],
-            ["DETALLE DE MOVIMIENTOS"],
-            ["Fecha","Tipo","Concepto / referencia","Monto (Q)"]
+            ["Resultado del período",incomeTotal-expenseTotal]
         ];
         const detail=[];
         collections.forEach(item=>{
@@ -2583,18 +2576,34 @@
         payroll.forEach(item=>detail.push([item.payment_date||"","Egreso","Planilla pagada",Number(item.net_pay||0)]));
         expenses.forEach(item=>detail.push([item.payment_date||"","Egreso",[item.category,item.concept,item.supplier].filter(Boolean).join(" · ")||"Otro gasto",Number(item.amount||0)]));
         detail.sort((a,b)=>String(b[0]).localeCompare(String(a[0])));
-        rows.push(...detail);
-        const csvCell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
-        const csv="\uFEFF"+rows.map(row=>row.map(csvCell).join(";")).join("\r\n");
-        const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+        const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+        const summaryRows=summary.map(([concept,total],index)=>'<tr class="'+(index>=6?'total-row':'')+'"><td>'+esc(concept)+'</td><td class="amount">'+money(total)+'</td></tr>').join("");
+        const detailRows=detail.map(row=>'<tr><td>'+esc(row[0])+'</td><td>'+esc(row[1])+'</td><td>'+esc(row[2])+'</td><td class="amount">'+money(row[3])+'</td></tr>').join("");
+        const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+
+            'body{font-family:Arial,sans-serif;color:#172033;font-size:11pt}'+
+            'h1{font-size:18pt;color:#142b4a;margin-bottom:4px}'+
+            '.meta{color:#555;margin-bottom:22px}h2{font-size:13pt;color:#142b4a;margin:22px 0 8px}'+
+            'table{border-collapse:collapse;width:100%;margin-bottom:18px}'+
+            'th{background:#142b4a;color:#fff;font-weight:bold;text-align:left;padding:10px;border:1px solid #cbd2dc}'+
+            'td{padding:9px 10px;border:1px solid #d8dde5;vertical-align:top}'+
+            'tbody tr:nth-child(even){background:#f3f5f8}.amount{text-align:right;white-space:nowrap}'+
+            '.total-row{font-weight:bold;background:#e8edf3!important}'+
+            '</style></head><body>'+
+            '<h1>REPORTE FINANCIERO</h1>'+
+            '<div class="meta"><b>Período:</b> '+esc(period||"Todos los períodos")+' &nbsp;&nbsp; <b>Generado:</b> '+esc(new Date().toLocaleString("es-GT"))+'</div>'+
+            '<h2>Resumen del período</h2><table><thead><tr><th style="width:65%">Concepto</th><th style="width:35%">Total del período</th></tr></thead><tbody>'+summaryRows+'</tbody></table>'+
+            '<h2>Detalle de movimientos</h2><table><thead><tr><th style="width:15%">Fecha</th><th style="width:15%">Tipo</th><th style="width:50%">Concepto / referencia</th><th style="width:20%">Monto</th></tr></thead><tbody>'+
+            (detailRows||'<tr><td colspan="4">No hay movimientos en este período.</td></tr>')+
+            '</tbody></table></body></html>';
+        const blob=new Blob(["\uFEFF",html],{type:"application/vnd.ms-excel;charset=utf-8;"});
         const url=URL.createObjectURL(blob);
         const link=document.createElement("a");
         link.href=url;
-        link.download="reporte_financiero_"+(period||"completo")+".csv";
+        link.download="reporte_financiero_"+(period||"completo")+".xls";
         document.body.appendChild(link);
         link.click();
         link.remove();
-        URL.revokeObjectURL(url);
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
     }
     document.getElementById("generateFinanceReportButton").addEventListener("click",generateFinanceReport);
     function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
