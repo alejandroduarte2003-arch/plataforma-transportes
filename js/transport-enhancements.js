@@ -231,14 +231,37 @@ async async function initSchool() {
     });
   } else $("extSchoolPaymentBox").innerHTML='<p class="ext-note">No tienes permiso para registrar pagos.</p>';
   $("extStudentForm").addEventListener("submit", async e=>{
-    e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());p.created_by=userId;
-    const q=editingStudentId?supabase.from("school_students").update(p).eq("id",editingStudentId):supabase.from("school_students").insert(p);const {error}=await q;if(error)return fail("guardar el expediente",error);
-    editingStudentId=null;e.currentTarget.reset();e.currentTarget.querySelector('button[type="submit"]').textContent="Guardar expediente";await loadSchoolData();
+    e.preventDefault();
+    const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
+    if(button.disabled)return;
+    button.disabled=true;button.textContent="Guardando...";
+    try{
+      const p=Object.fromEntries(new FormData(form).entries());p.created_by=userId;
+      const q=editingStudentId
+        ? supabase.from("school_students").update(p).eq("id",editingStudentId)
+        : supabase.from("school_students").insert(p);
+      const {error}=await q;
+      if(error)throw error;
+      editingStudentId=null;form.reset();button.textContent="Actualizando lista...";
+      await loadSchoolData();
+      button.textContent="Guardar expediente";
+      notify("Expediente guardado correctamente.");
+    }catch(error){fail("guardar el expediente",error);button.textContent=editingStudentId?"Actualizar expediente":"Guardar expediente";}
+    finally{button.disabled=false;}
   });
   $("extFollowupForm").addEventListener("submit", async e=>{
-    e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());p.created_by=userId;
-    const {error}=await supabase.from("school_student_followups").insert(p);if(error)return fail("guardar el seguimiento",error);
-    e.currentTarget.reset();await loadSchoolData();
+    e.preventDefault();
+    const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
+    if(button.disabled)return;
+    button.disabled=true;button.textContent="Guardando...";
+    try{
+      const p=Object.fromEntries(new FormData(form).entries());p.created_by=userId;
+      const {error}=await supabase.from("school_student_followups").insert(p);
+      if(error)throw error;
+      form.reset();await loadSchoolData();
+      notify("Seguimiento guardado correctamente.");
+    }catch(error){fail("guardar el seguimiento",error);}
+    finally{button.disabled=false;button.textContent="Guardar seguimiento";}
   });
   $("extStudentsTable").addEventListener("click",async e=>{
     const edit=e.target.closest("[data-edit-student]"),b=e.target.closest("[data-del-student]");
