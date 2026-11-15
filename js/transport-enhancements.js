@@ -151,11 +151,51 @@ async function initBoardings() {
     e.currentTarget.reset(); await loadBoardingsData();
   });
   $("extTripBoardingForm").addEventListener("submit", async e => {
-    e.preventDefault(); const p = Object.fromEntries(new FormData(e.currentTarget).entries());
-    p.boarded_at = new Date(p.boarded_at).toISOString(); p.created_by = userId;
-    const { error } = await supabase.from("trip_passenger_boardings").insert(p);
-    if (error) return fail("registrar el abordaje", error);
-    e.currentTarget.reset(); await loadBoardingsData();
+    e.preventDefault();
+    const form = e.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    const originalText = button.textContent;
+    const p = Object.fromEntries(new FormData(form).entries());
+    button.disabled = true;
+    button.textContent = "Verificando...";
+    try {
+      // Evita intentar registrar dos veces al mismo pasajero en el mismo viaje.
+      const { data: existing, error: checkError } = await supabase
+        .from("trip_passenger_boardings")
+        .select("id,boarded_at,boarding_point")
+        .eq("trip_id", p.trip_id)
+        .eq("passenger_id", p.passenger_id)
+        .maybeSingle();
+      if (checkError) throw checkError;
+      if (existing) {
+        const when = existing.boarded_at
+          ? new Date(existing.boarded_at).toLocaleString("es-GT")
+          : "fecha no disponible";
+        notify("Este pasajero ya tiene un abordaje registrado para este viaje (" + when + "). No se creó un registro duplicado.");
+        await loadBoardingsData();
+        return;
+      }
+      p.boarded_at = new Date(p.boarded_at).toISOString();
+      p.created_by = userId;
+      button.textContent = "Guardando...";
+      const { error } = await supabase.from("trip_passenger_boardings").insert(p);
+      if (error) {
+        if (error.code === "23505") {
+          notify("Este pasajero ya fue registrado en este viaje. Actualicé la lista para mostrar el abordaje existente.");
+          await loadBoardingsData();
+          return;
+        }
+        throw error;
+      }
+      form.reset();
+      await loadBoardingsData();
+      notify("Abordaje registrado correctamente.");
+    } catch (error) {
+      fail("registrar el abordaje", error);
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
   });
   $("extContractsTable").addEventListener("click", async e => {
     const b = e.target.closest("[data-del-contract]"); if (!b) return;
