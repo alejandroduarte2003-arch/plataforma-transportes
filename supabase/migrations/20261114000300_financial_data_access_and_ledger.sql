@@ -401,6 +401,156 @@ create trigger employees_create_compensation
 after insert on public.employees
 for each row execute function incorova_private.create_employee_compensation_row();
 
+-- Quincenal payroll: the database calculates salary, KPI bonus and loan
+-- deductions. Historical rows (fortnight = 0) are deliberately left untouched.
+alter table public.payroll_records
+  add column if not exists loan_deduction_applied_at timestamptz;
+
+create or replace function incorova_private.prepare_payroll_calculation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+declare
+  v_monthly_salary numeric(12,2);
+  v_monthly_bonus_max numeric(12,2);
+  v_kpi_percentage numeric(5,2);
+  v_loan_deduction numeric(12,2);
+begin
+  if tg_op = 'UPDATE' and old.status = 'Pagada' and new.status <> 'Pagada' then
+    raise exception 'Una quincena pagada no puede volver a estado pendiente';
+  end if;
+
+  if new.fortnight = 0 then
+    return new;
+  end if;
+
+  if new.fortnight not in (1, 2) then
+    raise exception 'La quincena debe ser 1 o 2';
+  end if;
+
+  select c.monthly_base_salary, c.monthly_kpi_bonus_max
+    into v_monthly_salary, v_monthly_bonus_max
+  from public.employee_compensation c
+  where c.employee_id = new.employee_id;
+
+  if not found then
+    raise exception 'El trabajador no tiene una configuración de sueldo en Finanzas';
+  end if;
+
+  new.base_salary := round(v_monthly_salary / 2, 2);
+
+  if new.kpi_complaints is not null
+     and new.kpi_cleanliness is not null
+     and new.kpi_delays is not null then
+    v_kpi_percentage := public.calculate_kpi_percentage(
+      new.kpi_complaints, new.kpi_cleanliness, new.kpi_delays
+    );
+  else
+    v_kpi_percentage := null;
+  end if;
+
+  new.kpi_percentage := v_kpi_percentage;
+  new.bonuses := round(v_monthly_bonus_max * coalesce(v_kpi_percentage, 0) / 100 / 2, 2);
+
+  select coalesce(sum(least(l.installment_amount, l.balance)), 0)
+    into v_loan_deduction
+  from public.employee_loans l
+  where l.employee_id = new.employee_id
+    and l.status = 'Activo'
+    and l.balance > 0
+    and (l.installments_total is null or l.installments_paid < l.installments_total);
+
+  new.loan_deduction := round(v_loan_deduction, 2);
+  new.net_pay := greatest(0, round(
+    new.base_salary + new.bonuses
+    - coalesce(new.other_deductions, 0)
+    - new.loan_deduction, 2
+  ));
+
+  return new;
+end;
+$;
+
+drop trigger if exists payroll_records_calculate_kpi on public.payroll_records;
+drop trigger if exists payroll_records_prepare_calculation on public.payroll_records;
+create trigger payroll_records_prepare_calculation
+before insert or update of employee_id, fortnight, kpi_complaints,
+  kpi_cleanliness, kpi_delays, other_deductions, loan_deduction,
+  base_salary, bonuses, net_pay, status
+on public.payroll_records
+for each row execute function incorova_private.prepare_payroll_calculation();
+
+create or replace function incorova_private.apply_payroll_loan_deductions()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_loan record;
+  v_remaining numeric(12,2);
+  v_deduction numeric(12,2);
+begin
+  if new.fortnight not in (1, 2)
+     or new.status <> 'Pagada'
+     or new.loan_deduction_applied_at is not null then
+    return new;
+  end if;
+
+  v_remaining := coalesce(new.loan_deduction, 0);
+
+  for v_loan in
+    select l.id, l.installment_amount, l.balance,
+           l.installments_total, l.installments_paid
+    from public.employee_loans l
+    where l.employee_id = new.employee_id
+      and l.status = 'Activo'
+      and l.balance > 0
+      and (l.installments_total is null or l.installments_paid < l.installments_total)
+    order by l.created_at, l.id
+    for update
+  loop
+    exit when v_remaining <= 0;
+
+    v_deduction := least(v_loan.installment_amount, v_loan.balance, v_remaining);
+    if v_deduction <= 0 then
+      continue;
+    end if;
+
+    update public.employee_loans
+    set balance = greatest(0, balance - v_deduction),
+        installments_paid = installments_paid + 1,
+        status = case
+          when balance - v_deduction <= 0 then 'Pagado'
+          when installments_total is not null
+               and installments_paid + 1 >= installments_total then 'Pagado'
+          else 'Activo'
+        end,
+        updated_at = now()
+    where id = v_loan.id;
+
+    v_remaining := v_remaining - v_deduction;
+  end loop;
+
+  if v_remaining > 0.01 then
+    raise exception 'No se pudo aplicar el descuento completo de préstamos; la quincena no se marcará como pagada';
+  end if;
+
+  update public.payroll_records
+  set loan_deduction_applied_at = now()
+  where id = new.id
+    and loan_deduction_applied_at is null;
+
+  return new;
+end;
+$;
+
+drop trigger if exists payroll_apply_loan_deductions on public.payroll_records;
+create trigger payroll_apply_loan_deductions
+after insert or update of status on public.payroll_records
+for each row execute function incorova_private.apply_payroll_loan_deductions();
+
 -- Synchronize legacy cash events into the central ledger. The deterministic
 -- key makes replays and retries safe; deleting a source row annuls its movement.
 create or replace function incorova_private.sync_legacy_financial_movement()
