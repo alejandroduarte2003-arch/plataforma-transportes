@@ -285,7 +285,7 @@ as $$
   from (select auth.uid() as user_id) u
   left join public.school_user_permissions sup on sup.user_id = u.user_id
   where u.user_id is not null;
-$;
+$$;
 
 revoke all on function public.get_my_school_permissions() from public;
 grant execute on function public.get_my_school_permissions() to authenticated;
@@ -325,7 +325,7 @@ begin
   from public.trips t
   order by t.date desc;
 end;
-$;
+$$;
 
 revoke all on function public.get_abordajes_trips() from public;
 grant execute on function public.get_abordajes_trips() to authenticated;
