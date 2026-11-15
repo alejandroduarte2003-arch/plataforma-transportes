@@ -25,7 +25,7 @@ Rama de trabajo: `changes/transport-school-finance-restructure`
 - Las políticas actuales permiten acceso a tablas completas por permiso de módulo. Por tanto, un usuario con acceso a Personal/Flota/Operaciones puede leer columnas monetarias de esas tablas si la política lo autoriza.
 - `payroll_records` tiene una restricción única por trabajador y mes y una validación que obliga a que `period` sea el primer día del mes. No admite dos registros quincenales en su estado actual.
 - `boardings` solo permite asociar un nombre directamente a un viaje. No existe todavía un catálogo de pasajeros por contrato.
-- En el diagnóstico inicial no había carpeta `supabase/migrations` en el repositorio. Durante esta reestructuración se añadieron tres migraciones versionadas en la rama de trabajo; todavía no están aplicadas en Supabase.
+- En el diagnóstico inicial no había carpeta `supabase/migrations` en el repositorio. Durante esta reestructuración se añadieron cuatro migraciones versionadas en la rama de trabajo; todavía no están aplicadas en Supabase.
 
 ## Modelo objetivo propuesto
 
@@ -188,3 +188,12 @@ Antes de que el propietario solo tenga que hacer una revisión visual y aprobar 
 - Se agregó `.github/workflows/validate-transport-platform.yml` para ejecutar esas comprobaciones con GitHub Actions en esta rama y en el PR.
 - Esta automatización es una revisión estática. No sustituye pruebas de base de datos, RLS, autenticación ni recorridos reales de usuario.
 - El PR de revisión es `#1`; se mantiene en borrador y no se fusiona a `main`.
+
+
+### Seguridad Auth — migración adicional preparada
+Archivo: `supabase/migrations/20261114000400_auth_function_execution_hardening.sql`
+
+- Se revoca la ejecución directa de `handle_new_user()` a `anon` y `authenticated`; la función permanece disponible para el trigger interno de creación de perfiles.
+- Se revoca la ejecución anónima de `is_superadmin()` y se conserva únicamente para usuarios autenticados, porque las políticas RLS actuales dependen de esa comprobación.
+- Esta medida reduce la superficie de ejecución pública sin cambiar la lógica de autenticación.
+- La migración también está pendiente de aplicación en Supabase.
