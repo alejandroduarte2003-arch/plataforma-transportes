@@ -321,8 +321,11 @@ async function initFinance() {
     '<label>Otras deducciones (Q)<input name="other_deductions" type="number" min="0" step=".01" value="0"></label>' +
     '<button class="full" type="submit">Calcular y guardar quincena</button></form><p class="ext-note">KPI con ponderación igual: 1 = 0%, 2 = 25%, 3 = 50%, 4 = 75%, 5 = 100%. La bonificación mensual individual se divide entre dos y se ajusta al porcentaje alcanzado. El préstamo se descuenta automáticamente del sueldo base quincenal.</p>' +
     '<div id="extPayrollTable" class="ext-table"></div>';
+  const schoolPaymentsCard=document.createElement("div");
+  schoolPaymentsCard.className="ext-card";
+  schoolPaymentsCard.innerHTML='<h3>Ingresos de transporte escolar</h3><div id="extFinanceSchoolPayments" class="ext-table"></div><p class="ext-note">Los pagos registrados desde Transporte escolares se concentran aquí y forman parte del libro financiero.</p>';
   const grid=document.createElement("div");grid.className="ext-grid";grid.append(wrap,loansCard);
-  view.appendChild(grid);view.appendChild(payrollCard);
+  view.appendChild(grid);view.appendChild(payrollCard);view.appendChild(schoolPaymentsCard);
   await loadFinanceDataExt();
   $("extCompForm").addEventListener("submit",async e=>{
     e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());
@@ -370,14 +373,18 @@ function calcLoanInstallment() {
   $("extLoanInstallment").value=terms>0?money(amount/terms):"";
 }
 async function loadFinanceDataExt() {
-  const [er,cr,lr,pr]=await Promise.all([
+  const [er,cr,lr,pr,spr,ssr]=await Promise.all([
     supabase.from("employees").select("id,full_name,position,status").order("full_name"),
     supabase.from("employee_compensation").select("*"),
     supabase.from("employee_loans").select("*").order("created_at",{ascending:false}),
-    supabase.from("payroll_records").select("*").order("period",{ascending:false})
+    supabase.from("payroll_records").select("*").order("period",{ascending:false}),
+    supabase.from("school_student_payments").select("*").order("paid_at",{ascending:false}),
+    supabase.from("school_students").select("id,student_code,full_name").order("full_name")
   ]);
-  for(const r of [er,cr,lr,pr])if(r.error)throw r.error;
+  for(const r of [er,cr,lr,pr,spr,ssr])if(r.error)throw r.error;
   employees=er.data||[];compensation=cr.data||[];loans=lr.data||[];payroll=pr.data||[];
+  const schoolPayments=spr.data||[],schoolPeople=ssr.data||[];
+  $("extFinanceSchoolPayments").innerHTML='<table><thead><tr><th>Fecha</th><th>ID alumno</th><th>Estudiante</th><th>Referencia</th><th>Ingreso</th><th>Estado</th></tr></thead><tbody>'+schoolPayments.map(p=>'<tr><td>'+esc(new Date(p.paid_at).toLocaleDateString("es-GT"))+'</td><td>'+esc(schoolPeople.find(x=>x.id===p.student_id)?.student_code||"—")+'</td><td>'+esc(schoolPeople.find(x=>x.id===p.student_id)?.full_name||"—")+'</td><td>'+esc(p.reference||"—")+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.payment_status)+'</td></tr>').join("")+'</tbody></table>';
   const opts='<option value="">Seleccionar trabajador</option>'+employees.map(x=>'<option value="'+x.id+'">'+esc(x.full_name)+'</option>').join("");
   $("extCompEmployee").innerHTML=opts;$("extLoanEmployee").innerHTML=opts;$("extPayrollEmployee").innerHTML=opts;
   $("extCompTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Sueldo mensual</th><th>Bono KPI mensual</th></tr></thead><tbody>'+compensation.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.monthly_base_salary)+'</td><td>'+money(x.monthly_kpi_bonus_max)+'</td></tr>').join("")+'</tbody></table>';
