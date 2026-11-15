@@ -1216,7 +1216,7 @@
                             <input class="field-control" id="movementSearch" type="search" placeholder="Buscar concepto o categoría">
                             <select class="field-control" id="movementDirectionFilter"><option value="">Ingresos y egresos</option><option value="ingreso">Ingresos</option><option value="egreso">Egresos</option></select>
                         </div>
-                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Origen</th></tr></thead><tbody id="financeMovementsBody"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                        <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Concepto</th><th>Estudiante</th><th>Monto</th><th>Estado</th><th>Origen</th></tr></thead><tbody id="financeMovementsBody"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                     </div>
                     <div class="personal-panel" id="finance-reportes">
                         <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><input class="field-control" id="financePeriodFilter" type="month"></div>
@@ -2481,14 +2481,14 @@
     function renderFinanceMovements(){
         const q=document.getElementById("movementSearch").value.trim().toLowerCase();
         const direction=document.getElementById("movementDirectionFilter").value;
-        const rows=financeMovements.filter(x=>(!direction||x.direction===direction)&&((x.category+" "+x.concept+" "+(x.source_table||"")).toLowerCase().includes(q)));
+        const rows=financeMovements.filter(x=>(!direction||x.direction===direction)&&((x.category+" "+x.concept+" "+(x.student_name||"")+" "+(x.student_code||"")+" "+(x.source_table||"")).toLowerCase().includes(q)));
         document.getElementById("financeMovementsBody").innerHTML=rows.length?rows.map(x=>{
             const date=new Date(x.movement_date).toLocaleString("es-GT",{dateStyle:"short",timeStyle:"short"});
             const kind=x.direction==="ingreso"?"Ingreso":"Egreso";
             const source=x.source_table||"Registro manual";
             const status=x.status==="registrado"?"Registrado":x.status==="pendiente"?"Pendiente":"Anulado";
-            return "<tr><td>"+date+"</td><td>"+kind+"</td><td>"+escapeHtml(x.category)+"</td><td>"+escapeHtml(x.concept)+"</td><td><strong>"+financeMoney(x.amount)+"</strong></td><td><span class='status-pill'>"+status+"</span></td><td>"+escapeHtml(source)+"</td></tr>";
-        }).join(""):'<tr><td colspan="7" class="empty-state">No hay movimientos para los filtros seleccionados.</td></tr>';
+            return "<tr><td>"+date+"</td><td>"+kind+"</td><td>"+escapeHtml(x.category)+"</td><td>"+escapeHtml(x.concept)+"</td><td>"+(x.student_name?escapeHtml(x.student_name)+" · "+escapeHtml(x.student_code||""):"—")+"</td><td><strong>"+financeMoney(x.amount)+"</strong></td><td><span class='status-pill'>"+status+"</span></td><td>"+escapeHtml(source)+"</td></tr>";
+        }).join(""):'<tr><td colspan="8" class="empty-state">No hay movimientos para los filtros seleccionados.</td></tr>';
     }
     function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();renderFinanceMovements();}
     async function loadFinanceData(){
@@ -2502,7 +2502,7 @@
                 supabase.from("finance_vehicle_parts").select("replacement_date,total_cost"),
                 supabase.from("finance_payroll_records").select("payment_date,net_pay,status"),
                 supabase.from("finance_trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false}),
-                supabase.from("finance_movements").select("id,direction,movement_date,category,concept,amount,currency,status,source_table,source_id,employee_id,student_id").order("movement_date",{ascending:false})
+                supabase.from("finance_movements").select("id,direction,movement_date,category,concept,amount,currency,status,source_table,source_id,employee_id,student_id,student_name,student_code").order("movement_date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
             [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips,financeMovements]=results.map(r=>r.data||[]);
