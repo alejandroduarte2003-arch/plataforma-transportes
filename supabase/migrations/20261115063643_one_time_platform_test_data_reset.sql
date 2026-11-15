@@ -61,30 +61,31 @@ begin
         raise exception 'La limpieza inicial ya fue ejecutada.';
     end if;
 
-    truncate table
-        public.activity_logs,
-        public.boardings,
-        public.contract_passengers,
-        public.employee_compensation,
-        public.employee_loans,
-        public.employees,
-        public.financial_collections,
-        public.financial_expenses,
-        public.financial_movements,
-        public.financial_receivables,
-        public.fuel_entries,
-        public.maintenance_records,
-        public.payroll_records,
-        public.school_student_followups,
-        public.school_student_payments,
-        public.school_students,
-        public.transport_contracts,
-        public.transport_passengers,
-        public.trip_passenger_boardings,
-        public.trips,
-        public.vehicle_parts,
-        public.vehicles
-    restart identity cascade;
+    -- Eliminar únicamente registros operativos/de prueba.
+    -- No se usa TRUNCATE ni CASCADE: no se altera la estructura ni se borran
+    -- perfiles, usuarios, permisos, módulos o preferencias del sistema.
+    delete from public.activity_logs;
+    delete from public.boardings;
+    delete from public.trip_passenger_boardings;
+    delete from public.contract_passengers;
+    delete from public.financial_collections;
+    delete from public.financial_movements;
+    delete from public.financial_receivables;
+    delete from public.financial_expenses;
+    delete from public.employee_compensation;
+    delete from public.employee_loans;
+    delete from public.payroll_records;
+    delete from public.fuel_entries;
+    delete from public.maintenance_records;
+    delete from public.vehicle_parts;
+    delete from public.school_student_followups;
+    delete from public.school_student_payments;
+    delete from public.school_students;
+    delete from public.transport_contracts;
+    delete from public.transport_passengers;
+    delete from public.trips;
+    delete from public.employees;
+    delete from public.vehicles;
 
     update public.platform_reset_state
        set reset_completed = true,
@@ -92,10 +93,7 @@ begin
            completed_by = auth.uid()
      where id = true;
 
-    return jsonb_build_object(
-        'success', true,
-        'completed_at', now()
-    );
+    return jsonb_build_object('success', true, 'completed_at', now());
 end;
 $$;
 
