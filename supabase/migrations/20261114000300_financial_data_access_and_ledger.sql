@@ -147,8 +147,9 @@ where public.is_superadmin()
 
 create or replace view public.finance_movements
 with (security_barrier = true, security_invoker = false) as
-select m.*
+select m.*, s.full_name as student_name, s.student_code
 from public.financial_movements m
+left join public.school_students s on s.id = m.student_id
 where public.is_superadmin()
    or exists (
      select 1 from public.profiles p
