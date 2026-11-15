@@ -854,9 +854,15 @@
                     <div class="module-grid">
 
                         <div class="module-card">
-                            <h3>Operaciones</h3>
-                            <p>Administra vehículos, viajes y personas abordadas.</p>
-                            <button data-go="operaciones">Ingresar</button>
+                            <h3>Vehículos</h3>
+                            <p>Consulta y administra buses y microbuses.</p>
+                            <button data-go="vehiculos">Ingresar</button>
+                        </div>
+
+                        <div class="module-card">
+                            <h3>Viajes</h3>
+                            <p>Programa recorridos y consulta los servicios de transporte.</p>
+                            <button data-go="viajes">Ingresar</button>
                         </div>
 
                         <div class="module-card">
@@ -2018,7 +2024,7 @@
             refreshBoardingTripOptions();
             renderBoardings();
         } catch (error) {
-            showOperationError(error, "cargar los registros de Operaciones");
+            showOperationError(error, "cargar los registros de transporte");
         }
     }
 
@@ -2390,7 +2396,7 @@
     function calculateParts(){document.getElementById("partsCalculatedTotal").value=(Number(document.getElementById("partsQuantity").value||0)*Number(document.getElementById("partsUnitCost").value||0)).toFixed(2);}
     ["fuelLiters","fuelPrice"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
     ["partsQuantity","partsUnitCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateParts));
-    document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Operaciones."));
+    document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Vehículos."));
     document.getElementById("addMaintenanceButton").addEventListener("click",()=>vehicles.length?openMaintenanceModal():alert("Primero registra un vehículo en Operaciones."));
     document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Operaciones."));
     async function saveFleetRecord(formId,table,payload,id,action){
@@ -2695,11 +2701,11 @@
         }
 
         const alerts=[];
-        if(hasOperations){
+        if(hasTrips){
             trips.filter(t=>t.status==="Programado"&&t.date<today).forEach(t=>alerts.push({
                 title:"Viaje programado pendiente",
                 detail:t.origin+" → "+t.destination+" · "+(t.responsible||"Sin responsable"),
-                date:t.date,action:"operaciones",actionLabel:"Ver operaciones"
+                date:t.date,action:"viajes",actionLabel:"Ver viajes"
             }));
         }
         if(hasFleet){
