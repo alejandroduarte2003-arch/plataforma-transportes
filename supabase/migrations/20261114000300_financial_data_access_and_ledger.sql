@@ -37,6 +37,9 @@ grant usage on schema incorova_private to authenticated;
 revoke execute on all functions in schema incorova_private from public, anon, authenticated;
 grant execute on function incorova_private.has_finance_access() to authenticated;
 
+alter default privileges in schema incorova_private
+  revoke execute on functions from public, anon, authenticated;
+
 -- Finance views deliberately run with the view owner's privileges. Each view
 -- has its own explicit finance authorization predicate; do not remove it.
 create or replace view public.finance_trips
@@ -553,5 +556,9 @@ update public.employee_loans set updated_at = updated_at;
 update public.payroll_records set updated_at = updated_at;
 update public.financial_collections set created_at = created_at;
 update public.financial_expenses set updated_at = updated_at;
+
+-- Reassert function execution boundaries after all internal functions exist.
+revoke execute on all functions in schema incorova_private from public, anon, authenticated;
+grant execute on function incorova_private.has_finance_access() to authenticated;
 
 commit;
