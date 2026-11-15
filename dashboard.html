@@ -904,12 +904,6 @@
                         <button class="primary-button" type="button" data-open-trips>Administrar viajes</button>
                     </div>
 
-                    <div class="module-item vehicle-card" data-open-boardings>
-                        <h3>Abordajes</h3>
-                        <p>Registra pasajeros por viaje y consulta las personas asignadas a cada recorrido.</p>
-                        <button class="primary-button" type="button" data-open-boardings>Administrar abordajes</button>
-                    </div>
-
                 </div>
 
                 <div class="panel" style="margin-top:20px;">
@@ -1084,7 +1078,7 @@
             <!-- ABORDAJES -->
             <!-- ================================= -->
 
-            <section class="view" id="view-abordajes-legacy">
+            <section class="view" id="view-abordajes">
 
                 <div class="page-heading">
                     <h1>Abordajes</h1>
@@ -1110,7 +1104,7 @@
                 </div>
 
                 <div class="section-toolbar">
-                    <button class="secondary-button" type="button" id="backFromBoardings">Volver a Operaciones</button>
+                    <button class="secondary-button" type="button" id="backFromBoardings">Volver a Inicio</button>
                     <button class="primary-button" type="button" id="addBoardingButton">+ Registrar abordaje</button>
                 </div>
 
@@ -2059,7 +2053,7 @@
     });
 
     document.getElementById("backFromBoardings").addEventListener("click", () => {
-        openView("operaciones");
+        openView("inicio");
     });
 
     document.getElementById("addBoardingButton").addEventListener("click", openBoardingModal);
