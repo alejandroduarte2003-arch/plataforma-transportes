@@ -118,6 +118,7 @@ El monto máximo del bono es mensual y diferente para cada trabajador. El porcen
   - Permisos de edición escolar separados del permiso de acceso al módulo.
   - Cálculo de porcentaje KPI en base de datos.
   - RPC transaccional para registrar un pago escolar y generar el ingreso financiero relacionado al estudiante.
+  - Ejecución de los RPC escolares limitada a usuarios autenticados; acceso anónimo revocado explícitamente.
   - Clave idempotente para evitar duplicados incluso ante reintentos concurrentes.
   - Restricción de préstamos a un máximo de 12 cuotas.
   - Conversión histórica de litros a galones, precio por galón y cálculo de kilómetros recorridos por diferencia de odómetro.
@@ -197,3 +198,22 @@ Archivo: `supabase/migrations/20261114000400_auth_function_execution_hardening.s
 - Se revoca la ejecución anónima de `is_superadmin()` y se conserva únicamente para usuarios autenticados, porque las políticas RLS actuales dependen de esa comprobación.
 - Esta medida reduce la superficie de ejecución pública sin cambiar la lógica de autenticación.
 - La migración también está pendiente de aplicación en Supabase.
+
+
+## Resultados de pruebas SQL en transacción reversible
+
+Las cuatro migraciones se ejecutaron juntas en una transacción temporal contra el esquema real de Supabase. Se ejecutaron las pruebas y se hizo `ROLLBACK` al final. No se guardó ningún cambio en el proyecto activo.
+
+Pruebas que pasaron:
+
+- Las cuatro migraciones compilan y se ejecutan en el orden previsto sobre el esquema actual.
+- Cálculo de planilla: sueldo mensual / 2, KPI promedio, bono mensual / 2, deducción de préstamo y pago neto.
+- Un préstamo reduce saldo y cuota pagada una sola vez aunque se repita la actualización de la planilla pagada.
+- Pago escolar: registro y movimiento financiero creados una sola vez al reintentar con la misma clave.
+- Cuenta por cobrar: abono parcial, estado `Parcial` e idempotencia del cobro.
+- Usuario de Personal puede consultar campos operativos permitidos, pero no puede leer importes mediante columnas sensibles ni vistas financieras.
+- Se denegó acceso a 16 columnas monetarias sensibles en viajes, combustible, mantenimiento, repuestos, empleados, préstamos y planilla.
+- Permisos de ejecución: funciones de creación de usuario y RPC escolares no quedan ejecutables por `anon`; `is_superadmin()` queda disponible solo para `authenticated`, como requieren las políticas RLS.
+- Se verificó después del rollback que no quedaron creadas las tablas ni columnas de las migraciones y que el historial de migraciones Supabase no cambió.
+
+Estas pruebas validan ejecución SQL, cálculos y límites de privilegios dentro de una transacción reversible. No sustituyen pruebas en navegador ni recorridos E2E con sesiones reales.
