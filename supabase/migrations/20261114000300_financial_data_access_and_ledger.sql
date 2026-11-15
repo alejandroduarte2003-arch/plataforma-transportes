@@ -503,11 +503,15 @@ begin
     and (l.installments_total is null or l.installments_paid < l.installments_total);
 
   new.loan_deduction := round(v_loan_deduction, 2);
-  new.net_pay := greatest(0, round(
+  if coalesce(new.other_deductions, 0) + new.loan_deduction
+     > new.base_salary + new.bonuses then
+    raise exception 'Las deducciones no pueden superar el ingreso quincenal';
+  end if;
+  new.net_pay := round(
     new.base_salary + new.bonuses
     - coalesce(new.other_deductions, 0)
     - new.loan_deduction, 2
-  ));
+  );
 
   return new;
 end;
