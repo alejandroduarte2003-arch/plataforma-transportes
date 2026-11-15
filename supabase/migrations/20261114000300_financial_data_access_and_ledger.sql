@@ -415,6 +415,13 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  if tg_op = 'INSERT' and new.installments_total is null then
+    raise exception 'Indica el número de cuotas del préstamo';
+  elsif tg_op = 'UPDATE' and old.installments_total is not null
+        and new.installments_total is null then
+    raise exception 'El número de cuotas no puede quedar vacío';
+  end if;
+
   if new.installments_total is not null then
     if new.amount < new.installments_total * 0.01 then
       raise exception 'El monto no alcanza para cubrir al menos Q0.01 por cuota';
