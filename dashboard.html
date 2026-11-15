@@ -711,9 +711,14 @@
                 Inicio
             </button>
 
-            <button class="nav-button" data-view="operaciones">
+            <button class="nav-button" data-view="vehiculos">
                 <span class="nav-icon">▣</span>
-                Operaciones
+                Vehículos
+            </button>
+
+            <button class="nav-button" data-view="viajes">
+                <span class="nav-icon">↗</span>
+                Viajes
             </button>
 
             <button class="nav-button" data-view="personal">
@@ -883,41 +888,6 @@
             <!-- OPERACIONES -->
             <!-- ================================= -->
 
-            <section class="view" id="view-operaciones">
-
-                <div class="page-heading">
-                    <h1>Operaciones</h1>
-                    <p>Control y seguimiento de las actividades de transporte.</p>
-                </div>
-
-                <div class="module-items" id="operationsMenu">
-
-                    <div class="module-item vehicle-card" data-open-vehicles>
-                        <h3>Vehículos</h3>
-                        <p>Registra buses y microbuses, placas, características, estado y disponibilidad.</p>
-                        <button class="primary-button" type="button" data-open-vehicles>Administrar vehículos</button>
-                    </div>
-
-                    <div class="module-item vehicle-card" data-open-trips>
-                        <h3>Viajes</h3>
-                        <p>Control de recorridos, fechas, responsables, contratos e ingresos por viaje.</p>
-                        <button class="primary-button" type="button" data-open-trips>Administrar viajes</button>
-                    </div>
-
-                </div>
-
-                <div class="panel" style="margin-top:20px;">
-                    <div class="panel-heading">
-                        <h3>Registro de operaciones</h3>
-                        <span>Información de viajes</span>
-                    </div>
-                    <div class="empty-state">
-                        No hay operaciones registradas todavía.
-                    </div>
-                </div>
-
-            </section>
-
             <section class="view" id="view-vehiculos">
 
                 <div class="page-heading">
@@ -949,7 +919,7 @@
                 </div>
 
                 <div class="section-toolbar">
-                    <button class="secondary-button" type="button" id="backToOperations">Volver a Operaciones</button>
+                    <button class="secondary-button" type="button" id="backToOperations">Volver a Inicio</button>
                     <button class="primary-button" type="button" id="addVehicleButton">+ Registrar vehículo</button>
                 </div>
 
@@ -1028,7 +998,7 @@
                 </div>
 
                 <div class="section-toolbar">
-                    <button class="secondary-button" type="button" id="backFromTrips">Volver a Operaciones</button>
+                    <button class="secondary-button" type="button" id="backFromTrips">Volver a Inicio</button>
                     <button class="primary-button" type="button" id="addTripButton">+ Registrar viaje</button>
                 </div>
 
@@ -1347,7 +1317,8 @@
 
     const moduleNames = {
         inicio: "Inicio",
-        operaciones: "Operaciones",
+        vehiculos: "Vehículos",
+        viajes: "Viajes",
         personal: "Personal",
         flota: "Flota y gastos",
         finanzas: "Finanzas",
@@ -1448,7 +1419,7 @@
             accessReady = true;
             openView("inicio");
 
-            if (allowedModules.has("operaciones")) {
+            if (["vehiculos", "viajes", "abordajes"].some(module => allowedModules.has(module))) {
                 await loadOperationalData();
             }
             if (allowedModules.has("personal")) {
@@ -1504,8 +1475,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
-        if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
+        if (!accessReady || !allowedModules.has(viewName)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
         }
@@ -1657,7 +1627,7 @@
     });
 
     document.getElementById("backFromTrips").addEventListener("click", () => {
-        openView("operaciones");
+        openView("inicio");
     });
 
     document.getElementById("addTripButton").addEventListener("click", openTripModal);
@@ -1809,7 +1779,7 @@
     });
 
     document.getElementById("backToOperations").addEventListener("click", () => {
-        openView("operaciones");
+        openView("inicio");
     });
 
     document.getElementById("addVehicleButton").addEventListener("click", openVehicleModal);
@@ -1992,10 +1962,14 @@
 
     async function loadOperationalData() {
         try {
+            const canLoadVehicles = ["vehiculos", "viajes", "abordajes"].some(module => allowedModules.has(module));
+            const canLoadTrips = ["viajes", "abordajes"].some(module => allowedModules.has(module));
+            const canLoadBoardings = allowedModules.has("abordajes");
+            const emptyResult = { data: [], error: null };
             const [vehicleResult, tripResult, boardingResult] = await Promise.all([
-                supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
-                supabase.from("trips").select("id,date,vehicle_id,origin,destination,responsible,service_type,status,notes,created_by,created_at,updated_at").order("date", { ascending: false }),
-                supabase.from("boardings").select("*").order("date", { ascending: false })
+                canLoadVehicles ? supabase.from("vehicles").select("*").order("created_at", { ascending: false }) : Promise.resolve(emptyResult),
+                canLoadTrips ? supabase.from("trips").select("id,date,vehicle_id,origin,destination,responsible,service_type,status,notes,created_by,created_at,updated_at").order("date", { ascending: false }) : Promise.resolve(emptyResult),
+                canLoadBoardings ? supabase.from("boardings").select("*").order("date", { ascending: false }) : Promise.resolve(emptyResult)
             ]);
 
             if (vehicleResult.error) throw vehicleResult.error;
@@ -2692,21 +2666,22 @@
         document.getElementById("homeGreeting").textContent=greeting?"Bienvenido, "+greeting:"Bienvenido a INCOROVA";
         document.getElementById("homeDate").textContent=new Intl.DateTimeFormat("es-GT",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
 
-        const hasOperations=allowedModules.has("operaciones");
+        const hasVehicles=allowedModules.has("vehiculos");
+        const hasTrips=allowedModules.has("viajes");
         const hasFleet=allowedModules.has("flota");
         const hasPersonal=allowedModules.has("personal");
         const hasFinance=allowedModules.has("finanzas");
-        document.getElementById("homeVehicleCard").hidden=!(hasOperations||hasFleet);
-        document.getElementById("homeTripCard").hidden=!hasOperations;
+        document.getElementById("homeVehicleCard").hidden=!(hasVehicles||hasFleet);
+        document.getElementById("homeTripCard").hidden=!hasTrips;
         document.getElementById("homeEmployeeCard").hidden=!hasPersonal;
         document.getElementById("homeIncomeCard").hidden=!hasFinance;
 
-        if(hasOperations||hasFleet){
+        if(hasVehicles||hasFleet){
             const activeVehicles=vehicles.filter(v=>v.status!=="Inactivo").length;
             document.getElementById("homeVehicleTotal").textContent=vehicles.length;
             document.getElementById("homeVehicleCaption").textContent=activeVehicles+" habilitados · "+vehicles.filter(v=>v.status==="Mantenimiento").length+" en mantenimiento";
         }
-        if(hasOperations){
+        if(hasTrips){
             const monthlyTrips=trips.filter(t=>String(t.date||"").startsWith(month));
             document.getElementById("homeTripTotal").textContent=monthlyTrips.length;
             document.getElementById("homeTripCaption").textContent=trips.filter(t=>t.status==="Programado").length+" programados · "+trips.filter(t=>t.status==="En curso").length+" en curso";
