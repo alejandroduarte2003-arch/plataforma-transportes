@@ -233,7 +233,7 @@ async function initSchool() {
   $("extStudentForm").addEventListener("submit", async e=>{
     e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());p.created_by=userId;
     const q=editingStudentId?supabase.from("school_students").update(p).eq("id",editingStudentId):supabase.from("school_students").insert(p);const {error}=await q;if(error)return fail("guardar el expediente",error);
-    editingStudentId=null;e.currentTarget.reset();await loadSchoolData();
+    editingStudentId=null;e.currentTarget.reset();e.currentTarget.querySelector('button[type="submit"]').textContent="Guardar expediente";await loadSchoolData();
   });
   $("extFollowupForm").addEventListener("submit", async e=>{
     e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());p.created_by=userId;
