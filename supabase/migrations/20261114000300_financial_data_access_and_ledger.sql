@@ -417,6 +417,9 @@ set search_path = ''
 as $
 begin
   if new.installments_total is not null then
+    if new.amount < new.installments_total * 0.01 then
+      raise exception 'El monto no alcanza para cubrir al menos Q0.01 por cuota';
+    end if;
     new.installment_amount := round(new.amount / new.installments_total, 2);
   end if;
   return new;
