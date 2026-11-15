@@ -2372,7 +2372,7 @@
     // FINANZAS
     // =====================================
     let financialReceivables=[], financialCollections=[], financialExpenses=[];
-    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[];
+    let financeFuel=[], financeMaintenance=[], financeParts=[], financePayroll=[], financeTrips=[], financeMovements=[];
     let editingReceivableId=null, editingExpenseId=null;
     const financeToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
     const financeMoney=value=>formatQuetzales(Number(value||0));
@@ -2406,32 +2406,30 @@
     }
     function financeInPeriod(date,period){return !period||String(date||"").startsWith(period);}
     function renderFinanceSummary(){
-        const income=financialCollections.reduce((s,x)=>s+Number(x.amount||0),0);
-        const fleet=financeFuel.reduce((s,x)=>s+Number(x.total_cost||0),0)+financeMaintenance.filter(x=>x.status==="Completado").reduce((s,x)=>s+Number(x.cost||0),0)+financeParts.reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const payroll=financePayroll.filter(x=>x.status==="Pagada").reduce((s,x)=>s+Number(x.net_pay||0),0);
-        const other=financialExpenses.filter(x=>x.status==="Pagado").reduce((s,x)=>s+Number(x.amount||0),0);
+        const registered=financeMovements.filter(x=>x.status==="registrado");
+        const income=registered.filter(x=>x.direction==="ingreso").reduce((s,x)=>s+Number(x.amount||0),0);
+        const expenses=registered.filter(x=>x.direction==="egreso").reduce((s,x)=>s+Number(x.amount||0),0);
         const outstanding=financialReceivables.filter(x=>x.status!=="Cancelada").reduce((s,x)=>s+receivableBalance(x),0);
-        const totalExpenses=fleet+payroll+other;
         document.getElementById("finIncome").textContent=financeMoney(income);
-        document.getElementById("finExpenses").textContent=financeMoney(totalExpenses);
-        document.getElementById("finBalance").textContent=financeMoney(income-totalExpenses);
+        document.getElementById("finExpenses").textContent=financeMoney(expenses);
+        document.getElementById("finBalance").textContent=financeMoney(income-expenses);
         document.getElementById("finReceivable").textContent=financeMoney(outstanding);
     }
     function renderFinanceReport(){
         const period=document.getElementById("financePeriodFilter").value;
-        const income=financialCollections.filter(x=>financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
-        const fuel=financeFuel.filter(x=>financeInPeriod(x.entry_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const maintenance=financeMaintenance.filter(x=>x.status==="Completado"&&financeInPeriod(x.service_date,period)).reduce((s,x)=>s+Number(x.cost||0),0);
-        const parts=financeParts.filter(x=>financeInPeriod(x.replacement_date,period)).reduce((s,x)=>s+Number(x.total_cost||0),0);
-        const payroll=financePayroll.filter(x=>x.status==="Pagada"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.net_pay||0),0);
-        const other=financialExpenses.filter(x=>x.status==="Pagado"&&financeInPeriod(x.payment_date,period)).reduce((s,x)=>s+Number(x.amount||0),0);
-        const expenseTotal=fuel+maintenance+parts+payroll+other;
+        const rows=financeMovements.filter(x=>x.status==="registrado"&&financeInPeriod(x.movement_date,period));
+        const income=rows.filter(x=>x.direction==="ingreso").reduce((s,x)=>s+Number(x.amount||0),0);
+        const expenses=rows.filter(x=>x.direction==="egreso");
+        const totalExpenses=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+        const byCategory=category=>expenses.filter(x=>x.category===category).reduce((s,x)=>s+Number(x.amount||0),0);
+        const fuel=byCategory("Combustible"),maintenance=byCategory("Mantenimiento"),parts=byCategory("Repuestos"),payroll=byCategory("Planilla");
+        const other=expenses.filter(x=>!["Combustible","Mantenimiento","Repuestos","Planilla"].includes(x.category)).reduce((s,x)=>s+Number(x.amount||0),0);
         document.getElementById("reportFuel").textContent=financeMoney(fuel);
         document.getElementById("reportMaintenance").textContent=financeMoney(maintenance);
         document.getElementById("reportParts").textContent=financeMoney(parts);
         document.getElementById("reportPayroll").textContent=financeMoney(payroll);
         document.getElementById("financeReportBody").innerHTML=[
-            ["Ingresos cobrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla pagada",payroll],["Otros gastos pagados",other],["Total de egresos",expenseTotal],["Resultado del período",income-expenseTotal]
+            ["Ingresos registrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla",payroll],["Otros egresos",other],["Total de egresos",totalExpenses],["Resultado del período",income-totalExpenses]
         ].map(([name,value])=>'<tr><td>'+name+'</td><td><strong>'+financeMoney(value)+'</strong></td></tr>').join("");
     }
     function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
@@ -2445,10 +2443,11 @@
                 supabase.from("finance_maintenance_records").select("service_date,cost,status"),
                 supabase.from("finance_vehicle_parts").select("replacement_date,total_cost"),
                 supabase.from("finance_payroll_records").select("payment_date,net_pay,status"),
-                supabase.from("finance_trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false})
+                supabase.from("finance_trips").select("id,date,origin,destination,service_type,income,status,responsible").neq("status","Cancelado").order("date",{ascending:false}),
+                supabase.from("finance_movements").select("id,direction,movement_date,category,concept,amount,currency,status,source_table,source_id,employee_id,student_id").order("movement_date",{ascending:false})
             ]);
             for(const r of results)if(r.error)throw r.error;
-            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips]=results.map(r=>r.data||[]);
+            [financialReceivables,financialCollections,financialExpenses,financeFuel,financeMaintenance,financeParts,financePayroll,financeTrips,financeMovements]=results.map(r=>r.data||[]);
             renderFinance();
         }catch(error){showOperationError(error,"cargar la información financiera");}
     }
