@@ -528,6 +528,7 @@ async function initFinance() {
       await loadFinanceDataExt();
       renderPayrollPreview();
       notify("Planilla guardada. Neto a pagar: "+money(saved.net_pay)+".");
+      window.dispatchEvent(new CustomEvent("transport-payroll-saved",{detail:{employeeId:p.employee_id}}));
     }finally{button.disabled=false;button.textContent="Guardar planilla quincenal";}
   });
   $("extLoansTable").addEventListener("click",async e=>{
