@@ -249,10 +249,12 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not (public.is_superadmin() or private.has_finance_access())
-     and new.base_salary is distinct from
-       case when tg_op = 'INSERT' then 0::numeric else old.base_salary end then
-    raise exception 'Solo Finanzas puede modificar el sueldo base';
+  if not (public.is_superadmin() or private.has_finance_access()) then
+    if tg_op = 'INSERT' and new.base_salary <> 0 then
+      raise exception 'Solo Finanzas puede asignar el sueldo base';
+    elsif tg_op = 'UPDATE' and old.base_salary is distinct from new.base_salary then
+      raise exception 'Solo Finanzas puede modificar el sueldo base';
+    end if;
   end if;
   return new;
 end;
@@ -417,7 +419,9 @@ begin
       v_direction := 'egreso';
       v_category := 'Mantenimiento';
       v_concept := coalesce(nullif(v_row ->> 'maintenance_type', ''), 'Mantenimiento');
-      if lower(coalesce(v_row ->> 'status', '')) not in ('completado', 'pagado') then
+      if lower(coalesce(v_row ->> 'status', '')) = 'cancelado' then
+        v_status := 'anulado';
+      elsif lower(coalesce(v_row ->> 'status', '')) not in ('completado', 'pagado') then
         v_status := 'pendiente';
       end if;
     when 'vehicle_parts' then
@@ -433,6 +437,9 @@ begin
       v_category := 'Préstamo a trabajador';
       v_concept := coalesce(nullif(v_row ->> 'reason', ''), 'Préstamo a trabajador');
       v_employee_id := nullif(v_row ->> 'employee_id', '')::uuid;
+      if lower(coalesce(v_row ->> 'status', '')) = 'cancelado' then
+        v_status := 'anulado';
+      end if;
     when 'payroll_records' then
       v_amount := coalesce(nullif(v_row ->> 'net_pay', '')::numeric, 0);
       v_date := coalesce(nullif(v_row ->> 'payment_date', '')::date,
@@ -457,7 +464,9 @@ begin
       v_direction := 'egreso';
       v_category := coalesce(nullif(v_row ->> 'category', ''), 'Otros gastos');
       v_concept := coalesce(nullif(v_row ->> 'concept', ''), 'Gasto');
-      if lower(coalesce(v_row ->> 'status', '')) not in ('pagado', 'paid') then
+      if lower(coalesce(v_row ->> 'status', '')) = 'cancelado' then
+        v_status := 'anulado';
+      elsif lower(coalesce(v_row ->> 'status', '')) not in ('pagado', 'paid') then
         v_status := 'pendiente';
       end if;
     else
