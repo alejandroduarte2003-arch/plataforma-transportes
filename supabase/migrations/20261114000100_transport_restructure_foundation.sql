@@ -413,4 +413,28 @@ create policy trips_update_superadmin_only
   using (public.is_superadmin())
   with check (public.is_superadmin());
 
+-- Explicit Data API grants for new public tables (RLS remains the row-level boundary).
+-- Supabase no longer exposes newly-created public tables by default.
+grant select, insert, update, delete on public.employee_compensation,
+  public.financial_movements,
+  public.transport_contracts,
+  public.transport_passengers,
+  public.contract_passengers,
+  public.trip_passenger_boardings,
+  public.school_students,
+  public.school_student_followups,
+  public.school_student_payments
+to authenticated;
+
+revoke all on public.employee_compensation,
+  public.financial_movements,
+  public.transport_contracts,
+  public.transport_passengers,
+  public.contract_passengers,
+  public.trip_passenger_boardings,
+  public.school_students,
+  public.school_student_followups,
+  public.school_student_payments
+from anon;
+
 commit;
