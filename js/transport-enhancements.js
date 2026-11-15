@@ -6,7 +6,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 let userId = null, isAdmin = false, allowed = new Set();
 let contracts = [], passengers = [], assignments = [], trips = [], tripBoardings = [];
-let students = [], schoolCaps = {}, editingStudentId = null;
+let students = [], schoolFollowups = [], schoolCaps = {}, editingStudentId = null, selectedSchoolStudentId = null;
 let employees = [], compensation = [], loans = [], payroll = [];
 let fuel = [], vehicles = [], editingFuelId = null, editingTripId = null, renderingFuel = false;
 
@@ -14,7 +14,7 @@ function notify(message) { alert(message); }
 function fail(action, error) { console.error(action, error); notify("No se pudo " + action + ": " + (error?.message || "Intenta nuevamente.")); }
 function addStyle() {
   const style = document.createElement("style");
-  style.textContent = ".ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.ext-card{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:18px;min-width:0}.ext-card h3{font-size:14px;margin-bottom:12px}.ext-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ext-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:600}.ext-form input,.ext-form select,.ext-form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:6px;font:inherit;font-size:12px;background:#fff;color:#111827}.ext-form .full{grid-column:1/-1}.ext-form button,.ext-action{background:#172554;color:#fff;border:0;border-radius:6px;padding:10px 13px;font-size:11px;font-weight:600;cursor:pointer}.ext-action.light{background:#fff;color:#172554;border:1px solid #e5e7eb}.ext-table{overflow:auto;margin-top:12px}.ext-table table{width:100%;border-collapse:collapse;min-width:600px}.ext-table th,.ext-table td{padding:11px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:11px}.ext-table th{background:#f9fafb;color:#6b7280}.ext-actions{display:flex;gap:6px;flex-wrap:wrap}.ext-note{font-size:11px;color:#6b7280;line-height:1.6;margin-top:8px}.ext-heading{margin:4px 0 16px}.ext-heading h1{font-size:23px;margin-bottom:6px}.ext-heading p{font-size:12px;color:#6b7280}.ext-hidden{display:none!important}@media(max-width:760px){.ext-grid{grid-template-columns:1fr}.ext-form{grid-template-columns:1fr}.ext-form .full{grid-column:auto}}";
+  style.textContent = ".ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.ext-card{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:18px;min-width:0}.ext-card h3{font-size:14px;margin-bottom:12px}.ext-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ext-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:600}.ext-form input,.ext-form select,.ext-form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:6px;font:inherit;font-size:12px;background:#fff;color:#111827}.ext-form .full{grid-column:1/-1}.ext-form button,.ext-action{background:#172554;color:#fff;border:0;border-radius:6px;padding:10px 13px;font-size:11px;font-weight:600;cursor:pointer}.ext-action.light{background:#fff;color:#172554;border:1px solid #e5e7eb}.ext-table{overflow:auto;margin-top:12px}.ext-table table{width:100%;border-collapse:collapse;min-width:600px}.ext-table th,.ext-table td{padding:11px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:11px}.ext-table th{background:#f9fafb;color:#6b7280}.ext-actions{display:flex;gap:6px;flex-wrap:wrap}.ext-note{font-size:11px;color:#6b7280;line-height:1.6;margin-top:8px}.ext-school-accordions{display:grid;gap:10px;margin:18px 0}.ext-school-accordion{background:#fff;border:1px solid #dce2e9;border-radius:9px;overflow:hidden}.ext-school-accordion summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:#172554}.ext-school-accordion summary::-webkit-details-marker{display:none}.ext-school-accordion summary:after{content:'+';font-size:20px;font-weight:400;color:#64748b}.ext-school-accordion[open] summary{border-bottom:1px solid #e5e7eb}.ext-school-accordion[open] summary:after{content:'−'}.ext-school-accordion summary small{font-size:11px;font-weight:400;color:#6b7280;margin-left:auto}.ext-school-accordion-body{padding:18px}.ext-student-followups{margin-top:18px;padding:18px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}.ext-student-followups h3{font-size:14px;margin-bottom:12px}.ext-followup-item{padding:12px 0;border-bottom:1px solid #edf0f4}.ext-followup-item:last-child{border-bottom:0}.ext-followup-item strong{font-size:12px}.ext-followup-item p{font-size:12px;color:#475569;margin-top:5px;white-space:pre-wrap}.ext-heading{margin:4px 0 16px}.ext-heading h1{font-size:23px;margin-bottom:6px}.ext-heading p{font-size:12px;color:#6b7280}.ext-hidden{display:none!important}@media(max-width:760px){.ext-grid{grid-template-columns:1fr}.ext-form{grid-template-columns:1fr}.ext-form .full{grid-column:auto}}";
   document.head.appendChild(style);
 }
 function makePage(id, title, subtitle) {
@@ -198,114 +198,158 @@ async function loadBoardingsData() {
 // ---------------- TRANSPORTE ESCOLARES ----------------
 async function initSchool() {
   $("ext-escolares").innerHTML =
-    '<div class="ext-grid">' +
-      '<div class="ext-card"><h3>Nuevo expediente</h3><form id="extStudentForm" class="ext-form">' +
-        '<label class="full">Nombre completo<input name="full_name" required maxlength="160"></label>' +
-        '<label>Teléfono encargado<input name="guardian_phone" maxlength="40"></label><label>Relación<input name="guardian_relationship" maxlength="80"></label>' +
-        '<label>Centro educativo<input name="school_name" maxlength="160"></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option></select></label>' +
+    '<div class="ext-school-accordions">' +
+      '<details class="ext-school-accordion"><summary>Nuevo alumno<small>Información del estudiante y su encargado</small></summary><div class="ext-school-accordion-body"><form id="extStudentForm" class="ext-form">' +
+        '<label class="full">Nombre completo del alumno<input name="full_name" required maxlength="160"></label>' +
+        '<label>Nombre del encargado<input name="guardian_name" required maxlength="160"></label><label>Teléfono del encargado<input name="guardian_phone" maxlength="40"></label>' +
+        '<label>Parentesco<input name="guardian_relationship" maxlength="80"></label><label>Centro educativo<input name="school_name" maxlength="160"></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option></select></label>' +
         '<label class="full">Dirección mañana<input name="address_am" maxlength="250"></label><label class="full">Dirección tarde<input name="address_pm" maxlength="250"></label>' +
-        '<button class="full" type="submit">Guardar expediente</button></form></div>' +
-      '<div class="ext-card"><h3>Nuevo seguimiento</h3><form id="extFollowupForm" class="ext-form">' +
+        '<button class="full" type="submit">Guardar alumno</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Nuevo seguimiento<small>Registrar una nota para un alumno</small></summary><div class="ext-school-accordion-body"><form id="extFollowupForm" class="ext-form">' +
         '<label class="full">Alumno<select name="student_id" id="extFollowupStudent" required></select></label>' +
         '<label class="full">Asunto<input name="subject" required maxlength="160"></label><label class="full">Detalle<textarea name="detail" required></textarea></label>' +
-        '<button class="full" type="submit">Guardar seguimiento</button></form>' +
-        '<div id="extSchoolPaymentBox"></div></div>' +
-    '</div><div class="ext-card"><h3>Expedientes de estudiantes</h3><div id="extStudentsTable" class="ext-table"></div></div>' +
-    '<div class="ext-card"><h3>Seguimientos</h3><div id="extFollowupsTable" class="ext-table"></div></div>' +
+        '<button class="full" type="submit">Guardar seguimiento</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Registrar pago<small>Registrar un pago escolar</small></summary><div class="ext-school-accordion-body"><div id="extSchoolPaymentBox"></div></div></details>' +
+    '</div>' +
+    '<div class="ext-card"><h3>Alumnos registrados</h3><div id="extStudentsTable" class="ext-table"></div><div id="extStudentFollowupsPanel" class="ext-student-followups"><p class="ext-note">Selecciona “Seguimientos” en un alumno para consultar su historial individual.</p></div></div>' +
     '<div class="ext-card" id="extSchoolPaymentsHistory"></div>';
+
   const { data: caps, error: ce } = await supabase.from("school_user_permissions").select("can_edit_students,can_edit_followups,can_register_payments").eq("user_id",userId).maybeSingle();
   if (ce) throw ce;
-  schoolCaps=caps||{};
-  if (isAdmin) schoolCaps={can_edit_students:true,can_edit_followups:true,can_register_payments:true};
-  if (!schoolCaps.can_edit_students) $("extStudentForm").classList.add("ext-hidden");
-  if (!schoolCaps.can_edit_followups) $("extFollowupForm").classList.add("ext-hidden");
+  schoolCaps = caps || {};
+  if (isAdmin) schoolCaps = {can_edit_students:true,can_edit_followups:true,can_register_payments:true};
+  if (!schoolCaps.can_edit_students) $("extStudentForm").closest("details").classList.add("ext-hidden");
+  if (!schoolCaps.can_edit_followups) $("extFollowupForm").closest("details").classList.add("ext-hidden");
+
   if (schoolCaps.can_register_payments || allowed.has("finanzas")) {
-    $("extSchoolPaymentBox").innerHTML='<h3 style="margin-top:16px">Registrar pago</h3><form id="extSchoolPaymentForm" class="ext-form"><label class="full">Alumno<select name="student_id" id="extPaymentStudent" required></select></label><label class="full">Monto (Q)<input name="amount" type="number" min=".01" step=".01" required></label><label class="full">Referencia<input name="reference" maxlength="160"></label><button class="full" type="submit">Registrar pago</button></form>';
-    $("extSchoolPaymentForm").addEventListener("submit", async e=>{
-      e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+    $("extSchoolPaymentBox").innerHTML = '<form id="extSchoolPaymentForm" class="ext-form"><label class="full">Alumno<select name="student_id" id="extPaymentStudent" required></select></label><label class="full">Monto (Q)<input name="amount" type="number" min=".01" step=".01" required></label><label class="full">Referencia<input name="reference" maxlength="160"></label><button class="full" type="submit">Registrar pago</button></form>';
+    $("extSchoolPaymentForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      const d=Object.fromEntries(new FormData(e.currentTarget).entries());
       const p={student_id:d.student_id,amount:Number(d.amount),reference:d.reference||"",paid_at:new Date().toISOString(),payment_status:"Realizado",enrollment_status:"Vigente",created_by:userId,request_key:crypto.randomUUID()};
       const {error}=await supabase.from("school_student_payments").insert(p);
       if(error)return fail("registrar el pago del alumno",error);
       e.currentTarget.reset();notify("Pago registrado. El detalle económico se consulta desde Finanzas.");
       if(allowed.has("finanzas")) await loadSchoolPayments();
     });
-  } else $("extSchoolPaymentBox").innerHTML='<p class="ext-note">No tienes permiso para registrar pagos.</p>';
-  $("extStudentForm").addEventListener("submit", async e=>{
+  } else {
+    $("extSchoolPaymentBox").innerHTML = '<p class="ext-note">No tienes permiso para registrar pagos.</p>';
+    $("extSchoolPaymentBox").closest("details").classList.add("ext-hidden");
+  }
+
+  $("extStudentForm").addEventListener("submit",async e=>{
     e.preventDefault();
-    const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
+    const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
     if(button.disabled)return;
     button.disabled=true;button.textContent="Guardando...";
     try{
       const p=Object.fromEntries(new FormData(form).entries());p.created_by=userId;
-      const q=editingStudentId
-        ? supabase.from("school_students").update(p).eq("id",editingStudentId)
-        : supabase.from("school_students").insert(p);
+      const q=editingStudentId ? supabase.from("school_students").update(p).eq("id",editingStudentId) : supabase.from("school_students").insert(p);
       const {error}=await q;
       if(error)throw error;
       editingStudentId=null;form.reset();button.textContent="Actualizando lista...";
       await loadSchoolData();
-      button.textContent="Guardar expediente";
-      notify("Expediente guardado correctamente.");
-    }catch(error){fail("guardar el expediente",error);button.textContent=editingStudentId?"Actualizar expediente":"Guardar expediente";}
+      button.textContent="Guardar alumno";
+      form.closest("details").open=false;
+      notify("Alumno guardado correctamente.");
+    }catch(error){fail("guardar el alumno",error);button.textContent=editingStudentId?"Actualizar alumno":"Guardar alumno";}
     finally{button.disabled=false;}
   });
-  $("extFollowupForm").addEventListener("submit", async e=>{
+
+  $("extFollowupForm").addEventListener("submit",async e=>{
     e.preventDefault();
-    const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
+    const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
     if(button.disabled)return;
     button.disabled=true;button.textContent="Guardando...";
     try{
       const p=Object.fromEntries(new FormData(form).entries());p.created_by=userId;
       const {error}=await supabase.from("school_student_followups").insert(p);
       if(error)throw error;
+      selectedSchoolStudentId=p.student_id;
       form.reset();await loadSchoolData();
+      $("extFollowupStudent").value=selectedSchoolStudentId;
       notify("Seguimiento guardado correctamente.");
     }catch(error){fail("guardar el seguimiento",error);}
     finally{button.disabled=false;button.textContent="Guardar seguimiento";}
   });
+
   $("extStudentsTable").addEventListener("click",async e=>{
-    const edit=e.target.closest("[data-edit-student]"),b=e.target.closest("[data-del-student]");
+    const edit=e.target.closest("[data-edit-student]");
+    const follow=e.target.closest("[data-student-followups]");
+    const del=e.target.closest("[data-del-student]");
+    if(follow){
+      selectedSchoolStudentId=follow.dataset.studentFollowups;
+      $("extFollowupStudent").value=selectedSchoolStudentId;
+      renderSchoolStudentFollowups();
+      $("extStudentFollowupsPanel").scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
     if(edit){
       const x=students.find(s=>s.id===edit.dataset.editStudent);if(!x)return;
-      editingStudentId=x.id;const form=$("extStudentForm");
-      Object.entries({full_name:x.full_name,guardian_phone:x.guardian_phone,guardian_relationship:x.guardian_relationship,school_name:x.school_name,status:x.status,address_am:x.address_am,address_pm:x.address_pm}).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||"";});
-      form.querySelector("button[type=submit]").textContent="Actualizar expediente";form.scrollIntoView({behavior:"smooth",block:"center"});return;
+      editingStudentId=x.id;
+      const form=$("extStudentForm");
+      Object.entries({full_name:x.full_name,guardian_name:x.guardian_name,guardian_phone:x.guardian_phone,guardian_relationship:x.guardian_relationship,school_name:x.school_name,status:x.status,address_am:x.address_am,address_pm:x.address_pm}).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v||"";});
+      form.querySelector("button[type=submit]").textContent="Actualizar alumno";
+      form.closest("details").open=true;
+      form.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
     }
-    if(!b)return;
-    if(!confirm("¿Eliminar este expediente?"))return;
-    const {error}=await supabase.from("school_students").delete().eq("id",b.dataset.delStudent);
-    if(error)return fail("eliminar el expediente",error);await loadSchoolData();
+    if(!del)return;
+    if(!confirm("¿Eliminar este alumno?"))return;
+    const {error}=await supabase.from("school_students").delete().eq("id",del.dataset.delStudent);
+    if(error)return fail("eliminar el alumno",error);
+    if(selectedSchoolStudentId===del.dataset.delStudent)selectedSchoolStudentId=null;
+    await loadSchoolData();
   });
-  $("extFollowupsTable").addEventListener("click",async e=>{
-    const edit=e.target.closest("[data-edit-followup]"),b=e.target.closest("[data-del-followup]");
+
+  $("extStudentFollowupsPanel").addEventListener("click",async e=>{
+    const edit=e.target.closest("[data-edit-followup]");
+    const del=e.target.closest("[data-del-followup]");
     if(edit){
       const {data,error}=await supabase.from("school_student_followups").select("*").eq("id",edit.dataset.editFollowup).single();
       if(error)return fail("consultar el seguimiento",error);
       const subject=prompt("Asunto del seguimiento",data.subject);if(subject===null)return;
       const detail=prompt("Detalle del seguimiento",data.detail);if(detail===null)return;
       const {error:saveError}=await supabase.from("school_student_followups").update({subject,detail}).eq("id",data.id);
-      if(saveError)return fail("actualizar el seguimiento",saveError);await loadSchoolData();return;
+      if(saveError)return fail("actualizar el seguimiento",saveError);
+      await loadSchoolData();return;
     }
-    if(!b)return;
+    if(!del)return;
     if(!confirm("¿Eliminar este seguimiento?"))return;
-    const {error}=await supabase.from("school_student_followups").delete().eq("id",b.dataset.delFollowup);
-    if(error)return fail("eliminar el seguimiento",error);await loadSchoolData();
+    const {error}=await supabase.from("school_student_followups").delete().eq("id",del.dataset.delFollowup);
+    if(error)return fail("eliminar el seguimiento",error);
+    await loadSchoolData();
   });
+
   await loadSchoolData();
   if (allowed.has("finanzas")) await loadSchoolPayments();
 }
+
 async function loadSchoolData() {
   const [sr,fr]=await Promise.all([
     supabase.from("school_students").select("*").order("student_code",{ascending:false}),
     supabase.from("school_student_followups").select("*").order("followup_date",{ascending:false})
   ]);
   if(sr.error)throw sr.error;if(fr.error)throw fr.error;
-  students=sr.data||[];const followups=fr.data||[];
+  students=sr.data||[];
+  schoolFollowups=fr.data||[];
   const options='<option value="">Seleccionar alumno</option>'+students.map(s=>'<option value="'+s.id+'">'+esc(s.student_code)+' · '+esc(s.full_name)+'</option>').join("");
   $("extFollowupStudent").innerHTML=options;
   if($("extPaymentStudent"))$("extPaymentStudent").innerHTML=options;
-  $("extStudentsTable").innerHTML='<table><thead><tr><th>ID</th><th>Alumno</th><th>Centro educativo</th><th>Encargado</th><th>Estado</th><th></th></tr></thead><tbody>'+students.map(s=>'<tr><td>'+esc(s.student_code)+'</td><td>'+esc(s.full_name)+'</td><td>'+esc(s.school_name)+'</td><td>'+esc(s.guardian_phone)+'</td><td>'+esc(s.status)+'</td><td>'+(schoolCaps.can_edit_students||isAdmin?'<div class="ext-actions"><button class="ext-action light" data-edit-student="'+s.id+'">Editar</button><button class="ext-action light" data-del-student="'+s.id+'">Eliminar</button></div>':"")+'</td></tr>').join("")+'</tbody></table>';
-  $("extFollowupsTable").innerHTML='<table><thead><tr><th>Fecha</th><th>Alumno</th><th>Asunto</th><th>Detalle</th><th></th></tr></thead><tbody>'+followups.map(f=>'<tr><td>'+esc(new Date(f.followup_date).toLocaleDateString("es-GT"))+'</td><td>'+esc(students.find(s=>s.id===f.student_id)?.full_name||"—")+'</td><td>'+esc(f.subject)+'</td><td>'+esc(f.detail)+'</td><td>'+(schoolCaps.can_edit_followups||isAdmin?'<div class="ext-actions"><button class="ext-action light" data-edit-followup="'+f.id+'">Editar</button><button class="ext-action light" data-del-followup="'+f.id+'">Eliminar</button></div>':"")+'</td></tr>').join("")+'</tbody></table>';
+  $("extStudentsTable").innerHTML='<table><thead><tr><th>ID</th><th>Alumno</th><th>Centro educativo</th><th>Encargado</th><th>Estado</th><th></th></tr></thead><tbody>'+students.map(s=>'<tr><td>'+esc(s.student_code)+'</td><td>'+esc(s.full_name)+'</td><td>'+esc(s.school_name)+'</td><td>'+esc(s.guardian_name)+'<br>'+esc(s.guardian_phone)+'<br>'+esc(s.guardian_relationship)+'</td><td>'+esc(s.status)+'</td><td><div class="ext-actions"><button class="ext-action light" data-student-followups="'+s.id+'">Seguimientos</button>'+(schoolCaps.can_edit_students||isAdmin?'<button class="ext-action light" data-edit-student="'+s.id+'">Editar</button><button class="ext-action light" data-del-student="'+s.id+'">Eliminar</button>':"")+'</div></td></tr>').join("")+'</tbody></table>';
+  if(selectedSchoolStudentId&&!students.some(s=>s.id===selectedSchoolStudentId))selectedSchoolStudentId=null;
+  renderSchoolStudentFollowups();
+}
+
+function renderSchoolStudentFollowups() {
+  const panel=$("extStudentFollowupsPanel");
+  const student=students.find(s=>s.id===selectedSchoolStudentId);
+  if(!student){
+    panel.innerHTML='<p class="ext-note">Selecciona “Seguimientos” en un alumno para consultar su historial individual.</p>';
+    return;
+  }
+  const items=schoolFollowups.filter(f=>f.student_id===student.id);
+  panel.innerHTML='<h3>Seguimientos · '+esc(student.full_name)+'</h3>'+(items.length?items.map(f=>'<div class="ext-followup-item"><strong>'+esc(new Date(f.followup_date).toLocaleString("es-GT"))+' · '+esc(f.subject)+'</strong><p>'+esc(f.detail)+'</p>'+(schoolCaps.can_edit_followups||isAdmin?'<div class="ext-actions"><button class="ext-action light" data-edit-followup="'+f.id+'">Editar</button><button class="ext-action light" data-del-followup="'+f.id+'">Eliminar</button></div>':'')+'</div>').join(""):'<p class="ext-note">Este alumno todavía no tiene seguimientos registrados.</p>');
 }
 async function loadSchoolPayments() {
   const {data,error}=await supabase.from("school_student_payments").select("*").order("paid_at",{ascending:false});
