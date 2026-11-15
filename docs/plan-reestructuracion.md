@@ -97,6 +97,12 @@ El monto máximo del bono es mensual y diferente para cada trabajador. El porcen
 
 ## Estado de implementación en la rama
 
+### Viajes — edición superadmin incorporada en la interfaz
+- La tabla muestra la acción Editar únicamente a perfiles con rol `superadmin`.
+- El formulario reutiliza el modal de viaje para cargar y guardar los datos existentes.
+- La lógica vuelve a validar el rol antes de enviar el UPDATE.
+- La protección definitiva depende de aplicar la política RLS restrictiva incluida en la migración; mientras la migración no esté aplicada, no se debe considerar cerrada la autorización en base de datos.
+
 ### Base de datos — migración de preparación creada, no aplicada
 Archivo: `supabase/migrations/20261114000100_transport_restructure_foundation.sql`
 
