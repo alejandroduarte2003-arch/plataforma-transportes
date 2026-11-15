@@ -89,15 +89,16 @@ function securePersonalView() {
   if (salaryField) salaryField.classList.add("ext-hidden");
   if (!finance) {
     const style = document.createElement("style");
-    style.textContent = "#view-flota .stats-grid{display:none!important}#view-flota #fuelTableBody td:nth-child(4),#view-flota #fuelTableBody td:nth-child(5),#view-flota table thead th:nth-child(4),#view-flota table thead th:nth-child(5),#view-flota #maintenanceTableBody td:nth-child(5),#view-flota #partsTableBody td:nth-child(6),#view-flota #maintenanceTableBody~thead th:nth-child(5),#view-flota #partsTableBody~thead th:nth-child(6){display:none!important}#view-viajes #tripIncome{display:none!important}#view-viajes #tripIncome{display:none!important}";
+    style.textContent = "#view-flota .stats-grid{display:none!important}#view-flota #fuelTableBody td:nth-child(4),#view-flota #fuelTableBody td:nth-child(5),#view-flota #fuelTableBody td:nth-child(7),#view-flota #maintenanceTableBody td:nth-child(5),#view-flota #partsTableBody td:nth-child(6),#view-viajes #tripIncome{display:none!important}";
     document.head.appendChild(style);
     const tripIncome = $("tripIncome")?.closest(".stat-card");
     if (tripIncome) tripIncome.classList.add("ext-hidden");
     const tripTable = $("tripsTableBody")?.closest("table");
-    if (tripTable) {
-      tripTable.querySelectorAll("th:nth-child(7),td:nth-child(7)").forEach(x => x.classList.add("ext-hidden"));
-    }
+    if (tripTable) tripTable.querySelectorAll("th:nth-child(7),td:nth-child(7)").forEach(x => x.classList.add("ext-hidden"));
     document.querySelectorAll("#view-flota .stats-grid .stat-card").forEach(x => x.classList.add("ext-hidden"));
+    ["fuelPrice","fuelCost","maintenanceCost","partsUnitCost","partsTotalCost","partsCalculatedTotal","tripIncomeInput"].forEach(id=>{
+      const field=$(id);if(field){const box=field.closest(".form-field");if(box)box.classList.add("ext-hidden");field.value="0";}
+    });
   }
 }
 
@@ -430,11 +431,12 @@ async function enableGallonsFuel() {
   const head=tbody.closest("table")?.querySelector("thead");
   if(head)head.innerHTML="<tr><th>Fecha</th><th>Vehículo</th><th>Galones</th><th>Precio / galón</th><th>Total</th><th>Odómetro</th><th>Km recorridos</th><th>Proveedor</th><th>Acciones</th></tr>";
   const load=async()=>{
-    const [fr,vr]=await Promise.all([supabase.from("fuel_entries").select("*").order("entry_date",{ascending:false}),supabase.from("vehicles").select("id,code,plate")]);
+    const fuelColumns=allowed.has("finanzas")?"*":"id,vehicle_id,entry_date,gallons,odometer,kilometers_driven,supplier,notes,created_by,created_at,updated_at,previous_odometer";
+    const [fr,vr]=await Promise.all([supabase.from("fuel_entries").select(fuelColumns).order("entry_date",{ascending:false}),supabase.from("vehicles").select("id,code,plate")]);
     if(fr.error)throw fr.error;if(vr.error)throw vr.error;
     fuel=fr.data||[];vehicles=vr.data||[];
     renderingFuel=true;
-    tbody.innerHTML=fuel.length?fuel.map(x=>'<tr><td>'+esc(x.entry_date)+'</td><td>'+esc(vehicles.find(v=>v.id===x.vehicle_id)?.code||"—")+'</td><td>'+Number(x.gallons||0).toFixed(2)+'</td><td>'+money(x.price_per_gallon)+'</td><td><strong>'+money(x.total_cost)+'</strong></td><td>'+(x.odometer??"—")+'</td><td>'+(x.kilometers_driven==null?"—":Number(x.kilometers_driven).toLocaleString("es-GT")+" km")+'</td><td>'+esc(x.supplier||"—")+'</td><td><div class="ext-actions"><button class="ext-action light" data-ext-edit-fuel="'+x.id+'">Editar</button><button class="ext-action light" data-ext-del-fuel="'+x.id+'">Eliminar</button></div></td></tr>').join(""):'<tr><td colspan="9" class="empty-state">No hay cargas registradas.</td></tr>';
+    tbody.innerHTML=fuel.length?fuel.map(x=>'<tr><td>'+esc(x.entry_date)+'</td><td>'+esc(vehicles.find(v=>v.id===x.vehicle_id)?.code||"—")+'</td><td>'+Number(x.gallons||0).toFixed(2)+'</td><td>'+(allowed.has("finanzas")?money(x.price_per_gallon):"—")+'</td><td><strong>'+(allowed.has("finanzas")?money(x.total_cost):"—")+'</strong></td><td>'+(x.odometer??"—")+'</td><td>'+(x.kilometers_driven==null?"—":Number(x.kilometers_driven).toLocaleString("es-GT")+" km")+'</td><td>'+esc(x.supplier||"—")+'</td><td><div class="ext-actions"><button class="ext-action light" data-ext-edit-fuel="'+x.id+'">Editar</button><button class="ext-action light" data-ext-del-fuel="'+x.id+'">Eliminar</button></div></td></tr>').join(""):'<tr><td colspan="9" class="empty-state">No hay cargas registradas.</td></tr>';
   };
   const obs=new MutationObserver(()=>{
     if(renderingFuel){renderingFuel=false;return;}
@@ -459,7 +461,9 @@ async function enableGallonsFuel() {
     e.preventDefault();e.stopImmediatePropagation();
     const gallons=Number($("fuelLiters").value),price=Number($("fuelPrice").value),odo=$("fuelOdometer").value?Number($("fuelOdometer").value):null;
     if(gallons<=0||price<0)return notify("Ingresa galones y precio válidos.");
-    const p={vehicle_id:$("fuelVehicle").value,entry_date:$("fuelDate").value,gallons,price_per_gallon:price,liters:Number((gallons*3.785411784).toFixed(3)),price_per_liter:Number((price/3.785411784).toFixed(4)),total_cost:Number((gallons*price).toFixed(2)),odometer:odo,supplier:$("fuelSupplier").value.trim(),notes:$("fuelNotes").value.trim(),created_by:userId};
+    const financeAccess=allowed.has("finanzas");
+    const safePrice=financeAccess?price:0;
+    const p={vehicle_id:$("fuelVehicle").value,entry_date:$("fuelDate").value,gallons,price_per_gallon:safePrice,liters:Number((gallons*3.785411784).toFixed(3)),price_per_liter:Number((safePrice/3.785411784).toFixed(4)),total_cost:Number((gallons*safePrice).toFixed(2)),odometer:odo,supplier:$("fuelSupplier").value.trim(),notes:$("fuelNotes").value.trim(),created_by:userId};
     const q=editingFuelId?supabase.from("fuel_entries").update(p).eq("id",editingFuelId):supabase.from("fuel_entries").insert(p);
     const {error}=await q;if(error)return fail("guardar el combustible",error);
     editingFuelId=null;$("fuelModal").classList.remove("open");form.reset();await load();
