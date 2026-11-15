@@ -726,6 +726,16 @@
                 Finanzas
             </button>
 
+            <button class="nav-button" data-view="abordajes" id="navAbordajes" hidden>
+                <span class="nav-icon">☷</span>
+                Abordajes
+            </button>
+
+            <button class="nav-button" data-view="escolares" id="navEscolares" hidden>
+                <span class="nav-icon">▣</span>
+                Transporte escolares
+            </button>
+
             <div class="menu-label">GESTIÓN DEL SISTEMA</div>
 
             <button class="nav-button" data-view="administracion">
@@ -1069,7 +1079,7 @@
             <!-- ABORDAJES -->
             <!-- ================================= -->
 
-            <section class="view" id="view-abordajes">
+            <section class="view" id="view-abordajes-legacy">
 
                 <div class="page-heading">
                     <h1>Abordajes</h1>
@@ -1335,6 +1345,8 @@
         personal: "Personal",
         flota: "Flota y gastos",
         finanzas: "Finanzas",
+        abordajes: "Abordajes",
+        escolares: "Transporte escolares",
         administracion: "Administración"
     };
 
@@ -1442,6 +1454,9 @@
             if (allowedModules.has("finanzas")) {
                 await loadFinanceData();
             }
+            if (allowedModules.has("escolares") || allowedModules.has("abordajes")) {
+                window.dispatchEvent(new CustomEvent("incorova:modules-ready", { detail: { modules: Array.from(allowedModules), userId: currentUserId } }));
+            }
 
             renderHomeDashboard();
 
@@ -1483,7 +1498,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = ["vehiculos", "viajes", "abordajes"].includes(viewName) && allowedModules.has("operaciones");
+        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
         if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
@@ -2707,6 +2722,7 @@
     verifySession();
 
 </script>
+<script type="module" src="./js/transport-enhancements.js"></script>
 
 
     <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
