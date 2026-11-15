@@ -721,6 +721,16 @@
                 Flota y gastos
             </button>
 
+            <button class="nav-button" data-view="abordajes">
+                <span class="nav-icon">≋</span>
+                Abordajes
+            </button>
+
+            <button class="nav-button" data-view="escolares">
+                <span class="nav-icon">▦</span>
+                Transporte escolares
+            </button>
+
             <button class="nav-button" data-view="finanzas">
                 <span class="nav-icon">▥</span>
                 Finanzas
@@ -1255,6 +1265,43 @@
                 </div>
             </section>
 
+            <section class="view" id="view-escolares">
+                <div class="page-heading">
+                    <h1>Transporte escolares</h1>
+                    <p>Administra estudiantes, expedientes, seguimientos y pagos.</p>
+                </div>
+                <div class="section-toolbar">
+                    <div><h3>Información de estudiantes</h3><p class="personal-hint">Cada estudiante cuenta con un expediente individual.</p></div>
+                    <button class="primary-button" id="addSchoolStudentButton" type="button" hidden>+ Agregar estudiante</button>
+                </div>
+                <div class="toolbar-filters">
+                    <input class="field-control" id="schoolStudentSearch" type="search" placeholder="Buscar estudiante o colegio">
+                    <select class="field-control" id="schoolStudentStatus"><option value="">Todos los estados</option><option>Activo</option><option>Inactivo</option></select>
+                </div>
+                <div class="panel table-panel">
+                    <div class="table-wrapper"><table>
+                        <thead><tr><th>ID</th><th>Estudiante</th><th>Colegio</th><th>Dirección AM</th><th>Dirección PM</th><th>Encargado</th><th>Estado</th><th>Expediente</th></tr></thead>
+                        <tbody id="schoolStudentsTableBody"><tr><td colspan="8" class="empty-state">Cargando estudiantes...</td></tr></tbody>
+                    </table></div>
+                </div>
+                <section class="panel" id="schoolStudentFile" hidden style="margin-top:22px;padding:22px;">
+                    <div class="section-toolbar">
+                        <div><h3 id="schoolFileTitle">Expediente del estudiante</h3><p id="schoolFileSubtitle" class="personal-hint"></p></div>
+                        <div><button class="secondary-button" id="closeSchoolFileButton" type="button">Cerrar expediente</button></div>
+                    </div>
+                    <div id="schoolFileDetails" class="stats-grid"></div>
+                    <div class="section-toolbar" style="margin-top:20px;">
+                        <div><h3>Seguimientos</h3><p class="personal-hint">Historial de notas y comunicaciones del expediente.</p></div>
+                        <button class="primary-button" id="addSchoolFollowupButton" type="button" hidden>+ Agregar seguimiento</button>
+                    </div>
+                    <div id="schoolFollowupsList"></div>
+                    <div class="form-actions" style="margin-top:18px;">
+                        <button class="secondary-button" id="editSchoolStudentButton" type="button" hidden>Editar información</button>
+                        <button class="primary-button" id="addSchoolPaymentButton" type="button" hidden>Agregar pago</button>
+                    </div>
+                </section>
+            </section>
+
         </div>
 
     </main>
@@ -1266,6 +1313,36 @@
 <!-- JAVASCRIPT -->
 <!-- ================================= -->
 
+
+<!-- MODALES DE TRANSPORTE ESCOLAR -->
+<div class="modal-backdrop" id="schoolStudentModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2 id="schoolStudentModalTitle">Agregar estudiante</h2><button class="modal-close" type="button" data-close-school="schoolStudentModal">×</button></div>
+    <form id="schoolStudentForm"><div class="form-grid">
+        <div class="form-field full"><label for="schoolStudentName">Nombre del alumno *</label><input id="schoolStudentName" required maxlength="160"></div>
+        <div class="form-field"><label for="schoolAddressAm">Dirección AM *</label><input id="schoolAddressAm" required maxlength="250"></div>
+        <div class="form-field"><label for="schoolAddressPm">Dirección PM *</label><input id="schoolAddressPm" required maxlength="250"></div>
+        <div class="form-field"><label for="schoolGuardianPhone">Número del encargado *</label><input id="schoolGuardianPhone" required maxlength="40"></div>
+        <div class="form-field"><label for="schoolGuardianRelationship">Parentesco *</label><input id="schoolGuardianRelationship" required maxlength="80" placeholder="Madre, padre, tutor..."></div>
+        <div class="form-field"><label for="schoolName">Colegio *</label><input id="schoolName" required maxlength="160"></div>
+        <div class="form-field"><label for="schoolStatus">Estado</label><select id="schoolStatus"><option>Activo</option><option>Inactivo</option></select></div>
+    </div><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolStudentModal">Cancelar</button><button class="primary-button" type="submit">Guardar estudiante</button></div></form>
+</div></div>
+<div class="modal-backdrop" id="schoolFollowupModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2>Agregar seguimiento</h2><button class="modal-close" type="button" data-close-school="schoolFollowupModal">×</button></div>
+    <form id="schoolFollowupForm"><div class="form-grid">
+        <div class="form-field full"><label for="schoolFollowupSubject">Asunto *</label><input id="schoolFollowupSubject" required maxlength="160"></div>
+        <div class="form-field full"><label for="schoolFollowupDetail">Detalle *</label><textarea id="schoolFollowupDetail" required maxlength="2000"></textarea></div>
+    </div><p class="form-message">La fecha y hora se asignan automáticamente al guardar.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolFollowupModal">Cancelar</button><button class="primary-button" type="submit">Guardar seguimiento</button></div></form>
+</div></div>
+<div class="modal-backdrop" id="schoolPaymentModal" aria-hidden="true"><div class="modal">
+    <div class="modal-header"><h2>Agregar pago</h2><button class="modal-close" type="button" data-close-school="schoolPaymentModal">×</button></div>
+    <form id="schoolPaymentForm"><div class="form-grid">
+        <div class="form-field full"><label>Estudiante</label><input id="schoolPaymentStudent" readonly></div>
+        <div class="form-field"><label for="schoolPaymentAmount">Monto abonado (Q) *</label><input id="schoolPaymentAmount" type="number" min="0.01" step="0.01" required></div>
+        <div class="form-field"><label for="schoolPaymentStatus">Estado</label><select id="schoolPaymentStatus"><option>Vigente</option><option>No vigente</option></select></div>
+        <div class="form-field full"><label for="schoolPaymentReference">Referencia (opcional)</label><input id="schoolPaymentReference" maxlength="120"></div>
+    </div><p class="form-message">El pago se registra en quetzales con fecha y hora del servidor y se refleja como ingreso en Finanzas.</p><div class="form-actions"><button class="secondary-button" type="button" data-close-school="schoolPaymentModal">Cancelar</button><button class="primary-button" type="submit">Registrar pago</button></div></form>
+</div></div>
 
 <!-- MODALES DE FINANZAS -->
 <div class="modal-backdrop" id="receivableModal" aria-hidden="true"><div class="modal">
@@ -1335,6 +1412,7 @@
         personal: "Personal",
         flota: "Flota y gastos",
         finanzas: "Finanzas",
+        escolares: "Transporte escolares",
         vehiculos: "Vehículos",
         viajes: "Viajes",
         abordajes: "Abordajes",
@@ -1447,6 +1525,9 @@
             if (allowedModules.has("finanzas")) {
                 await loadFinanceData();
             }
+            if (allowedModules.has("escolares")) {
+                await loadSchoolData();
+            }
 
             renderHomeDashboard();
 
@@ -1488,7 +1569,7 @@
     // =====================================
 
     function openView(viewName) {
-        const isOperationsSubview = ["vehiculos", "viajes", "abordajes"].includes(viewName) && allowedModules.has("operaciones");
+        const isOperationsSubview = ["vehiculos", "viajes"].includes(viewName) && allowedModules.has("operaciones");
         if (!accessReady || (!allowedModules.has(viewName) && !isOperationsSubview)) {
             console.warn("Acceso denegado al módulo:", viewName);
             return;
@@ -2610,6 +2691,119 @@
         if(!amount.value&&Number(trip.income)>0)amount.value=Number(trip.income).toFixed(2);
     });
 
+
+
+    // =====================================
+    // TRANSPORTE ESCOLAR
+    // =====================================
+    let schoolStudents = [];
+    let schoolFollowups = [];
+    let schoolPermissions = { can_edit_students: false, can_edit_followups: false, can_register_payments: false };
+    let editingSchoolStudentId = null;
+    let selectedSchoolStudentId = null;
+    const schoolModalOpen = id => { const el=document.getElementById(id); el.classList.add("open"); el.setAttribute("aria-hidden","false"); };
+    const schoolModalClose = id => { const el=document.getElementById(id); el.classList.remove("open"); el.setAttribute("aria-hidden","true"); };
+    document.querySelectorAll("[data-close-school]").forEach(btn=>btn.addEventListener("click",()=>schoolModalClose(btn.dataset.closeSchool)));
+    ["schoolStudentModal","schoolFollowupModal","schoolPaymentModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)schoolModalClose(id);}));
+    async function loadSchoolData(){
+        try{
+            const [studentsResult,permissionsResult]=await Promise.all([
+                supabase.from("school_students").select("id,student_code,full_name,address_am,address_pm,guardian_phone,guardian_relationship,school_name,status,created_at").order("full_name"),
+                supabase.rpc("get_my_school_permissions")
+            ]);
+            if(studentsResult.error)throw studentsResult.error;
+            if(permissionsResult.error)throw permissionsResult.error;
+            schoolStudents=studentsResult.data||[];
+            schoolPermissions=permissionsResult.data?.[0]||{can_edit_students:false,can_edit_followups:false,can_register_payments:false};
+            document.getElementById("addSchoolStudentButton").hidden=!schoolPermissions.can_edit_students;
+            document.getElementById("addSchoolFollowupButton").hidden=!schoolPermissions.can_edit_followups;
+            document.getElementById("editSchoolStudentButton").hidden=!schoolPermissions.can_edit_students;
+            document.getElementById("addSchoolPaymentButton").hidden=!schoolPermissions.can_register_payments;
+            renderSchoolStudents();
+            if(selectedSchoolStudentId)await openSchoolFile(selectedSchoolStudentId);
+        }catch(error){showOperationError(error,"cargar los expedientes escolares");}
+    }
+    function renderSchoolStudents(){
+        const q=document.getElementById("schoolStudentSearch").value.trim().toLowerCase();
+        const st=document.getElementById("schoolStudentStatus").value;
+        const rows=schoolStudents.filter(x=>(x.full_name+" "+x.school_name+" "+x.guardian_phone).toLowerCase().includes(q)&&(!st||x.status===st));
+        document.getElementById("schoolStudentsTableBody").innerHTML=rows.length?rows.map(x=>`<tr>
+            <td>${x.student_code}</td><td><strong>${escapeHtml(x.full_name)}</strong></td><td>${escapeHtml(x.school_name)}</td>
+            <td>${escapeHtml(x.address_am)}</td><td>${escapeHtml(x.address_pm)}</td><td>${escapeHtml(x.guardian_phone)}<br><small>${escapeHtml(x.guardian_relationship)}</small></td>
+            <td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><button class="table-action" type="button" data-open-school-file="${x.id}">Abrir expediente</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty-state">No hay estudiantes registrados.</td></tr>';
+    }
+    function openSchoolStudentModal(student=null){
+        editingSchoolStudentId=student?.id||null;
+        document.getElementById("schoolStudentForm").reset();
+        document.getElementById("schoolStudentModalTitle").textContent=student?"Editar estudiante":"Agregar estudiante";
+        const values={schoolStudentName:student?.full_name,schoolAddressAm:student?.address_am,schoolAddressPm:student?.address_pm,schoolGuardianPhone:student?.guardian_phone,schoolGuardianRelationship:student?.guardian_relationship,schoolName:student?.school_name,schoolStatus:student?.status||"Activo"};
+        Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value??"");
+        schoolModalOpen("schoolStudentModal");
+    }
+    async function openSchoolFile(studentId){
+        const student=schoolStudents.find(x=>x.id===studentId);if(!student)return;
+        selectedSchoolStudentId=studentId;
+        const result=await supabase.from("school_student_followups").select("id,followup_date,subject,detail").eq("student_id",studentId).order("followup_date",{ascending:false});
+        if(result.error)throw result.error;
+        schoolFollowups=result.data||[];
+        document.getElementById("schoolStudentFile").hidden=false;
+        document.getElementById("schoolFileTitle").textContent="Expediente · "+student.full_name;
+        document.getElementById("schoolFileSubtitle").textContent="Código "+student.student_code+" · "+student.school_name;
+        document.getElementById("schoolFileDetails").innerHTML=[
+            ["Dirección AM",student.address_am],["Dirección PM",student.address_pm],
+            ["Encargado",student.guardian_phone],["Parentesco",student.guardian_relationship],
+            ["Estado",student.status]
+        ].map(([label,value])=>'<div class="stat-card"><span>'+label+'</span><h3 style="font-size:14px;margin-top:8px;">'+escapeHtml(value||"—")+'</h3></div>').join("");
+        document.getElementById("schoolFollowupsList").innerHTML=schoolFollowups.length?schoolFollowups.map(x=>'<div class="home-list-item"><div class="home-item-main"><div class="home-item-title">'+escapeHtml(x.subject)+'</div><div class="home-item-detail">'+escapeHtml(x.detail)+'</div></div><div class="home-item-meta"><span class="home-item-date">'+new Date(x.followup_date).toLocaleString("es-GT")+'</span></div></div>').join(""):'<div class="home-empty">Todavía no hay seguimientos en este expediente.</div>';
+    }
+    document.getElementById("addSchoolStudentButton").addEventListener("click",()=>openSchoolStudentModal());
+    document.getElementById("schoolStudentsTableBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-open-school-file]");if(!button)return;
+        try{await openSchoolFile(button.dataset.openSchoolFile);}catch(error){showOperationError(error,"abrir el expediente");}
+    });
+    document.getElementById("closeSchoolFileButton").addEventListener("click",()=>{selectedSchoolStudentId=null;document.getElementById("schoolStudentFile").hidden=true;});
+    document.getElementById("editSchoolStudentButton").addEventListener("click",()=>openSchoolStudentModal(schoolStudents.find(x=>x.id===selectedSchoolStudentId)));
+    document.getElementById("addSchoolFollowupButton").addEventListener("click",()=>{if(selectedSchoolStudentId){document.getElementById("schoolFollowupForm").reset();schoolModalOpen("schoolFollowupModal");}});
+    document.getElementById("addSchoolPaymentButton").addEventListener("click",()=>{
+        const student=schoolStudents.find(x=>x.id===selectedSchoolStudentId);if(!student)return;
+        document.getElementById("schoolPaymentForm").reset();
+        document.getElementById("schoolPaymentStudent").value=student.full_name+" · "+student.student_code;
+        schoolModalOpen("schoolPaymentModal");
+    });
+    document.getElementById("schoolStudentForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_edit_students&&!isSuperAdmin)throw Error("No tienes permiso para editar estudiantes.");
+            const p={full_name:document.getElementById("schoolStudentName").value.trim(),address_am:document.getElementById("schoolAddressAm").value.trim(),address_pm:document.getElementById("schoolAddressPm").value.trim(),guardian_phone:document.getElementById("schoolGuardianPhone").value.trim(),guardian_relationship:document.getElementById("schoolGuardianRelationship").value.trim(),school_name:document.getElementById("schoolName").value.trim(),status:document.getElementById("schoolStatus").value};
+            const query=editingSchoolStudentId?supabase.from("school_students").update(p).eq("id",editingSchoolStudentId):supabase.from("school_students").insert({...p,created_by:currentUserId});
+            const {error}=await query;if(error)throw error;schoolModalClose("schoolStudentModal");await loadSchoolData();
+        }catch(error){showOperationError(error,"guardar el estudiante");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolFollowupForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_edit_followups&&!isSuperAdmin)throw Error("No tienes permiso para agregar seguimientos.");
+            const {error}=await supabase.from("school_student_followups").insert({student_id:selectedSchoolStudentId,subject:document.getElementById("schoolFollowupSubject").value.trim(),detail:document.getElementById("schoolFollowupDetail").value.trim(),created_by:currentUserId});
+            if(error)throw error;schoolModalClose("schoolFollowupModal");await openSchoolFile(selectedSchoolStudentId);
+        }catch(error){showOperationError(error,"guardar el seguimiento");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolPaymentForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            if(!schoolPermissions.can_register_payments&&!isSuperAdmin)throw Error("No tienes permiso para registrar pagos.");
+            const {data,error}=await supabase.rpc("register_school_student_payment",{
+                p_student_id:selectedSchoolStudentId,p_amount:Number(document.getElementById("schoolPaymentAmount").value),
+                p_enrollment_status:document.getElementById("schoolPaymentStatus").value,
+                p_reference:document.getElementById("schoolPaymentReference").value.trim(),
+                p_request_key:crypto.randomUUID()
+            });
+            if(error)throw error;
+            schoolModalClose("schoolPaymentModal");
+            alert("Pago registrado correctamente. Referencia: "+data);
+        }catch(error){showOperationError(error,"registrar el pago escolar");}finally{btn.disabled=false;}
+    });
+    document.getElementById("schoolStudentSearch").addEventListener("input",renderSchoolStudents);
+    document.getElementById("schoolStudentStatus").addEventListener("change",renderSchoolStudents);
 
     // =====================================
     // INICIO - CENTRO DE CONTROL
