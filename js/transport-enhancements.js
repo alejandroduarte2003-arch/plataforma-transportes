@@ -14,7 +14,7 @@ function notify(message) { alert(message); }
 function fail(action, error) { console.error(action, error); notify("No se pudo " + action + ": " + (error?.message || "Intenta nuevamente.")); }
 function addStyle() {
   const style = document.createElement("style");
-  style.textContent = ".ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.ext-card{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:18px;min-width:0}.ext-card h3{font-size:14px;margin-bottom:12px}.ext-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ext-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:600}.ext-form input,.ext-form select,.ext-form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:6px;font:inherit;font-size:12px;background:#fff;color:#111827}.ext-form .full{grid-column:1/-1}.ext-form button,.ext-action{background:#172554;color:#fff;border:0;border-radius:6px;padding:10px 13px;font-size:11px;font-weight:600;cursor:pointer}.ext-action.light{background:#fff;color:#172554;border:1px solid #e5e7eb}.ext-table{overflow:auto;margin-top:12px}.ext-table table{width:100%;border-collapse:collapse;min-width:600px}.ext-table th,.ext-table td{padding:11px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:11px}.ext-table th{background:#f9fafb;color:#6b7280}.ext-actions{display:flex;gap:6px;flex-wrap:wrap}.ext-note{font-size:11px;color:#6b7280;line-height:1.6;margin-top:8px}.ext-school-accordions{display:grid;gap:10px;margin:18px 0}.ext-school-accordion{background:#fff;border:1px solid #dce2e9;border-radius:9px;overflow:hidden}.ext-school-accordion summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:#172554}.ext-school-accordion summary::-webkit-details-marker{display:none}.ext-school-accordion summary:after{content:'+';font-size:20px;font-weight:400;color:#64748b}.ext-school-accordion[open] summary{border-bottom:1px solid #e5e7eb}.ext-school-accordion[open] summary:after{content:'−'}.ext-school-accordion summary small{font-size:11px;font-weight:400;color:#6b7280;margin-left:auto}.ext-school-accordion-body{padding:18px}.ext-student-followups{margin-top:18px;padding:18px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}.ext-student-followups h3{font-size:14px;margin-bottom:12px}.ext-followup-item{padding:12px 0;border-bottom:1px solid #edf0f4}.ext-followup-item:last-child{border-bottom:0}.ext-followup-item strong{font-size:12px}.ext-followup-item p{font-size:12px;color:#475569;margin-top:5px;white-space:pre-wrap}.ext-heading{margin:4px 0 16px}.ext-heading h1{font-size:23px;margin-bottom:6px}.ext-heading p{font-size:12px;color:#6b7280}.ext-hidden{display:none!important}@media(max-width:760px){.ext-grid{grid-template-columns:1fr}.ext-form{grid-template-columns:1fr}.ext-form .full{grid-column:auto}}";
+  style.textContent = ".ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.ext-card{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:18px;min-width:0}.ext-card h3{font-size:14px;margin-bottom:12px}.ext-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ext-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:600}.ext-form input,.ext-form select,.ext-form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:6px;font:inherit;font-size:12px;background:#fff;color:#111827}.ext-form .full{grid-column:1/-1}.ext-form button,.ext-action{background:#172554;color:#fff;border:0;border-radius:6px;padding:10px 13px;font-size:11px;font-weight:600;cursor:pointer}.ext-action.light{background:#fff;color:#172554;border:1px solid #e5e7eb}.ext-table{overflow:auto;margin-top:12px}.ext-table table{width:100%;border-collapse:collapse;min-width:600px}.ext-table th,.ext-table td{padding:11px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:11px}.ext-table th{background:#f9fafb;color:#6b7280}.ext-actions{display:flex;gap:6px;flex-wrap:wrap}.ext-note{font-size:11px;color:#6b7280;line-height:1.6;margin-top:8px}.ext-finance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.ext-finance-grid .ext-card{margin:0}.ext-finance-card-wide{grid-column:1/-1}.ext-payroll-preview{border:1px solid #dce2e9;border-radius:8px;background:#f9fafb;padding:14px;margin:14px 0}.ext-payroll-preview h4{font-size:12px;color:#172554;margin-bottom:10px}.ext-payroll-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.ext-payroll-line{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px;min-width:0}.ext-payroll-line span{display:block;font-size:10px;color:#6b7280;margin-bottom:5px}.ext-payroll-line strong{font-size:13px;color:#111827}.ext-payroll-total{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #dce2e9;margin-top:12px;padding-top:12px}.ext-payroll-total span{font-size:12px;font-weight:700;color:#172554}.ext-payroll-total strong{font-size:21px;color:#172554}.ext-school-accordions{display:grid;gap:10px;margin:18px 0}.ext-school-accordion{background:#fff;border:1px solid #dce2e9;border-radius:9px;overflow:hidden}.ext-school-accordion summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:#172554}.ext-school-accordion summary::-webkit-details-marker{display:none}.ext-school-accordion summary:after{content:'+';font-size:20px;font-weight:400;color:#64748b}.ext-school-accordion[open] summary{border-bottom:1px solid #e5e7eb}.ext-school-accordion[open] summary:after{content:'−'}.ext-school-accordion summary small{font-size:11px;font-weight:400;color:#6b7280;margin-left:auto}.ext-school-accordion-body{padding:18px}.ext-student-followups{margin-top:18px;padding:18px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}.ext-student-followups h3{font-size:14px;margin-bottom:12px}.ext-followup-item{padding:12px 0;border-bottom:1px solid #edf0f4}.ext-followup-item:last-child{border-bottom:0}.ext-followup-item strong{font-size:12px}.ext-followup-item p{font-size:12px;color:#475569;margin-top:5px;white-space:pre-wrap}.ext-heading{margin:4px 0 16px}.ext-heading h1{font-size:23px;margin-bottom:6px}.ext-heading p{font-size:12px;color:#6b7280}.ext-hidden{display:none!important}@media(max-width:760px){.ext-grid,.ext-finance-grid{grid-template-columns:1fr}.ext-finance-card-wide{grid-column:auto}.ext-form{grid-template-columns:1fr}.ext-form .full{grid-column:auto}.ext-payroll-breakdown{grid-template-columns:repeat(2,minmax(0,1fr))}.ext-payroll-total strong{font-size:18px}}";
   document.head.appendChild(style);
 }
 function makePage(id, title, subtitle) {
@@ -444,18 +444,18 @@ async function loadSchoolPayments() {
 
 // ---------------- FINANZAS: COMPENSACIÓN, PRÉSTAMOS Y PLANILLA ----------------
 async function initFinance() {
-  const view=$("view-finanzas");
-  const wrap=document.createElement("div");
-  wrap.className="ext-card";
-  wrap.innerHTML='<h3>Compensación individual por trabajador</h3><form id="extCompForm" class="ext-form">' +
+  const workspace=$("extFinanceWorkspace");
+  if(!workspace)return;
+  const compensationCard=document.createElement("div");
+  compensationCard.className="ext-card";
+  compensationCard.innerHTML='<h3>Compensación por trabajador</h3><p class="ext-note">Configura el sueldo y el bono KPI mensual de cada persona. Ambos se distribuyen en dos quincenas.</p><form id="extCompForm" class="ext-form">' +
     '<label class="full">Trabajador<select id="extCompEmployee" name="employee_id" required></select></label>' +
     '<label>Sueldo base mensual (Q)<input name="monthly_base_salary" type="number" min="0" step=".01" required></label>' +
     '<label>Bono KPI máximo mensual (Q)<input name="monthly_kpi_bonus_max" type="number" min="0" step=".01" value="0" required></label>' +
-    '<button class="full" type="submit">Guardar compensación</button></form><p class="ext-note">El sistema divide el sueldo base y el bono KPI mensual en dos quincenas. El bono se calcula con el promedio de los tres KPI.</p>' +
-    '<div id="extCompTable" class="ext-table"></div>';
+    '<button class="full" type="submit">Guardar compensación</button></form><div id="extCompTable" class="ext-table"></div>';
   const loansCard=document.createElement("div");
   loansCard.className="ext-card";
-  loansCard.innerHTML='<h3>Préstamos de trabajadores</h3><form id="extLoanForm" class="ext-form">' +
+  loansCard.innerHTML='<h3>Préstamos de trabajadores</h3><p class="ext-note">Registra préstamos y consulta el saldo pendiente. La cuota se descuenta al marcar la quincena como pagada.</p><form id="extLoanForm" class="ext-form">' +
     '<label class="full">Trabajador<select name="employee_id" id="extLoanEmployee" required></select></label>' +
     '<label class="full">Motivo<input name="reason" maxlength="180"></label>' +
     '<label>Monto (Q)<input name="amount" type="number" min=".01" step=".01" required></label>' +
@@ -463,72 +463,124 @@ async function initFinance() {
     '<label>Cuota por quincena (Q)<input id="extLoanInstallment" readonly></label><label>Fecha de inicio<input name="start_date" type="date" value="'+today()+'" required></label>' +
     '<button class="full" type="submit">Registrar préstamo</button></form><div id="extLoansTable" class="ext-table"></div>';
   const payrollCard=document.createElement("div");
-  payrollCard.className="ext-card";
-  payrollCard.innerHTML='<h3>Planilla quincenal</h3><form id="extPayrollForm" class="ext-form">' +
+  payrollCard.className="ext-card ext-finance-card-wide";
+  payrollCard.innerHTML='<h3>Planilla quincenal</h3><p class="ext-note">Selecciona al trabajador y evalúa sus indicadores. El resultado se calcula automáticamente antes de guardar.</p><form id="extPayrollForm" class="ext-form">' +
     '<label class="full">Trabajador<select name="employee_id" id="extPayrollEmployee" required></select></label>' +
     '<label>Mes<input name="period" type="month" value="'+today().slice(0,7)+'" required></label><label>Quincena<select name="fortnight"><option value="1">Primera</option><option value="2">Segunda</option></select></label>' +
     '<label>Quejas (1–5)<select name="kpi_complaints"><option value="">Sin evaluar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></label>' +
     '<label>Limpieza (1–5)<select name="kpi_cleanliness"><option value="">Sin evaluar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></label>' +
     '<label>Retrasos (1–5)<select name="kpi_delays"><option value="">Sin evaluar</option><option value="1">1 · 0%</option><option value="2">2 · 25%</option><option value="3">3 · 50%</option><option value="4">4 · 75%</option><option value="5">5 · 100%</option></select></label>' +
     '<label>Otras deducciones (Q)<input name="other_deductions" type="number" min="0" step=".01" value="0"></label>' +
-    '<button class="full" type="submit">Calcular y guardar quincena</button></form><p class="ext-note">KPI con ponderación igual: 1 = 0%, 2 = 25%, 3 = 50%, 4 = 75%, 5 = 100%. La bonificación mensual individual se divide entre dos y se ajusta al porcentaje alcanzado. El préstamo se descuenta automáticamente del sueldo base quincenal.</p>' +
-    '<div id="extPayrollTable" class="ext-table"></div>';
+    '<div class="full" id="extPayrollPreview" aria-live="polite"></div>' +
+    '<button class="full" type="submit">Guardar planilla quincenal</button></form><div id="extPayrollTable" class="ext-table"></div>';
   const schoolPaymentsCard=document.createElement("div");
-  schoolPaymentsCard.className="ext-card";
-  schoolPaymentsCard.innerHTML='<h3>Ingresos de transporte escolar</h3><div id="extFinanceSchoolPayments" class="ext-table"></div><p class="ext-note">Los pagos registrados desde Transporte escolares se concentran aquí y forman parte del libro financiero.</p>';
-  const grid=document.createElement("div");grid.className="ext-grid";grid.append(wrap,loansCard);
-  view.appendChild(grid);view.appendChild(payrollCard);view.appendChild(schoolPaymentsCard);
+  schoolPaymentsCard.className="ext-card ext-finance-card-wide";
+  schoolPaymentsCard.innerHTML='<h3>Ingresos de transporte escolar</h3><p class="ext-note">Consulta aquí los pagos registrados desde el módulo de Transporte escolares.</p><div id="extFinanceSchoolPayments" class="ext-table"></div>';
+  const grid=document.createElement("div");
+  grid.className="ext-finance-grid";
+  grid.append(compensationCard,loansCard,payrollCard,schoolPaymentsCard);
+  workspace.replaceChildren(grid);
   await loadFinanceDataExt();
   $("extCompForm").addEventListener("submit",async e=>{
     e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());
     p.monthly_base_salary=Number(p.monthly_base_salary);p.monthly_kpi_bonus_max=Number(p.monthly_kpi_bonus_max);p.currency="GTQ";
     const {error}=await supabase.from("employee_compensation").upsert(p,{onConflict:"employee_id"});
-    if(error)return fail("guardar la compensación",error);await loadFinanceDataExt();notify("Compensación guardada.");
+    if(error)return fail("guardar la compensación",error);await loadFinanceDataExt();renderPayrollPreview();notify("Compensación guardada.");
   });
   $("extLoanTerms").addEventListener("input",calcLoanInstallment);
   $("extLoanForm").addEventListener("input",calcLoanInstallment);
   $("extLoanForm").addEventListener("submit",async e=>{
-    e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());
-    p.amount=Number(p.amount);p.installments_total=Number(p.installments_total);
-    if(p.installments_total<1||p.installments_total>12)return notify("El préstamo debe tener entre 1 y 12 cuotas quincenales.");
-    p.balance=p.amount;p.installments_paid=0;p.installment_amount=Number((p.amount/p.installments_total).toFixed(2));p.status="Activo";p.notes="";p.created_by=userId;
-    const {error}=await supabase.from("employee_loans").insert(p);
-    if(error)return fail("registrar el préstamo",error);e.currentTarget.reset();$("extLoanForm").querySelector('[name="start_date"]').value=today();await loadFinanceDataExt();
+    e.preventDefault();const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
+    if(button.disabled)return;button.disabled=true;
+    try{
+      const p=Object.fromEntries(new FormData(form).entries());
+      p.amount=Number(p.amount);p.installments_total=Number(p.installments_total);
+      if(p.installments_total<1||p.installments_total>12)return notify("El préstamo debe tener entre 1 y 12 cuotas quincenales.");
+      p.balance=p.amount;p.installments_paid=0;p.installment_amount=Number((p.amount/p.installments_total).toFixed(2));p.status="Activo";p.notes="";p.created_by=userId;
+      const {error}=await supabase.from("employee_loans").insert(p);
+      if(error)return fail("registrar el préstamo",error);
+      form.reset();form.querySelector('[name="start_date"]').value=today();await loadFinanceDataExt();renderPayrollPreview();notify("Préstamo registrado.");
+    }finally{button.disabled=false;}
   });
-  $("extPayrollForm").addEventListener("submit",async e=>{
-    e.preventDefault();const p=Object.fromEntries(new FormData(e.currentTarget).entries());
+  const payrollForm=$("extPayrollForm");
+  payrollForm.addEventListener("input",renderPayrollPreview);
+  payrollForm.addEventListener("change",renderPayrollPreview);
+  payrollForm.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
+    if(button.disabled)return;
+    const p=Object.fromEntries(new FormData(form).entries());
+    const calc=calculatePayrollPreview(p);
+    if(!calc)return notify("Selecciona un trabajador con compensación configurada.");
+    if(calc.totalDeductions>calc.baseSalary+calc.bonus+0.009)return notify("Las deducciones no pueden superar el ingreso quincenal.");
     const period=p.period+"-01",fortnight=Number(p.fortnight);
     const {data:dupe,error:de}=await supabase.from("payroll_records").select("id").eq("employee_id",p.employee_id).eq("period",period).eq("fortnight",fortnight).maybeSingle();
     if(de)return fail("verificar la quincena",de);
-    if(dupe)return notify("Ya existe una planilla para ese trabajador y quincena.");
+    if(dupe)return notify("Ya existe una planilla para ese trabajador y quincena. No se modificó el registro existente.");
     const payload={employee_id:p.employee_id,period,fortnight,kpi_complaints:p.kpi_complaints?Number(p.kpi_complaints):null,kpi_cleanliness:p.kpi_cleanliness?Number(p.kpi_cleanliness):null,kpi_delays:p.kpi_delays?Number(p.kpi_delays):null,other_deductions:Number(p.other_deductions||0),base_salary:0,bonuses:0,loan_deduction:0,net_pay:0,status:"Pendiente",notes:"",created_by:userId};
-    const {error}=await supabase.from("payroll_records").insert(payload);
-    if(error){
-      if(error.code==="23505"){
-        await loadFinanceDataExt();
-        const existing=payroll.find(x=>x.employee_id===p.employee_id&&String(x.period).slice(0,7)===p.period&&Number(x.fortnight)===fortnight);
-        const employeeName=employees.find(x=>x.id===p.employee_id)?.full_name||"Este trabajador";
-        return notify(existing
-          ? employeeName+" ya tiene registrada la "+(fortnight===1?"primera":"segunda")+" quincena de "+p.period+". Estado: "+existing.status+". No se modificó el registro existente."
-          : "Ya existe una planilla para ese trabajador, mes y quincena. No se creó ni modificó ningún registro.");
+    button.disabled=true;button.textContent="Guardando...";
+    try{
+      const {data:saved,error}=await supabase.from("payroll_records").insert(payload).select("*").single();
+      if(error){
+        if(error.code==="23505"){await loadFinanceDataExt();return notify("Ya existe una planilla para ese trabajador y quincena. No se creó ni modificó ningún registro.");}
+        return fail("calcular y guardar la quincena",error);
       }
-      return fail("calcular y guardar la quincena",error);
-    }
-    e.currentTarget.reset();$("extPayrollForm").querySelector('[name="period"]').value=today().slice(0,7);await loadFinanceDataExt();
+      await loadFinanceDataExt();
+      renderPayrollPreview();
+      notify("Planilla guardada. Neto a pagar: "+money(saved.net_pay)+".");
+    }finally{button.disabled=false;button.textContent="Guardar planilla quincenal";}
   });
   $("extLoansTable").addEventListener("click",async e=>{
     const b=e.target.closest("[data-cancel-loan]");if(!b)return;
     if(!confirm("¿Cancelar este préstamo?"))return;
     const {error}=await supabase.from("employee_loans").update({status:"Cancelado"}).eq("id",b.dataset.cancelLoan);
-    if(error)return fail("cancelar el préstamo",error);await loadFinanceDataExt();
+    if(error)return fail("cancelar el préstamo",error);await loadFinanceDataExt();renderPayrollPreview();
   });
   $("extPayrollTable").addEventListener("click",async e=>{
     const b=e.target.closest("[data-payroll-paid]");if(!b)return;
     if(!confirm("¿Confirmas el pago de esta quincena? Se aplicarán los descuentos de préstamo."))return;
     const {error}=await supabase.from("payroll_records").update({status:"Pagada",payment_date:today()}).eq("id",b.dataset.payrollPaid);
-    if(error)return fail("marcar la quincena como pagada",error);await loadFinanceDataExt();
+    if(error)return fail("marcar la quincena como pagada",error);await loadFinanceDataExt();renderPayrollPreview();
   });
 }
+function calculatePayrollPreview(p) {
+  const comp=compensation.find(x=>x.employee_id===p.employee_id);
+  if(!comp)return null;
+  const baseSalary=Number((Number(comp.monthly_base_salary||0)/2).toFixed(2));
+  const values=[p.kpi_complaints,p.kpi_cleanliness,p.kpi_delays].map(v=>v===""?null:Number(v));
+  const hasAllKpis=values.every(v=>v!==null&&v>=1&&v<=5);
+  const kpiPercentage=hasAllKpis?Number((((values[0]-1)*25+(values[1]-1)*25+(values[2]-1)*25)/3).toFixed(2)):null;
+  const bonus=Number((Number(comp.monthly_kpi_bonus_max||0)*(kpiPercentage||0)/100/2).toFixed(2));
+  const activeLoans=loans.filter(x=>x.employee_id===p.employee_id&&x.status==="Activo"&&Number(x.balance)>0&&(x.installments_total==null||Number(x.installments_paid)<Number(x.installments_total)));
+  const loanDeduction=Number(activeLoans.reduce((sum,x)=>{
+    const remaining=Number(x.balance||0),installment=Number(x.installment_amount||0);
+    const next= x.installments_total!=null&&Number(x.installments_paid)+1>=Number(x.installments_total)?remaining:Math.min(installment,remaining);
+    return sum+Math.max(0,next);
+  },0).toFixed(2));
+  const otherDeductions=Number(p.other_deductions||0);
+  const totalDeductions=Number((loanDeduction+otherDeductions).toFixed(2));
+  const netPay=Number((baseSalary+bonus-totalDeductions).toFixed(2));
+  return {baseSalary,kpiPercentage,bonus,loanDeduction,otherDeductions,totalDeductions,netPay};
+}
+function renderPayrollPreview() {
+  const target=$("extPayrollPreview"),form=$("extPayrollForm");
+  if(!target||!form)return;
+  const p=Object.fromEntries(new FormData(form).entries());
+  const employee=employees.find(x=>x.id===p.employee_id);
+  const comp=compensation.find(x=>x.employee_id===p.employee_id);
+  if(!p.employee_id){target.innerHTML='<div class="ext-payroll-preview"><h4>Resultado de la quincena</h4><p class="ext-note">Selecciona un trabajador para ver el cálculo.</p></div>';return;}
+  if(!comp){target.innerHTML='<div class="ext-payroll-preview"><h4>Resultado de la quincena</h4><p class="ext-note">'+esc(employee?.full_name||"Este trabajador")+' no tiene una compensación configurada. Guarda primero su sueldo y bono mensual.</p></div>';return;}
+  const c=calculatePayrollPreview(p);
+  target.innerHTML='<div class="ext-payroll-preview"><h4>Resultado estimado · '+esc(employee?.full_name||"Trabajador")+'</h4><div class="ext-payroll-breakdown">'+
+    '<div class="ext-payroll-line"><span>Sueldo base</span><strong>'+money(c.baseSalary)+'</strong></div>'+
+    '<div class="ext-payroll-line"><span>KPI alcanzado</span><strong>'+(c.kpiPercentage===null?"Sin evaluar":c.kpiPercentage.toFixed(2)+"%")+'</strong></div>'+
+    '<div class="ext-payroll-line"><span>Bono KPI</span><strong>'+money(c.bonus)+'</strong></div>'+
+    '<div class="ext-payroll-line"><span>Descuento préstamo</span><strong>'+money(c.loanDeduction)+'</strong></div>'+
+    '<div class="ext-payroll-line"><span>Otras deducciones</span><strong>'+money(c.otherDeductions)+'</strong></div>'+
+    '<div class="ext-payroll-line"><span>Total deducciones</span><strong>'+money(c.totalDeductions)+'</strong></div>'+
+    '</div><div class="ext-payroll-total"><span>NETO A PAGAR</span><strong>'+money(c.netPay)+'</strong></div></div>';
+}
+
 function calcLoanInstallment() {
   const amount=Number($("extLoanForm")?.querySelector('[name="amount"]')?.value||0);
   const terms=Number($("extLoanTerms")?.value||0);
@@ -556,7 +608,8 @@ async function loadFinanceDataExt() {
     const x=compensation.find(c=>c.employee_id===$("extCompEmployee").value);
     $("extCompForm").querySelector('[name="monthly_base_salary"]').value=x?.monthly_base_salary??"";
     $("extCompForm").querySelector('[name="monthly_kpi_bonus_max"]').value=x?.monthly_kpi_bonus_max??0;
-  },{once:true});
+  });
+  renderPayrollPreview();
 }
 
 // ---------------- EDICIÓN DE VIAJES ----------------
