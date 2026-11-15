@@ -506,6 +506,7 @@ end;
 $$;
 
 drop trigger if exists payroll_records_calculate_kpi on public.payroll_records;
+drop function if exists public.set_payroll_kpi_percentage();
 drop trigger if exists payroll_records_prepare_calculation on public.payroll_records;
 create trigger payroll_records_prepare_calculation
 before insert or update of employee_id, period, fortnight, kpi_complaints,
