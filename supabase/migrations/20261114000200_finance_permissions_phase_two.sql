@@ -276,7 +276,7 @@ begin
 end;
 $$;
 
-revoke all on function public.register_school_student_payment(uuid,numeric,text,text,uuid) from public;
+revoke all on function public.register_school_student_payment(uuid,numeric,text,text,uuid) from public, anon;
 grant execute on function public.register_school_student_payment(uuid,numeric,text,text,uuid) to authenticated;
 
 
@@ -301,7 +301,7 @@ as $$
   where u.user_id is not null;
 $$;
 
-revoke all on function public.get_my_school_permissions() from public;
+revoke all on function public.get_my_school_permissions() from public, anon;
 grant execute on function public.get_my_school_permissions() to authenticated;
 
 
@@ -341,7 +341,7 @@ begin
 end;
 $$;
 
-revoke all on function public.get_abordajes_trips() from public;
+revoke all on function public.get_abordajes_trips() from public, anon;
 grant execute on function public.get_abordajes_trips() to authenticated;
 
 commit;
