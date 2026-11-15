@@ -306,8 +306,12 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $
 begin
+  if tg_op = 'UPDATE' and old.base_salary is not distinct from new.base_salary then
+    return new;
+  end if;
+
   insert into public.employee_compensation
     (employee_id, monthly_base_salary, monthly_kpi_bonus_max, currency)
   values (new.id, new.base_salary, 0, 'GTQ')
