@@ -19,7 +19,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select exists (
     select 1
     from public.profiles p
@@ -29,7 +29,7 @@ as $
       and ump.module_code = 'finanzas'
       and ump.can_access = true
   );
-$;
+$$;
 
 
 -- Finance views deliberately run with the view owner's privileges. Each view
@@ -241,7 +241,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if not (public.is_superadmin() or private.has_finance_access())
      and new.base_salary is distinct from
@@ -250,7 +250,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists protect_employee_salary on public.employees;
 create trigger protect_employee_salary
@@ -263,7 +263,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   insert into public.employee_compensation
     (employee_id, monthly_base_salary, monthly_kpi_bonus_max, currency)
@@ -273,7 +273,7 @@ begin
         updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists sync_employee_compensation_salary on public.employees;
 create trigger sync_employee_compensation_salary
@@ -287,7 +287,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if public.is_superadmin() or private.has_finance_access() then
     return new;
@@ -311,7 +311,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists protect_trip_financial_update on public.trips;
 create trigger protect_trip_financial_update
