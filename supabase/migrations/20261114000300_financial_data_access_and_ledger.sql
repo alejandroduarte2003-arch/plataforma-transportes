@@ -273,6 +273,23 @@ create trigger protect_employee_salary
 before insert or update of base_salary on public.employees
 for each row execute function incorova_private.protect_employee_salary();
 
+-- Keep compensation audit timestamps database-generated.
+create or replace function incorova_private.touch_employee_compensation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  new.updated_at := now();
+  return new;
+end;
+$;
+
+drop trigger if exists employee_compensation_touch_updated_at on public.employee_compensation;
+create trigger employee_compensation_touch_updated_at
+before update on public.employee_compensation
+for each row execute function incorova_private.touch_employee_compensation();
+
 -- Keep the protected compensation table in sync with the legacy salary field.
 create or replace function incorova_private.sync_employee_compensation_salary()
 returns trigger
