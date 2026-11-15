@@ -2337,7 +2337,18 @@
         const form=document.getElementById(formId),btn=form.querySelector('[type="submit"]');btn.disabled=true;
         try{
             const safePayload={...payload};
-            if(id&&!hasFinanceAccess)["price_per_liter","price_per_gallon","total_cost","cost","unit_cost"].forEach(key=>delete safePayload[key]);
+            if(!hasFinanceAccess){
+                const moneyFields=["price_per_liter","price_per_gallon","total_cost","cost","unit_cost"];
+                if(id){
+                    // Al editar sin Finanzas, omitir importes conserva los valores ya registrados.
+                    moneyFields.forEach(key=>delete safePayload[key]);
+                }else{
+                    // Los importes obligatorios nacen en cero y Finanzas los completa después.
+                    if(table==="fuel_entries")Object.assign(safePayload,{price_per_liter:0,price_per_gallon:0,total_cost:0});
+                    if(table==="maintenance_records")safePayload.cost=0;
+                    if(table==="vehicle_parts")Object.assign(safePayload,{unit_cost:0,total_cost:0});
+                }
+            }
             const query=id?supabase.from(table).update(safePayload).eq("id",id):supabase.from(table).insert({...safePayload,created_by:currentUserId});const {error}=await query;if(error)throw error;
             const modal={fuel_entries:"fuelModal",maintenance_records:"maintenanceModal",vehicle_parts:"partsModal"}[table];closeFleetModal(modal);await loadFlotaData();
         }catch(error){showOperationError(error,action);}finally{btn.disabled=false;}
@@ -2587,7 +2598,7 @@
         const ab=e.target.closest("[data-add-collection]"),ed=e.target.closest("[data-edit-receivable]"),del=e.target.closest("[data-delete-receivable]");
         if(ab){collectionRequestKey=crypto.randomUUID();document.getElementById("collectionForm").reset();document.getElementById("collectionReceivable").value=ab.dataset.addCollection;document.getElementById("collectionDate").value=financeToday();document.getElementById("collectionAmount").max=receivableBalance(financialReceivables.find(x=>x.id===ab.dataset.addCollection));financeModalOpen("collectionModal");return;}
         if(ed){openReceivableModal(financialReceivables.find(x=>x.id===ed.dataset.editReceivable));return;}
-        if(del&&confirm("¿Eliminar esta cuenta y su historial de abonos?")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
+        if(del&&confirm("¿Eliminar esta cuenta? No se puede eliminar si ya tiene cobros registrados.")){const {error}=await supabase.from("financial_receivables").delete().eq("id",del.dataset.deleteReceivable);if(error)showOperationError(error,"eliminar la cuenta");else await loadFinanceData();}
     });
     document.getElementById("expensesTableBody").addEventListener("click",async e=>{
         const ed=e.target.closest("[data-edit-expense]"),del=e.target.closest("[data-delete-expense]"),pay=e.target.closest("[data-pay-expense]");
