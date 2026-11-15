@@ -106,60 +106,93 @@ function securePersonalView() {
 // ---------------- ABORDAJES ----------------
 async function initBoardings() {
   $("ext-abordajes").innerHTML =
-    '<div class="ext-grid">' +
-      '<div class="ext-card"><h3>Nuevo contrato</h3><form id="extContractForm" class="ext-form">' +
+    '<div class="ext-school-accordions">' +
+      '<details class="ext-school-accordion"><summary>Nuevo contrato<small>Crear y administrar un contrato</small></summary><div class="ext-school-accordion-body"><form id="extContractForm" class="ext-form">' +
         '<label class="full">Nombre del contrato<input name="name" required maxlength="150"></label>' +
         '<label>Cliente<input name="client_name" maxlength="150"></label><label>Estado<select name="status"><option>Activo</option><option>Inactivo</option><option>Finalizado</option></select></label>' +
         '<label>Inicio<input name="start_date" type="date"></label><label>Finalización<input name="end_date" type="date"></label>' +
-        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Guardar contrato</button></form></div>' +
-      '<div class="ext-card"><h3>Registrar pasajero</h3><form id="extPassengerForm" class="ext-form">' +
+        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Guardar contrato</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Registrar pasajero<small>Agregar una persona al registro</small></summary><div class="ext-school-accordion-body"><form id="extPassengerForm" class="ext-form">' +
         '<label class="full">Nombre completo<input name="full_name" required maxlength="150"></label><label>Contacto<input name="contact" maxlength="80"></label>' +
-        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Guardar pasajero</button></form></div>' +
-    '</div>' +
-    '<div class="ext-grid">' +
-      '<div class="ext-card"><h3>Asignar pasajero a contrato</h3><form id="extAssignForm" class="ext-form">' +
+        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Guardar pasajero</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Asignar pasajero a contrato<small>Agregar un pasajero a una lista</small></summary><div class="ext-school-accordion-body"><form id="extAssignForm" class="ext-form">' +
         '<label class="full">Contrato<select name="contract_id" id="extContractSelect" required></select></label>' +
         '<label class="full">Pasajero<select name="passenger_id" id="extPassengerSelect" required></select></label>' +
-        '<label class="full">Punto de abordaje<input name="pickup_point" maxlength="180"></label><button class="full" type="submit">Agregar a la lista</button></form></div>' +
-      '<div class="ext-card"><h3>Registrar abordaje por viaje</h3><form id="extTripBoardingForm" class="ext-form">' +
+        '<label class="full">Punto de abordaje<input name="pickup_point" maxlength="180"></label><button class="full" type="submit">Agregar a la lista</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Registrar abordaje por viaje<small>Guardar la asistencia de un pasajero en un viaje</small></summary><div class="ext-school-accordion-body"><form id="extTripBoardingForm" class="ext-form">' +
         '<label class="full">Viaje<select name="trip_id" id="extTripSelect" required></select></label>' +
         '<label class="full">Pasajero<select name="passenger_id" id="extTripPassengerSelect" required></select></label>' +
         '<label>Fecha y hora<input name="boarded_at" type="datetime-local" required></label><label>Punto de abordaje<input name="boarding_point" maxlength="180"></label>' +
-        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Registrar abordaje</button></form></div>' +
-    '</div>' +
-    '<div class="ext-card"><h3>Contratos y listas de pasajeros</h3><div id="extContractsTable" class="ext-table"></div></div>' +
-    '<div class="ext-card"><h3>Pasajeros asignados a contratos</h3><div id="extAssignmentsTable" class="ext-table"></div></div>' +
-    '<div class="ext-card"><h3>Abordajes por viaje</h3><div id="extTripBoardingsTable" class="ext-table"></div><p class="ext-note">Un pasajero puede aparecer en varios viajes. Cada registro queda asociado al viaje específico.</p></div>';
+        '<label class="full">Observaciones<textarea name="notes"></textarea></label><button class="full" type="submit">Registrar abordaje</button></form></div></details>' +
+      '<details class="ext-school-accordion"><summary>Contratos y listas de pasajeros<small>Consultar o eliminar contratos</small></summary><div class="ext-school-accordion-body"><div id="extContractsTable" class="ext-table"></div></div></details>' +
+      '<details class="ext-school-accordion"><summary>Pasajeros asignados a contratos<small>Consultar o quitar asignaciones</small></summary><div class="ext-school-accordion-body"><div id="extAssignmentsTable" class="ext-table"></div></div></details>' +
+      '<details class="ext-school-accordion"><summary>Abordajes por viaje<small>Consultar los abordajes registrados</small></summary><div class="ext-school-accordion-body"><div id="extTripBoardingsTable" class="ext-table"></div><p class="ext-note">Un pasajero puede aparecer en varios viajes. Cada registro queda asociado al viaje específico.</p></div></details>' +
+    '</div>';
+
+  const saveForm = async (form, action, success, save) => {
+    const button = form.querySelector('button[type="submit"]');
+    const originalText = button.textContent;
+    if (button.disabled) return;
+    button.disabled = true;
+    button.textContent = "Guardando...";
+    try {
+      await save();
+      form.reset();
+      button.textContent = "Actualizando lista...";
+      await loadBoardingsData();
+      notify(success);
+    } catch (error) {
+      fail(action, error);
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  };
+
   $("extContractForm").addEventListener("submit", async e => {
-    e.preventDefault(); const p = Object.fromEntries(new FormData(e.currentTarget).entries());
-    if (p.start_date === "") p.start_date = null; if (p.end_date === "") p.end_date = null;
-    p.created_by = userId;
-    const { error } = await supabase.from("transport_contracts").insert(p);
-    if (error) return fail("guardar el contrato", error);
-    e.currentTarget.reset(); await loadBoardingsData();
+    e.preventDefault();
+    const form = e.currentTarget;
+    await saveForm(form, "guardar el contrato", "Contrato guardado correctamente.", async () => {
+      const p = Object.fromEntries(new FormData(form).entries());
+      if (p.start_date === "") p.start_date = null;
+      if (p.end_date === "") p.end_date = null;
+      p.created_by = userId;
+      const { error } = await supabase.from("transport_contracts").insert(p);
+      if (error) throw error;
+    });
   });
+
   $("extPassengerForm").addEventListener("submit", async e => {
-    e.preventDefault(); const p = Object.fromEntries(new FormData(e.currentTarget).entries()); p.created_by = userId;
-    const { error } = await supabase.from("transport_passengers").insert(p);
-    if (error) return fail("guardar el pasajero", error);
-    e.currentTarget.reset(); await loadBoardingsData();
+    e.preventDefault();
+    const form = e.currentTarget;
+    await saveForm(form, "guardar el pasajero", "Pasajero guardado correctamente.", async () => {
+      const p = Object.fromEntries(new FormData(form).entries());
+      p.created_by = userId;
+      const { error } = await supabase.from("transport_passengers").insert(p);
+      if (error) throw error;
+    });
   });
+
   $("extAssignForm").addEventListener("submit", async e => {
-    e.preventDefault(); const p = Object.fromEntries(new FormData(e.currentTarget).entries());
-    const { error } = await supabase.from("contract_passengers").upsert(p, { onConflict:"contract_id,passenger_id" });
-    if (error) return fail("asignar el pasajero al contrato", error);
-    e.currentTarget.reset(); await loadBoardingsData();
+    e.preventDefault();
+    const form = e.currentTarget;
+    await saveForm(form, "asignar el pasajero al contrato", "Pasajero asignado correctamente.", async () => {
+      const p = Object.fromEntries(new FormData(form).entries());
+      const { error } = await supabase.from("contract_passengers").upsert(p, { onConflict:"contract_id,passenger_id" });
+      if (error) throw error;
+    });
   });
+
   $("extTripBoardingForm").addEventListener("submit", async e => {
     e.preventDefault();
     const form = e.currentTarget;
     const button = form.querySelector('button[type="submit"]');
     const originalText = button.textContent;
+    if (button.disabled) return;
     const p = Object.fromEntries(new FormData(form).entries());
     button.disabled = true;
     button.textContent = "Verificando...";
     try {
-      // Evita intentar registrar dos veces al mismo pasajero en el mismo viaje.
       const { data: existing, error: checkError } = await supabase
         .from("trip_passenger_boardings")
         .select("id,boarded_at,boarding_point")
@@ -168,11 +201,9 @@ async function initBoardings() {
         .maybeSingle();
       if (checkError) throw checkError;
       if (existing) {
-        const when = existing.boarded_at
-          ? new Date(existing.boarded_at).toLocaleString("es-GT")
-          : "fecha no disponible";
-        notify("Este pasajero ya tiene un abordaje registrado para este viaje (" + when + "). No se creó un registro duplicado.");
+        const when = existing.boarded_at ? new Date(existing.boarded_at).toLocaleString("es-GT") : "fecha no disponible";
         await loadBoardingsData();
+        notify("Este pasajero ya tiene un abordaje registrado para este viaje (" + when + "). No se creó un duplicado.");
         return;
       }
       p.boarded_at = new Date(p.boarded_at).toISOString();
@@ -181,13 +212,14 @@ async function initBoardings() {
       const { error } = await supabase.from("trip_passenger_boardings").insert(p);
       if (error) {
         if (error.code === "23505") {
-          notify("Este pasajero ya fue registrado en este viaje. Actualicé la lista para mostrar el abordaje existente.");
           await loadBoardingsData();
+          notify("Este pasajero ya fue registrado en este viaje. La lista fue actualizada.");
           return;
         }
         throw error;
       }
       form.reset();
+      button.textContent = "Actualizando lista...";
       await loadBoardingsData();
       notify("Abordaje registrado correctamente.");
     } catch (error) {
@@ -197,22 +229,33 @@ async function initBoardings() {
       button.textContent = originalText;
     }
   });
+
   $("extContractsTable").addEventListener("click", async e => {
-    const b = e.target.closest("[data-del-contract]"); if (!b) return;
+    const b = e.target.closest("[data-del-contract]");
+    if (!b) return;
     if (!confirm("¿Eliminar el contrato y sus asignaciones?")) return;
     const { error } = await supabase.from("transport_contracts").delete().eq("id", b.dataset.delContract);
-    if (error) return fail("eliminar el contrato", error); await loadBoardingsData();
+    if (error) return fail("eliminar el contrato", error);
+    await loadBoardingsData();
+    notify("Contrato eliminado correctamente.");
   });
   $("extAssignmentsTable").addEventListener("click", async e => {
-    const b = e.target.closest("[data-del-assignment]"); if (!b) return;
+    const b = e.target.closest("[data-del-assignment]");
+    if (!b) return;
     const [contract_id, passenger_id] = b.dataset.delAssignment.split("|");
     const { error } = await supabase.from("contract_passengers").delete().eq("contract_id", contract_id).eq("passenger_id", passenger_id);
-    if (error) return fail("quitar el pasajero del contrato", error); await loadBoardingsData();
+    if (error) return fail("quitar el pasajero del contrato", error);
+    await loadBoardingsData();
+    notify("Pasajero retirado de la lista correctamente.");
   });
   $("extTripBoardingsTable").addEventListener("click", async e => {
-    const b = e.target.closest("[data-del-trip-boarding]"); if (!b) return;
+    const b = e.target.closest("[data-del-trip-boarding]");
+    if (!b) return;
+    if (!confirm("¿Eliminar este registro de abordaje?")) return;
     const { error } = await supabase.from("trip_passenger_boardings").delete().eq("id", b.dataset.delTripBoarding);
-    if (error) return fail("eliminar el abordaje", error); await loadBoardingsData();
+    if (error) return fail("eliminar el abordaje", error);
+    await loadBoardingsData();
+    notify("Registro de abordaje eliminado correctamente.");
   });
   await loadBoardingsData();
 }
