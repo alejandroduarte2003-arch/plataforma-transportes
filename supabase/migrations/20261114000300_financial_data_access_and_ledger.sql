@@ -286,6 +286,7 @@ begin
   values (new.id, new.base_salary, 0, 'GTQ')
   on conflict (employee_id) do update
     set monthly_base_salary = excluded.monthly_base_salary,
+        effective_from = current_date,
         updated_at = now();
   return new;
 end;
