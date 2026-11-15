@@ -130,7 +130,9 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Los usuarios de Flota pueden registrar una operación, pero no consultar los importes históricos ni modificarlos después; esos cambios quedan reservados a Finanzas.
 - Los importes de sueldos, préstamos y planilla se consultan mediante vistas de Finanzas. Los usuarios sin ese permiso ven los datos operativos, no las cantidades monetarias.
 - El libro central se sincroniza mediante triggers con combustible, mantenimiento, repuestos, préstamos, planilla, cobros y gastos. Las claves deterministas evitan duplicar movimientos al reintentar o repetir el backfill.
-- Las cuentas por cobrar y los ingresos de viajes no se cuentan como efectivo recibido; el ingreso efectivo se registra al crear el cobro. Los pagos escolares ya generan su movimiento desde el RPC transaccional.
+- Las cuentas por cobrar y los ingresos de viajes no se cuentan como efectivo recibido; el ingreso efectivo se registra al crear el cobro.
+- El cobro de una cuenta por cobrar usa un RPC transaccional con bloqueo de la cuenta, validación del saldo, clave idempotente, actualización de estado y movimiento financiero en la misma transacción.
+- Los pagos escolares generan su movimiento desde su propio RPC transaccional.
 - El panel de Finanzas consulta el libro central para los totales, reportes y una nueva pestaña de movimientos.
 - Se añadieron permisos explícitos de Data API para las tablas nuevas y la secuencia del código de estudiante. RLS sigue controlando qué filas puede utilizar cada usuario.
 
