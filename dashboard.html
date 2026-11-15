@@ -1414,6 +1414,7 @@
     let accessReady = false;
     let currentUserId = null;
     let isSuperAdmin = false;
+    let hasFinanceAccess = false;
 
     function showOperationError(error, action) {
         console.error("Error en " + action + ":", error);
@@ -1499,6 +1500,7 @@
                 });
             }
 
+            hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
             applyModulePermissions();
             accessReady = true;
             openView("inicio");
@@ -1636,6 +1638,9 @@
         document.getElementById("tripModalTitle").textContent = editingTripId ? "Editar viaje" : "Registrar viaje";
         tripForm.querySelector('button[type="submit"]').textContent = editingTripId ? "Guardar cambios" : "Guardar viaje";
         document.getElementById("tripDate").value = trip?.date || new Date().toISOString().slice(0, 10);
+        const incomeField = document.getElementById("tripIncomeInput");
+        incomeField.closest(".form-field").hidden = !hasFinanceAccess;
+        incomeField.value = hasFinanceAccess ? (trip?.income ?? 0) : 0;
         if (trip) {
             document.getElementById("tripVehicle").value = trip.vehicleId;
             document.getElementById("tripOrigin").value = trip.origin;
@@ -1704,8 +1709,9 @@
             trips.filter(trip => trip.status === "Programado").length;
         document.getElementById("tripCompleted").textContent =
             trips.filter(trip => trip.status === "Completado").length;
-        document.getElementById("tripIncome").textContent =
-            formatQuetzales(trips.reduce((sum, trip) => sum + trip.income, 0));
+        document.getElementById("tripIncome").textContent = hasFinanceAccess
+            ? formatQuetzales(trips.reduce((sum, trip) => sum + trip.income, 0))
+            : "Solo Finanzas";
 
         if (!filtered.length) {
             tripsTableBody.innerHTML =
@@ -1723,7 +1729,7 @@
                     <td>${escapeHtml(trip.destination)}</td>
                     <td>${escapeHtml(trip.responsible)}</td>
                     <td>${escapeHtml(trip.serviceType)}</td>
-                    <td>${formatQuetzales(trip.income)}</td>
+                    <td>${hasFinanceAccess ? formatQuetzales(trip.income) : "Solo Finanzas"}</td>
                     <td><span class="status-pill">${escapeHtml(trip.status)}</span></td>
                     <td>${isSuperAdmin ? `<button class="table-action" type="button" data-edit-trip="${trip.id}">Editar</button>` : ""} <button class="table-action" type="button" data-delete-trip="${trip.id}">Eliminar</button></td>
                 </tr>
@@ -1765,7 +1771,7 @@
                 return;
             }
 
-            const income = Number(formData.get("income") || 0);
+            const income = hasFinanceAccess ? Number(formData.get("income") || 0) : 0;
             if (!Number.isFinite(income) || income < 0) {
                 alert("Ingresa un monto válido para el ingreso.");
                 return;
@@ -1975,7 +1981,7 @@
         try {
             const [vehicleResult, tripResult] = await Promise.all([
                 supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
-                supabase.from("trips").select("*").order("date", { ascending: false })
+                supabase.from("trips").select("id,date,vehicle_id,origin,destination,responsible,service_type,status,notes,created_by,created_at,updated_at").order("date", { ascending: false })
             ]);
 
             if (vehicleResult.error) throw vehicleResult.error;
@@ -1993,6 +1999,13 @@
                 notes: item.notes || ""
             }));
 
+            let financeTripAmounts = [];
+            if (hasFinanceAccess) {
+                const { data, error } = await supabase.from("finance_trips").select("id,income");
+                if (error) throw error;
+                financeTripAmounts = data || [];
+            }
+            const tripIncomeById = new Map(financeTripAmounts.map(item => [item.id, Number(item.income || 0)]));
             trips = (tripResult.data || []).map(item => ({
                 id: item.id,
                 date: item.date,
@@ -2001,7 +2014,7 @@
                 destination: item.destination,
                 responsible: item.responsible,
                 serviceType: item.service_type,
-                income: Number(item.income || 0),
+                income: tripIncomeById.get(item.id) ?? 0,
                 status: item.status,
                 notes: item.notes || ""
             }));
