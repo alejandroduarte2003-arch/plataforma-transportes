@@ -185,7 +185,7 @@ create or replace function public.sync_fuel_measurement_units()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $fuel_units$
 begin
   if tg_op = 'INSERT' then
     if new.gallons is null then
@@ -206,7 +206,7 @@ begin
   end if;
   return new;
 end;
-$;
+$fuel_units$;
 
 revoke all on function public.sync_fuel_measurement_units() from public, anon, authenticated;
 drop trigger if exists fuel_entries_sync_measurement_units on public.fuel_entries;
