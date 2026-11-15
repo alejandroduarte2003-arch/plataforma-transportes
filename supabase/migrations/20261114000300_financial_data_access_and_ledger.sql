@@ -9,11 +9,11 @@
 begin;
 
 -- Private trigger code is not exposed through the Supabase Data API.
-create schema if not exists private;
-revoke all on schema private from public, anon, authenticated;
+create schema if not exists incorova_private;
+revoke all on schema incorova_private from public, anon, authenticated;
 
 -- Internal permission check for database triggers. This function is not exposed.
-create or replace function private.has_finance_access()
+create or replace function incorova_private.has_finance_access()
 returns boolean
 language sql
 stable
@@ -220,36 +220,36 @@ on public.payroll_records to authenticated;
 -- payroll records. Personal-module users can still read the non-monetary fields.
 create policy employee_loans_finance_write
   on public.employee_loans as restrictive for insert to authenticated
-  with check (public.is_superadmin() or private.has_finance_access());
+  with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy employee_loans_finance_update
   on public.employee_loans as restrictive for update to authenticated
-  using (public.is_superadmin() or private.has_finance_access())
-  with check (public.is_superadmin() or private.has_finance_access());
+  using (public.is_superadmin() or incorova_private.has_finance_access())
+  with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy employee_loans_finance_delete
   on public.employee_loans as restrictive for delete to authenticated
-  using (public.is_superadmin() or private.has_finance_access());
+  using (public.is_superadmin() or incorova_private.has_finance_access());
 
 create policy payroll_records_finance_write
   on public.payroll_records as restrictive for insert to authenticated
-  with check (public.is_superadmin() or private.has_finance_access());
+  with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy payroll_records_finance_update
   on public.payroll_records as restrictive for update to authenticated
-  using (public.is_superadmin() or private.has_finance_access())
-  with check (public.is_superadmin() or private.has_finance_access());
+  using (public.is_superadmin() or incorova_private.has_finance_access())
+  with check (public.is_superadmin() or incorova_private.has_finance_access());
 create policy payroll_records_finance_delete
   on public.payroll_records as restrictive for delete to authenticated
-  using (public.is_superadmin() or private.has_finance_access());
+  using (public.is_superadmin() or incorova_private.has_finance_access());
 
 -- A Finance user may create or update employee salary; other staff may still
 -- manage the non-financial employee profile.
-create or replace function private.protect_employee_salary()
+create or replace function incorova_private.protect_employee_salary()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
 begin
-  if not (public.is_superadmin() or private.has_finance_access()) then
+  if not (public.is_superadmin() or incorova_private.has_finance_access()) then
     if tg_op = 'INSERT' and new.base_salary <> 0 then
       raise exception 'Solo Finanzas puede asignar el sueldo base';
     elsif tg_op = 'UPDATE' and old.base_salary is distinct from new.base_salary then
@@ -263,10 +263,10 @@ $$;
 drop trigger if exists protect_employee_salary on public.employees;
 create trigger protect_employee_salary
 before insert or update of base_salary on public.employees
-for each row execute function private.protect_employee_salary();
+for each row execute function incorova_private.protect_employee_salary();
 
 -- Keep the protected compensation table in sync with the legacy salary field.
-create or replace function private.sync_employee_compensation_salary()
+create or replace function incorova_private.sync_employee_compensation_salary()
 returns trigger
 language plpgsql
 security definer
@@ -286,18 +286,18 @@ $$;
 drop trigger if exists sync_employee_compensation_salary on public.employees;
 create trigger sync_employee_compensation_salary
 after insert or update of base_salary on public.employees
-for each row execute function private.sync_employee_compensation_salary();
+for each row execute function incorova_private.sync_employee_compensation_salary();
 
 -- Prevent operational users from changing existing expense amounts after
 -- creation. They may submit a new expense, but only Finance can alter its cost.
-create or replace function private.protect_legacy_financial_updates()
+create or replace function incorova_private.protect_legacy_financial_updates()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
 begin
-  if public.is_superadmin() or private.has_finance_access() then
+  if public.is_superadmin() or incorova_private.has_finance_access() then
     return new;
   end if;
 
@@ -329,22 +329,22 @@ $$;
 drop trigger if exists protect_trip_financial_update on public.trips;
 create trigger protect_trip_financial_update
 before update on public.trips
-for each row execute function private.protect_legacy_financial_updates();
+for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_fuel_financial_update on public.fuel_entries;
 create trigger protect_fuel_financial_update
 before update on public.fuel_entries
-for each row execute function private.protect_legacy_financial_updates();
+for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_maintenance_financial_update on public.maintenance_records;
 create trigger protect_maintenance_financial_update
 before update on public.maintenance_records
-for each row execute function private.protect_legacy_financial_updates();
+for each row execute function incorova_private.protect_legacy_financial_updates();
 
 drop trigger if exists protect_parts_financial_update on public.vehicle_parts;
 create trigger protect_parts_financial_update
 before update on public.vehicle_parts
-for each row execute function private.protect_legacy_financial_updates();
+for each row execute function incorova_private.protect_legacy_financial_updates();
 
 -- These tables are finance-only already at the RLS layer. Remove anonymous
 -- SQL privileges explicitly as a second boundary.
@@ -355,7 +355,7 @@ from anon;
 
 -- Keep the legacy salary column out of new employee writes. The authoritative
 -- salary lives in employee_compensation, populated for old employees in phase 2.
-create or replace function private.create_employee_compensation_row()
+create or replace function incorova_private.create_employee_compensation_row()
 returns trigger
 language plpgsql
 security definer
@@ -373,11 +373,11 @@ $$;
 drop trigger if exists employees_create_compensation on public.employees;
 create trigger employees_create_compensation
 after insert on public.employees
-for each row execute function private.create_employee_compensation_row();
+for each row execute function incorova_private.create_employee_compensation_row();
 
 -- Synchronize legacy cash events into the central ledger. The deterministic
 -- key makes replays and retries safe; deleting a source row annuls its movement.
-create or replace function private.sync_legacy_financial_movement()
+create or replace function incorova_private.sync_legacy_financial_movement()
 returns trigger
 language plpgsql
 security definer
@@ -514,31 +514,31 @@ $$;
 -- safe to re-run during local review.
 drop trigger if exists sync_fuel_ledger on public.fuel_entries;
 create trigger sync_fuel_ledger after insert or update or delete on public.fuel_entries
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_maintenance_ledger on public.maintenance_records;
 create trigger sync_maintenance_ledger after insert or update or delete on public.maintenance_records
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_parts_ledger on public.vehicle_parts;
 create trigger sync_parts_ledger after insert or update or delete on public.vehicle_parts
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_employee_loan_ledger on public.employee_loans;
 create trigger sync_employee_loan_ledger after insert or update or delete on public.employee_loans
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_payroll_ledger on public.payroll_records;
 create trigger sync_payroll_ledger after insert or update or delete on public.payroll_records
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_collection_ledger on public.financial_collections;
 create trigger sync_collection_ledger after insert or update or delete on public.financial_collections
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 drop trigger if exists sync_expense_ledger on public.financial_expenses;
 create trigger sync_expense_ledger after insert or update or delete on public.financial_expenses
-for each row execute function private.sync_legacy_financial_movement();
+for each row execute function incorova_private.sync_legacy_financial_movement();
 
 -- Backfill current records through the exact same idempotent trigger path.
 update public.fuel_entries set updated_at = updated_at;
