@@ -1123,7 +1123,7 @@
                 <div class="personal-panel active" id="personal-employees">
                     <div class="section-toolbar"><div><h3>Trabajadores</h3><p class="personal-hint">Datos y estado del personal.</p></div><button class="primary-button" id="addEmployeeButton" type="button">+ Registrar trabajador</button></div>
                     <div class="toolbar-filters"><input class="field-control" id="employeeSearch" type="search" placeholder="Buscar trabajador..."><select class="field-control" id="employeeStatusFilter"><option value="">Todos los estados</option><option>Activo</option><option>Inactivo</option></select></div>
-                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Salario base</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="employeesTableBody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
+                    <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Teléfono</th><th>Salario base</th><th>Bono KPI máx.</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="employeesTableBody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody></table></div></div>
                 </div>
                 <div class="personal-panel" id="personal-loans">
                     <div class="section-toolbar"><div><h3>Préstamos al personal</h3><p class="personal-hint">Control de montos, cuotas y saldos.</p></div><button class="primary-button" id="addLoanButton" type="button">+ Registrar préstamo</button></div>
@@ -1511,7 +1511,8 @@
 
             hasFinanceAccess = isSuperAdmin || allowedModules.has("finanzas");
             const salaryField = document.getElementById("employeeBaseSalary");
-            if (salaryField) { salaryField.closest(".form-field").style.display = hasFinanceAccess ? "" : "none"; salaryField.required = hasFinanceAccess; }
+            const bonusField = document.getElementById("employeeKpiBonusMax");
+            [salaryField,bonusField].forEach(field=>{if(field){field.closest(".form-field").style.display=hasFinanceAccess?"":"none";field.required=hasFinanceAccess;}});
             document.getElementById("addLoanButton").style.display = hasFinanceAccess ? "" : "none";
             document.getElementById("addPayrollButton").style.display = hasFinanceAccess ? "" : "none";
             ["fuelPricePerGallon","fuelCost","maintenanceCost","partsUnitCost","partsCalculatedTotal"].forEach(id => {
@@ -2076,7 +2077,7 @@
     function renderEmployees(){
         const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
         const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
+        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${hasFinanceAccess?money(x.baseSalary):"Solo Finanzas"}</td><td>${hasFinanceAccess?money(x.kpiBonusMax):"Solo Finanzas"}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="7" class="empty-state">No se encontraron trabajadores.</td></tr>';
     }
     function renderLoans(){
         const q=document.getElementById("loanSearch").value.trim().toLowerCase(),st=document.getElementById("loanStatusFilter").value;
@@ -2119,7 +2120,7 @@
     function openEmployeeModal(x=null){
         editingEmployeeId=x?.id||null;employeeForm.reset();
         document.getElementById("employeeModalTitle").textContent=x?"Editar trabajador":"Registrar trabajador";
-        [["employeeFullName",x?.fullName],["employeeDpi",x?.dpi],["employeePosition",x?.position],["employeePhone",x?.phone],["employeeHireDate",x?.hireDate],["employeeBaseSalary",x?.baseSalary??0],["employeeStatus",x?.status||"Activo"],["employeeNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v||"");
+        [["employeeFullName",x?.fullName],["employeeDpi",x?.dpi],["employeePosition",x?.position],["employeePhone",x?.phone],["employeeHireDate",x?.hireDate],["employeeBaseSalary",x?.baseSalary??0],["employeeKpiBonusMax",x?.kpiBonusMax??0],["employeeStatus",x?.status||"Activo"],["employeeNotes",x?.notes]].forEach(([id,v])=>document.getElementById(id).value=v||"");
         if(!x)document.getElementById("employeeBaseSalary").value=0;
         openPersonalModal("employeeModal");
     }
@@ -2153,7 +2154,23 @@
         e.preventDefault();if(!currentUserId)return;const btn=employeeForm.querySelector('[type="submit"]');btn.disabled=true;
         try{const d=new FormData(employeeForm),p={full_name:String(d.get("fullName")).trim(),dpi:String(d.get("dpi")||"").trim()||null,position:String(d.get("position")).trim(),phone:String(d.get("phone")||"").trim(),hire_date:String(d.get("hireDate")||"")||null,status:String(document.getElementById("employeeStatus").value),notes:String(d.get("notes")||"").trim()};
             if(hasFinanceAccess)p.base_salary=Number(d.get("baseSalary")||0);
-            const q=editingEmployeeId?supabase.from("employees").update(p).eq("id",editingEmployeeId):supabase.from("employees").insert({...p,created_by:currentUserId});const {error}=await q;
+            let savedEmployeeId=editingEmployeeId;
+            if(editingEmployeeId){
+                const {error}=await supabase.from("employees").update(p).eq("id",editingEmployeeId);
+                if(error)throw error;
+            }else{
+                const {data,error}=await supabase.from("employees").insert({...p,created_by:currentUserId}).select("id").single();
+                if(error)throw error;
+                savedEmployeeId=data.id;
+            }
+            if(hasFinanceAccess){
+                const {error}=await supabase.from("employee_compensation").upsert({
+                    employee_id:savedEmployeeId,
+                    monthly_kpi_bonus_max:Number(document.getElementById("employeeKpiBonusMax").value||0),
+                    updated_at:new Date().toISOString()
+                },{onConflict:"employee_id"});
+                if(error)throw error;
+            }
             closePersonalModal("employeeModal");await loadPersonalData();
         }catch(error){showOperationError(error,"guardar el trabajador");}finally{btn.disabled=false;}
     });
@@ -2958,7 +2975,7 @@
         <div class="form-field full"><label>Nombre completo *</label><input name="fullName" id="employeeFullName" required maxlength="150"></div>
         <div class="form-field"><label>DPI</label><input name="dpi" id="employeeDpi" maxlength="20"></div><div class="form-field"><label>Puesto *</label><input name="position" id="employeePosition" required maxlength="100"></div>
         <div class="form-field"><label>Teléfono</label><input name="phone" id="employeePhone" maxlength="30"></div><div class="form-field"><label>Fecha de ingreso</label><input name="hireDate" id="employeeHireDate" type="date"></div>
-        <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
+        <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Bono KPI máximo mensual (Q) *</label><input id="employeeKpiBonusMax" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
         <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="employeeNotes" maxlength="1000"></textarea></div></div>
         <div class="form-actions"><button class="secondary-button" type="button" data-close-modal="employeeModal">Cancelar</button><button class="primary-button" type="submit">Guardar trabajador</button></div></form></div></div>
 
