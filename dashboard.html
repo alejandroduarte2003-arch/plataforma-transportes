@@ -517,7 +517,12 @@
             padding: 25px;
         }
 
-        .modal-header {
+        .modal-wide{max-width:1050px}
+        .employee-profile-stats{margin:0 0 18px;grid-template-columns:repeat(3,minmax(0,1fr))}
+        .employee-profile-meta{display:flex;gap:10px 22px;flex-wrap:wrap;padding:13px 0;border-top:1px solid var(--gris);border-bottom:1px solid var(--gris);font-size:12px;color:var(--texto)}
+        .employee-profile-heading{font-size:14px;margin:20px 0 12px;color:var(--azul)}
+        .employee-profile-table{min-width:850px}
+                .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -2156,10 +2161,30 @@
         document.getElementById("loanBalanceTotal").textContent=money(employeeLoans.filter(x=>x.status==="Activo").reduce((s,x)=>s+x.balance,0));
         document.getElementById("payrollPendingTotal").textContent=money(payrollRecords.filter(x=>x.status==="Pendiente").reduce((s,x)=>s+x.netPay,0));
     }
+    async function openEmployeeProfile(employeeId){
+        const worker=employees.find(x=>x.id===employeeId);if(!worker)return;
+        const target=document.getElementById("employeeProfileContent");
+        document.getElementById("employeeProfileTitle").textContent=worker.fullName;
+        target.innerHTML='<p class="form-message">Cargando historial de planillas...</p>';
+        openPersonalModal("employeeProfileModal");
+        const {data,error}=await supabase.from("payroll_records").select("*").eq("employee_id",employeeId).order("period",{ascending:false}).order("fortnight",{ascending:false});
+        if(error){target.innerHTML='<p class="form-message">No se pudo cargar el historial de planillas. '+escapeHtml(error.message)+'</p>';return;}
+        const rows=data||[],paid=rows.filter(x=>x.status==="Pagada"),pending=rows.filter(x=>x.status==="Pendiente");
+        const sum=(items)=>items.reduce((s,x)=>s+Number(x.net_pay||0),0);
+        target.innerHTML='<div class="stats-grid employee-profile-stats">'+
+            '<div class="stat-card"><span>Quincenas registradas</span><h2>'+rows.length+'</h2></div>'+
+            '<div class="stat-card"><span>Total pagado</span><h2>'+money(sum(paid))+'</h2></div>'+
+            '<div class="stat-card"><span>Pendiente de pago</span><h2>'+money(sum(pending))+'</h2></div></div>'+
+            '<div class="employee-profile-meta"><span><strong>Puesto:</strong> '+escapeHtml(worker.position||"—")+'</span><span><strong>Teléfono:</strong> '+escapeHtml(worker.phone||"—")+'</span><span><strong>Estado:</strong> '+escapeHtml(worker.status)+'</span></div>'+
+            '<h3 class="employee-profile-heading">Historial de planillas</h3>'+
+            (rows.length?'<div class="table-wrapper"><table class="employee-profile-table"><thead><tr><th>Período</th><th>Sueldo base</th><th>KPI</th><th>Bono</th><th>Préstamo</th><th>Otras deducciones</th><th>Neto</th><th>Estado</th></tr></thead><tbody>'+
+            rows.map(x=>'<tr><td>'+escapeHtml(String(x.period).slice(0,7))+' · '+(Number(x.fortnight)===1?'1.ª quincena':'2.ª quincena')+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?'—':Number(x.kpi_percentage).toFixed(1)+'%')+'</td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td>'+money(x.other_deductions)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td><span class="status-pill">'+escapeHtml(x.status)+'</span>'+(x.payment_date?'<br><small>'+escapeHtml(x.payment_date)+'</small>':'')+'</td></tr>').join("")+
+            '</tbody></table></div>':'<p class="form-message">Este trabajador todavía no tiene planillas registradas.</p>');
+    }
     function renderEmployees(){
         const q=document.getElementById("employeeSearch").value.trim().toLowerCase(),st=document.getElementById("employeeStatusFilter").value;
         const rows=employees.filter(x=>(x.fullName+" "+x.position+" "+x.phone+" "+x.dpi).toLowerCase().includes(q)&&(!st||x.status===st));
-        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
+        document.getElementById("employeesTableBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${escapeHtml(x.fullName)}</strong><br><small>${escapeHtml(x.dpi||"Sin DPI")}</small></td><td>${escapeHtml(x.position||"—")}</td><td>${escapeHtml(x.phone||"—")}</td><td>${money(x.baseSalary)}</td><td><span class="status-pill">${escapeHtml(x.status)}</span></td><td><div class="table-actions"><button class="table-action" data-view-employee="${x.id}">Ver perfil</button><button class="table-action" data-edit-employee="${x.id}">Editar</button><button class="table-action" data-toggle-employee="${x.id}">${x.status==="Activo"?"Desactivar":"Activar"}</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty-state">No se encontraron trabajadores.</td></tr>';
     }
     function renderLoans(){
         const q=document.getElementById("loanSearch").value.trim().toLowerCase(),st=document.getElementById("loanStatusFilter").value;
@@ -2182,7 +2207,7 @@
             if(er.error)throw er.error;if(lr.error)throw lr.error;if(pr.error)throw pr.error;
             employees=(er.data||[]).map(x=>({id:x.id,fullName:x.full_name,dpi:x.dpi||"",position:x.position||"",phone:x.phone||"",hireDate:x.hire_date||"",baseSalary:0,status:x.status,notes:x.notes||""}));
             employeeLoans=(lr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,reason:x.reason||"",amount:Number(x.amount),balance:Number(x.balance),installmentAmount:Number(x.installment_amount),installmentsTotal:x.installments_total,installmentsPaid:x.installments_paid,startDate:x.start_date,status:x.status,notes:x.notes||""}));
-            payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
+            payrollRecords=(pr.data||[]).map(x=>({id:x.id,employeeId:x.employee_id,period:x.period,fortnight:Number(x.fortnight||1),kpiComplaints:x.kpi_complaints,kpiCleanliness:x.kpi_cleanliness,kpiDelays:x.kpi_delays,kpiPercentage:x.kpi_percentage==null?null:Number(x.kpi_percentage),baseSalary:Number(x.base_salary),bonuses:Number(x.bonuses),otherDeductions:Number(x.other_deductions),loanDeduction:Number(x.loan_deduction),netPay:Number(x.net_pay),status:x.status,paymentDate:x.payment_date||"",notes:x.notes||""}));
             renderPersonal();
         }catch(error){showOperationError(error,"cargar los registros de Personal");}
     }
@@ -2243,7 +2268,8 @@
         }catch(error){showOperationError(error,"guardar la planilla");}finally{btn.disabled=false;}
     });
     document.getElementById("employeesTableBody").addEventListener("click",async e=>{
-        const edit=e.target.closest("[data-edit-employee]"),toggle=e.target.closest("[data-toggle-employee]");
+        const profile=e.target.closest("[data-view-employee]"),edit=e.target.closest("[data-edit-employee]"),toggle=e.target.closest("[data-toggle-employee]");
+        if(profile){await openEmployeeProfile(profile.dataset.viewEmployee);return;}
         if(edit){openEmployeeModal(employees.find(x=>x.id===edit.dataset.editEmployee));return;}
         if(toggle){const x=employees.find(v=>v.id===toggle.dataset.toggleEmployee),status=x.status==="Activo"?"Inactivo":"Activo";if(!confirm("¿"+(status==="Activo"?"Activar":"Desactivar")+" a "+x.fullName+"?"))return;
             const {error}=await supabase.from("employees").update({status}).eq("id",x.id);if(error)showOperationError(error,"actualizar el trabajador");else await loadPersonalData();}
@@ -2264,6 +2290,7 @@
     document.getElementById("loanStatusFilter").addEventListener("change",renderLoans);
     document.getElementById("payrollPeriodFilter").addEventListener("change",renderPayroll);
     document.getElementById("payrollStatusFilter").addEventListener("change",renderPayroll);
+    window.addEventListener("transport-payroll-saved",()=>loadPersonalData());
 
 
     // FLOTA Y GASTOS: COMBUSTIBLE, MANTENIMIENTO Y REPUESTOS
@@ -2729,7 +2756,7 @@
     verifySession();
 
 </script>
-<script type="module" src="./js/transport-enhancements.js?v=20261114-3"></script>
+<script type="module" src="./js/transport-enhancements.js?v=20261115-1"></script>
 
 
     <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
@@ -2739,6 +2766,8 @@
         <div class="form-field"><label>Salario base mensual (Q) *</label><input name="baseSalary" id="employeeBaseSalary" type="number" min="0" step=".01" value="0" required></div><div class="form-field"><label>Estado</label><select name="status" id="employeeStatus"><option>Activo</option><option>Inactivo</option></select></div>
         <div class="form-field full"><label>Observaciones</label><textarea name="notes" id="employeeNotes" maxlength="1000"></textarea></div></div>
         <div class="form-actions"><button class="secondary-button" type="button" data-close-modal="employeeModal">Cancelar</button><button class="primary-button" type="submit">Guardar trabajador</button></div></form></div></div>
+
+    <div class="modal-backdrop" id="employeeProfileModal" aria-hidden="true"><div class="modal modal-wide" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeProfileTitle">Perfil del trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeProfileModal">×</button></div><div id="employeeProfileContent"></div><div class="form-actions"><button class="primary-button" type="button" data-close-modal="employeeProfileModal">Cerrar perfil</button></div></div></div>
 
     <div class="modal-backdrop" id="loanModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="loanModalTitle">Registrar préstamo</h2><button class="modal-close" type="button" data-close-modal="loanModal">×</button></div><form id="loanForm"><div class="form-grid">
         <div class="form-field full"><label>Trabajador *</label><select name="employeeId" id="loanEmployee" required></select></div>
