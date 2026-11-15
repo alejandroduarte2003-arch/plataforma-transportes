@@ -163,11 +163,20 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Se confirmó que las tres migraciones nuevas siguen fuera del proyecto Supabase activo: no existen aún sus tablas ni columnas nuevas.
 
 ### Orden de liberación obligatorio
-La tercera migración retira permisos de lectura directa sobre columnas monetarias y reserva algunos registros para RPCs. Por eso, **no se debe aplicar a producción antes de desplegar la versión de interfaz que consulta las vistas y llama a esos RPCs**. La liberación debe probarse primero en una base aislada y coordinar migraciones y frontend en una misma ventana controlada.
+La tercera migración retira permisos de lectura directa sobre columnas monetarias y reserva algunos registros para RPCs. Por eso, **no se debe aplicar a producción antes de desplegar la versión de interfaz que consulta las vistas y llama a esos RPCs**. La migración y el frontend deben liberarse de forma coordinada. No se creará una rama/proyecto de Supabase ni se contratarán recursos de pago para pruebas; por esa razón, la validación disponible en esta etapa es estática y de solo lectura, no una prueba funcional aislada de PostgreSQL.
 
 ### Pendiente antes de activar
-**Ninguna migración se ha aplicado al proyecto Supabase activo y no se ha desplegado producción.** La base financiera central todavía es una estructura inicial: falta migrar ingresos y egresos históricos de viajes, combustible, mantenimiento, repuestos, préstamos y planilla; mover o proteger los importes que hoy siguen expuestos en tablas operativas; y completar RPC transaccionales para esas operaciones.
 
-También falta terminar la interfaz de KPI y planilla quincenal, automatizar el descuento de préstamos en cada quincena y conectar todos los ingresos/egresos a Finanzas. El cambio de galones ya está reflejado en el formulario y requiere aplicar primero la migración 2 para que existan las columnas nuevas.
+La implementación de interfaz y las tres migraciones están preparadas en esta rama, pero todavía no se puede considerar lista para producción. El estado real es:
 
-Por lo anterior, esta rama representa una implementación parcial en desarrollo, no una versión lista para activar ni entregar.
+- **GitHub:** cambios guardados únicamente en `changes/transport-school-finance-restructure`; `main` no se modifica.
+- **Supabase activo:** solo lectura durante esta etapa. Las tres migraciones nuevas no están aplicadas; no se han creado tablas/columnas nuevas en producción.
+- **Vercel:** no se ha desplegado esta rama.
+- **Validación de frontend:** los scripts inline de `dashboard.html` y `administracion.html` pasan compilación sintáctica después de retirar las declaraciones de importación para el chequeo; no se encontraron IDs HTML duplicados.
+- **Validación de base:** se inspeccionaron columnas, restricciones y políticas RLS actuales para comparar con las migraciones. No se ejecutaron las migraciones ni pruebas transaccionales reales.
+- **Pruebas pendientes:** autenticación y permisos por rol, altas/ediciones/borrados, abordajes, expedientes escolares, pagos idempotentes, cálculos KPI, planilla quincenal, descuentos de préstamos, vistas financieras y libro central.
+- **Seguridad pendiente:** revisar las advertencias actuales de Supabase sobre funciones `SECURITY DEFINER` expuestas y protección de contraseñas filtradas. No se modificaron porque no son parte de las migraciones nuevas y requieren una decisión separada.
+
+### Condición para considerar la entrega supervisable
+
+Antes de que el propietario solo tenga que hacer una revisión visual y aprobar la publicación, todavía hace falta una validación funcional completa. Sin un entorno aislado y sin ejecutar las migraciones en producción, no es correcto afirmar que los cambios de base de datos funcionan. La siguiente ruta sin costos adicionales es completar revisión estática del SQL y del frontend en GitHub, corregir inconsistencias detectables, y dejar documentada la secuencia exacta de activación. La validación final de RLS y transacciones tendrá que realizarse cuando exista un entorno de pruebas gratuito o cuando se autorice una ventana controlada sobre el proyecto activo, con respaldo y despliegue coordinado.
