@@ -25,7 +25,7 @@ Rama de trabajo: `changes/transport-school-finance-restructure`
 - Las políticas actuales permiten acceso a tablas completas por permiso de módulo. Por tanto, un usuario con acceso a Personal/Flota/Operaciones puede leer columnas monetarias de esas tablas si la política lo autoriza.
 - `payroll_records` tiene una restricción única por trabajador y mes y una validación que obliga a que `period` sea el primer día del mes. No admite dos registros quincenales en su estado actual.
 - `boardings` solo permite asociar un nombre directamente a un viaje. No existe todavía un catálogo de pasajeros por contrato.
-- Las migraciones existentes están registradas en Supabase, pero no hay carpeta `supabase/migrations` en el repositorio actual.
+- En el diagnóstico inicial no había carpeta `supabase/migrations` en el repositorio. Durante esta reestructuración se añadieron tres migraciones versionadas en la rama de trabajo; todavía no están aplicadas en Supabase.
 
 ## Modelo objetivo propuesto
 
@@ -180,3 +180,11 @@ La implementación de interfaz y las tres migraciones están preparadas en esta 
 ### Condición para considerar la entrega supervisable
 
 Antes de que el propietario solo tenga que hacer una revisión visual y aprobar la publicación, todavía hace falta una validación funcional completa. Sin un entorno aislado y sin ejecutar las migraciones en producción, no es correcto afirmar que los cambios de base de datos funcionan. La siguiente ruta sin costos adicionales es completar revisión estática del SQL y del frontend en GitHub, corregir inconsistencias detectables, y dejar documentada la secuencia exacta de activación. La validación final de RLS y transacciones tendrá que realizarse cuando exista un entorno de pruebas gratuito o cuando se autorice una ventana controlada sobre el proyecto activo, con respaldo y despliegue coordinado.
+
+
+## Validación automatizada sin costo
+
+- Se agregó `scripts/validate-static.mjs` para comprobar la existencia de páginas y recursos locales, sintaxis de JavaScript, y duplicación de IDs.
+- Se agregó `.github/workflows/validate-transport-platform.yml` para ejecutar esas comprobaciones con GitHub Actions en esta rama y en el PR.
+- Esta automatización es una revisión estática. No sustituye pruebas de base de datos, RLS, autenticación ni recorridos reales de usuario.
+- El PR de revisión es `#1`; se mantiene en borrador y no se fusiona a `main`.
