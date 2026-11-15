@@ -87,6 +87,18 @@ function securePersonalView() {
   document.querySelectorAll("#personal-employees td:nth-child(4)").forEach(x => x.classList.add("ext-hidden"));
   const salaryField = $("employeeBaseSalary")?.closest(".form-field");
   if (salaryField) salaryField.classList.add("ext-hidden");
+  if (!finance) {
+    const style = document.createElement("style");
+    style.textContent = "#view-flota .stats-grid{display:none!important}#view-flota #fuelTableBody td:nth-child(4),#view-flota #fuelTableBody td:nth-child(5),#view-flota table thead th:nth-child(4),#view-flota table thead th:nth-child(5),#view-flota #maintenanceTableBody td:nth-child(5),#view-flota #partsTableBody td:nth-child(6),#view-flota #maintenanceTableBody~thead th:nth-child(5),#view-flota #partsTableBody~thead th:nth-child(6){display:none!important}#view-viajes #tripIncome{display:none!important}#view-viajes #tripIncome{display:none!important}";
+    document.head.appendChild(style);
+    const tripIncome = $("tripIncome")?.closest(".stat-card");
+    if (tripIncome) tripIncome.classList.add("ext-hidden");
+    const tripTable = $("tripsTableBody")?.closest("table");
+    if (tripTable) {
+      tripTable.querySelectorAll("th:nth-child(7),td:nth-child(7)").forEach(x => x.classList.add("ext-hidden"));
+    }
+    document.querySelectorAll("#view-flota .stats-grid .stat-card").forEach(x => x.classList.add("ext-hidden"));
+  }
 }
 
 // ---------------- ABORDAJES ----------------
