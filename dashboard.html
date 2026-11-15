@@ -2304,9 +2304,9 @@
         try{
             const [vr,fr,mr,pr]=await Promise.all([
                 supabase.from("vehicles").select("id,code,plate,type,capacity,brand,model,status,notes").order("code"),
-                supabase.from("fuel_entries").select("id,vehicle_id,entry_date,gallons,odometer,kilometers_driven,supplier,notes,created_by,created_at,updated_at,previous_odometer").order("entry_date",{ascending:false}),
-                supabase.from("maintenance_records").select("id,vehicle_id,service_date,maintenance_type,description,provider,odometer,next_service_date,status,notes,created_by,created_at,updated_at").order("service_date",{ascending:false}),
-                supabase.from("vehicle_parts").select("id,vehicle_id,replacement_date,part_name,action,quantity,supplier,odometer,notes,created_by,created_at,updated_at").order("replacement_date",{ascending:false})
+                supabase.from("fuel_entries").select(allowedModules.has("finanzas") ? "*" : "id,vehicle_id,entry_date,gallons,odometer,kilometers_driven,supplier,notes,created_by,created_at,updated_at,previous_odometer").order("entry_date",{ascending:false}),
+                supabase.from("maintenance_records").select(allowedModules.has("finanzas") ? "*" : "id,vehicle_id,service_date,maintenance_type,description,provider,odometer,next_service_date,status,notes,created_by,created_at,updated_at").order("service_date",{ascending:false}),
+                supabase.from("vehicle_parts").select(allowedModules.has("finanzas") ? "*" : "id,vehicle_id,replacement_date,part_name,action,quantity,supplier,odometer,notes,created_by,created_at,updated_at").order("replacement_date",{ascending:false})
             ]);
             if(vr.error)throw vr.error;if(fr.error)throw fr.error;if(mr.error)throw mr.error;if(pr.error)throw pr.error;
             vehicles=(vr.data||[]).map(item=>({id:item.id,code:item.code,plate:item.plate,type:item.type,capacity:item.capacity,brand:item.brand||"",model:item.model||"",status:item.status,notes:item.notes||""}));
