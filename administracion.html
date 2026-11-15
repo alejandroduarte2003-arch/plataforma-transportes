@@ -642,7 +642,7 @@ tr:last-child td {
                         Permisos de acceso
                     </h2>
                     <p style="font-size:11px;color:var(--muted);margin-top:6px">
-                        Selecciona los módulos que este usuario podrá utilizar.
+                        Selecciona qué módulos podrá ver este usuario.
                     </p>
 
                     <div class="permissions" id="permissionsList"></div>
@@ -773,7 +773,11 @@ async function loadData() {
     if (moduleError) throw moduleError;
 
     users = profileData || [];
-    modules = moduleData || [];
+    // Solo se administran los módulos principales visibles en el dashboard.
+    // Inicio es común y Administración es exclusiva del superadmin.
+    modules = (moduleData || []).filter(module =>
+        ["operaciones", "personal", "flota", "finanzas"].includes(module.code)
+    );
 
     updateSummary();
     renderUsers();
@@ -994,7 +998,7 @@ async function createUser(event) {
         }
 
         form.reset();
-        message.textContent = "Usuario creado correctamente. Ya puedes buscarlo en la lista y asignarle permisos.";
+        message.textContent = "Usuario creado correctamente. Ya puedes buscarlo en la lista y elegir qué módulos podrá ver.";
         message.className = "success";
 
         await loadData();
