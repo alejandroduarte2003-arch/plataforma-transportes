@@ -1229,7 +1229,7 @@
                         <p class="personal-hint">Los gastos de combustible, mantenimiento y repuestos se toman automáticamente de Flota y gastos. No los registres otra vez aquí.</p>
                     </div>
                     <div class="personal-panel" id="finance-reportes">
-                        <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><input class="field-control" id="financePeriodFilter" type="month"></div>
+                        <div class="section-toolbar"><div><h3>Reporte financiero</h3><p class="personal-hint">El resultado considera ingresos cobrados y egresos pagados.</p></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input class="field-control" id="financePeriodFilter" type="month"><button class="primary-button" id="generateFinanceReportButton" type="button">Generar reporte</button></div></div>
                         <div class="stats-grid">
                             <div class="stat-card"><span>Combustible</span><h2 id="reportFuel">Q0.00</h2></div>
                             <div class="stat-card"><span>Mantenimiento</span><h2 id="reportMaintenance">Q0.00</h2></div>
@@ -2538,6 +2538,65 @@
             ["Ingresos cobrados",income],["Combustible",fuel],["Mantenimiento",maintenance],["Repuestos",parts],["Planilla pagada",payroll],["Otros gastos pagados",other],["Total de egresos",expenseTotal],["Resultado del período",income-expenseTotal]
         ].map(([name,value])=>'<tr><td>'+name+'</td><td><strong>'+financeMoney(value)+'</strong></td></tr>').join("");
     }
+    function generateFinanceReport(){
+        const period=document.getElementById("financePeriodFilter").value;
+        const collections=financialCollections.filter(x=>financeInPeriod(x.payment_date,period));
+        const fuel=financeFuel.filter(x=>financeInPeriod(x.entry_date,period));
+        const maintenance=financeMaintenance.filter(x=>x.status==="Completado"&&financeInPeriod(x.service_date,period));
+        const parts=financeParts.filter(x=>financeInPeriod(x.replacement_date,period));
+        const payroll=financePayroll.filter(x=>x.status==="Pagada"&&financeInPeriod(x.payment_date,period));
+        const expenses=financialExpenses.filter(x=>x.status==="Pagado"&&financeInPeriod(x.payment_date,period));
+        const sum=(items,key)=>items.reduce((total,item)=>total+Number(item[key]||0),0);
+        const incomeTotal=sum(collections,"amount");
+        const fuelTotal=sum(fuel,"total_cost");
+        const maintenanceTotal=sum(maintenance,"cost");
+        const partsTotal=sum(parts,"total_cost");
+        const payrollTotal=sum(payroll,"net_pay");
+        const otherTotal=sum(expenses,"amount");
+        const expenseTotal=fuelTotal+maintenanceTotal+partsTotal+payrollTotal+otherTotal;
+        const rows=[
+            ["REPORTE FINANCIERO"],
+            ["Período",period||"Todos los períodos","Generado",new Date().toLocaleString("es-GT")],
+            [],
+            ["RESUMEN"],
+            ["Concepto","Total (Q)"],
+            ["Ingresos cobrados",incomeTotal],
+            ["Combustible",fuelTotal],
+            ["Mantenimiento",maintenanceTotal],
+            ["Repuestos",partsTotal],
+            ["Planilla pagada",payrollTotal],
+            ["Otros gastos pagados",otherTotal],
+            ["Total de egresos",expenseTotal],
+            ["Resultado del período",incomeTotal-expenseTotal],
+            [],
+            ["DETALLE DE MOVIMIENTOS"],
+            ["Fecha","Tipo","Concepto / referencia","Monto (Q)"]
+        ];
+        const detail=[];
+        collections.forEach(item=>{
+            const account=financialReceivables.find(r=>r.id===item.receivable_id);
+            detail.push([item.payment_date||"","Ingreso",account?"Cobro · "+(account.client_name||"Cliente"):"Cobro recibido",Number(item.amount||0)]);
+        });
+        fuel.forEach(item=>detail.push([item.entry_date||"","Egreso","Combustible",Number(item.total_cost||0)]));
+        maintenance.forEach(item=>detail.push([item.service_date||"","Egreso","Mantenimiento completado",Number(item.cost||0)]));
+        parts.forEach(item=>detail.push([item.replacement_date||"","Egreso","Repuestos",Number(item.total_cost||0)]));
+        payroll.forEach(item=>detail.push([item.payment_date||"","Egreso","Planilla pagada",Number(item.net_pay||0)]));
+        expenses.forEach(item=>detail.push([item.payment_date||"","Egreso",[item.category,item.concept,item.supplier].filter(Boolean).join(" · ")||"Otro gasto",Number(item.amount||0)]));
+        detail.sort((a,b)=>String(b[0]).localeCompare(String(a[0])));
+        rows.push(...detail);
+        const csvCell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+        const csv="\uFEFF"+rows.map(row=>row.map(csvCell).join(";")).join("\r\n");
+        const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement("a");
+        link.href=url;
+        link.download="reporte_financiero_"+(period||"completo")+".csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+    document.getElementById("generateFinanceReportButton").addEventListener("click",generateFinanceReport);
     function renderFinance(){renderReceivables();renderExpenses();renderFinanceSummary();renderFinanceReport();}
     async function loadFinanceData(){
         try{
