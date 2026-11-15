@@ -133,7 +133,9 @@ Archivo: `supabase/migrations/20261114000300_financial_data_access_and_ledger.sq
 - Las cuentas por cobrar y los ingresos de viajes no se cuentan como efectivo recibido; el ingreso efectivo se registra al crear el cobro.
 - El cobro de una cuenta por cobrar usa un RPC transaccional con bloqueo de la cuenta, validación del saldo, clave idempotente, actualización de estado y movimiento financiero en la misma transacción.
 - Los pagos escolares generan su movimiento desde su propio RPC transaccional.
-- El panel de Finanzas consulta el libro central para los totales, reportes y una nueva pestaña de movimientos.
+- El panel de Finanzas consulta el libro central para los totales, reportes y una nueva pestaña de movimientos, identificando también al estudiante cuando el movimiento corresponde a transporte escolar.
+- El libro central, los cobros recibidos y los pagos escolares no admiten edición directa desde la sesión cliente; se escriben mediante triggers o RPCs autorizados. Las planillas y gastos pagados quedan bloqueados para edición/eliminación.
+- Se impide borrar una cuenta por cobrar que ya tenga cobros, para no perder su historial financiero.
 - Se añadieron permisos explícitos de Data API para las tablas nuevas y la secuencia del código de estudiante. RLS sigue controlando qué filas puede utilizar cada usuario.
 
 ### Planilla quincenal y préstamos — cálculo preparado
