@@ -43,7 +43,7 @@ alter default privileges in schema incorova_private
 -- Finance views deliberately run with the view owner's privileges. Each view
 -- has its own explicit finance authorization predicate; do not remove it.
 create or replace view public.finance_trips
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select t.id, t.date, t.vehicle_id, t.origin, t.destination, t.responsible,
        t.service_type, t.income, t.status, t.notes, t.created_by,
        t.created_at, t.updated_at
@@ -59,7 +59,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_fuel_entries
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select f.id, f.vehicle_id, f.entry_date, f.liters, f.price_per_liter,
        f.gallons, f.price_per_gallon, f.previous_odometer, f.odometer,
        f.kilometers_driven, f.total_cost, f.supplier, f.notes,
@@ -74,7 +74,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_maintenance_records
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select m.id, m.vehicle_id, m.service_date, m.maintenance_type,
        m.description, m.provider, m.cost, m.odometer, m.next_service_date,
        m.status, m.notes, m.created_by, m.created_at, m.updated_at
@@ -88,7 +88,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_vehicle_parts
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select v.id, v.vehicle_id, v.replacement_date, v.part_name, v.action,
        v.quantity, v.unit_cost, v.total_cost, v.supplier, v.odometer,
        v.notes, v.created_by, v.created_at, v.updated_at
@@ -102,7 +102,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_employees
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select e.id, e.full_name, e.dpi, e.position, e.phone, e.hire_date,
        e.status, e.notes, c.monthly_base_salary, c.monthly_kpi_bonus_max,
        c.currency, c.effective_from, e.created_by, e.created_at, e.updated_at
@@ -117,7 +117,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_employee_loans
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select l.id, l.employee_id, l.reason, l.amount, l.balance,
        l.installment_amount, l.installments_total, l.installments_paid,
        l.start_date, l.status, l.notes, l.created_by, l.created_at, l.updated_at
@@ -131,7 +131,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_payroll_records
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select r.id, r.employee_id, r.period, r.fortnight, r.base_salary,
        r.bonuses, r.other_deductions, r.loan_deduction, r.net_pay,
        r.kpi_complaints, r.kpi_cleanliness, r.kpi_delays, r.kpi_percentage,
@@ -146,7 +146,7 @@ where public.is_superadmin()
    );
 
 create or replace view public.finance_movements
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = false) as
 select m.*
 from public.financial_movements m
 where public.is_superadmin()
