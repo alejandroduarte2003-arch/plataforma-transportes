@@ -1518,6 +1518,9 @@
             if (allowedModules.has("escolares")) {
                 await loadSchoolData();
             }
+            if (allowedModules.has("abordajes")) {
+                await loadBoardingsData();
+            }
 
             renderHomeDashboard();
 
@@ -2682,6 +2685,144 @@
     });
 
 
+
+
+    // =====================================
+    // ABORDAJES INDEPENDIENTES
+    // =====================================
+    let transportContracts=[], transportPassengers=[], contractPassengerLinks=[], tripPassengerBoardings=[], boardingTrips=[];
+    let selectedTransportContractId=null;
+    const boardingModalOpen=id=>{const el=document.getElementById(id);el.classList.add("open");el.setAttribute("aria-hidden","false");};
+    const boardingModalClose=id=>{const el=document.getElementById(id);el.classList.remove("open");el.setAttribute("aria-hidden","true");};
+    document.querySelectorAll("[data-close-boarding]").forEach(btn=>btn.addEventListener("click",()=>boardingModalClose(btn.dataset.closeBoarding)));
+    ["transportContractModal","transportPassengerModal","contractAssignModal","tripBoardingModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)boardingModalClose(id);}));
+    document.querySelectorAll("[data-boarding-mode]").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelectorAll("[data-boarding-mode]").forEach(x=>x.classList.toggle("active",x===btn));
+        document.querySelectorAll("#view-abordajes .personal-panel").forEach(x=>x.classList.toggle("active",x.id==="boarding-"+btn.dataset.boardingMode));
+    }));
+    async function loadBoardingsData(){
+        try{
+            const [contractsResult,passengersResult,linksResult,boardingsResult,tripsResult]=await Promise.all([
+                supabase.from("transport_contracts").select("*").order("name"),
+                supabase.from("transport_passengers").select("*").order("full_name"),
+                supabase.from("contract_passengers").select("*"),
+                supabase.from("trip_passenger_boardings").select("*").order("boarded_at",{ascending:false}),
+                supabase.rpc("get_abordajes_trips")
+            ]);
+            for(const r of [contractsResult,passengersResult,linksResult,boardingsResult,tripsResult])if(r.error)throw r.error;
+            transportContracts=contractsResult.data||[];
+            transportPassengers=passengersResult.data||[];
+            contractPassengerLinks=linksResult.data||[];
+            tripPassengerBoardings=boardingsResult.data||[];
+            boardingTrips=tripsResult.data||[];
+            renderBoardingModule();
+        }catch(error){showOperationError(error,"cargar los contratos y abordajes");}
+    }
+    function renderBoardingModule(){
+        document.getElementById("transportContractsBody").innerHTML=transportContracts.length?transportContracts.map(x=>{
+            const count=contractPassengerLinks.filter(l=>l.contract_id===x.id&&l.active).length;
+            return '<tr><td><strong>'+escapeHtml(x.name)+'</strong></td><td>'+escapeHtml(x.client_name)+'</td><td>'+(x.start_date||"—")+'</td><td>'+(x.end_date||"—")+'</td><td>'+escapeHtml(x.status)+'</td><td>'+count+'</td><td><button class="table-action" type="button" data-contract-passengers="'+x.id+'">Ver pasajeros</button></td></tr>';
+        }).join(""):'<tr><td colspan="7" class="empty-state">No hay contratos registrados.</td></tr>';
+        const q=document.getElementById("transportPassengerSearch").value.trim().toLowerCase();
+        const filteredPassengers=transportPassengers.filter(x=>(x.full_name+" "+x.contact).toLowerCase().includes(q));
+        document.getElementById("transportPassengersBody").innerHTML=filteredPassengers.length?filteredPassengers.map(x=>'<tr><td>'+escapeHtml(x.full_name)+'</td><td>'+escapeHtml(x.contact||"—")+'</td><td>'+escapeHtml(x.notes||"—")+'</td><td><button class="table-action" type="button" data-passenger-contract="'+x.id+'">Asignar a contrato</button></td></tr>').join(""):'<tr><td colspan="4" class="empty-state">No hay pasajeros registrados.</td></tr>';
+        const contractOptions=transportContracts.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.name+" · "+x.client_name)+'</option>').join("");
+        document.getElementById("tripBoardingTrip").innerHTML='<option value="">Seleccionar viaje</option>'+boardingTrips.map(x=>'<option value="'+x.trip_id+'">'+escapeHtml(x.trip_date+" · "+x.origin+" → "+x.destination)+'</option>').join("");
+        document.getElementById("tripBoardingFilter").innerHTML='<option value="">Todos los viajes</option>'+boardingTrips.map(x=>'<option value="'+x.trip_id+'">'+escapeHtml(x.trip_date+" · "+x.origin+" → "+x.destination)+'</option>').join("");
+        const passengerOptions=transportPassengers.map(x=>'<option value="'+x.id+'">'+escapeHtml(x.full_name)+'</option>').join("");
+        document.getElementById("tripBoardingPassenger").innerHTML='<option value="">Seleccionar pasajero</option>'+passengerOptions;
+        document.getElementById("contractAssignPassenger").innerHTML='<option value="">Seleccionar pasajero</option>'+passengerOptions;
+        renderContractPassengers();
+        renderTripPassengerBoardings();
+    }
+    function renderContractPassengers(){
+        const contract=transportContracts.find(x=>x.id===selectedTransportContractId);
+        document.getElementById("contractPassengerPanel").hidden=!contract;
+        if(!contract)return;
+        document.getElementById("contractPassengerTitle").textContent="Pasajeros · "+contract.name;
+        const links=contractPassengerLinks.filter(x=>x.contract_id===contract.id);
+        document.getElementById("contractPassengerBody").innerHTML=links.length?links.map(link=>{
+            const passenger=transportPassengers.find(x=>x.id===link.passenger_id);
+            return '<tr><td>'+escapeHtml(passenger?.full_name||"Pasajero no disponible")+'</td><td>'+escapeHtml(link.pickup_point||"—")+'</td><td>'+(link.active?"Activo":"Inactivo")+'</td><td><button class="table-action" type="button" data-remove-contract-passenger="'+link.passenger_id+'">Quitar</button></td></tr>';
+        }).join(""):'<tr><td colspan="4" class="empty-state">Este contrato todavía no tiene pasajeros.</td></tr>';
+    }
+    function renderTripPassengerBoardings(){
+        const q=document.getElementById("tripBoardingSearch").value.trim().toLowerCase(),tripFilter=document.getElementById("tripBoardingFilter").value;
+        const rows=tripPassengerBoardings.filter(x=>{
+            const passenger=transportPassengers.find(p=>p.id===x.passenger_id),trip=boardingTrips.find(t=>t.trip_id===x.trip_id);
+            return (!tripFilter||x.trip_id===tripFilter)&&((passenger?.full_name||"")+" "+(trip?.origin||"")+" "+(trip?.destination||"")).toLowerCase().includes(q);
+        });
+        document.getElementById("tripBoardingsBody").innerHTML=rows.length?rows.map(x=>{
+            const passenger=transportPassengers.find(p=>p.id===x.passenger_id),trip=boardingTrips.find(t=>t.trip_id===x.trip_id);
+            return '<tr><td>'+new Date(x.boarded_at).toLocaleDateString("es-GT")+'</td><td>'+escapeHtml(passenger?.full_name||"—")+'</td><td>'+escapeHtml(trip?trip.origin+" → "+trip.destination:"Viaje")+'</td><td>'+escapeHtml(trip?.responsible||"—")+'</td><td>'+new Date(x.boarded_at).toLocaleTimeString("es-GT",{hour:"2-digit",minute:"2-digit"})+'</td><td>'+escapeHtml(x.boarding_point||"—")+'</td><td><button class="table-action" type="button" data-delete-trip-boarding="'+x.id+'">Eliminar</button></td></tr>';
+        }).join(""):'<tr><td colspan="7" class="empty-state">No hay abordajes para los filtros seleccionados.</td></tr>';
+    }
+    document.getElementById("addTransportContractButton").addEventListener("click",()=>{document.getElementById("transportContractForm").reset();boardingModalOpen("transportContractModal");});
+    document.getElementById("addTransportPassengerButton").addEventListener("click",()=>{document.getElementById("transportPassengerForm").reset();boardingModalOpen("transportPassengerModal");});
+    document.getElementById("assignContractPassengerButton").addEventListener("click",()=>{if(!selectedTransportContractId)return;document.getElementById("contractAssignForm").reset();boardingModalOpen("contractAssignModal");});
+    document.getElementById("addTripBoardingButton").addEventListener("click",()=>{
+        if(!boardingTrips.length||!transportPassengers.length){alert("Primero registra un viaje y al menos un pasajero.");return;}
+        document.getElementById("tripBoardingForm").reset();
+        const now=new Date();document.getElementById("tripBoardingAt").value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+        boardingModalOpen("tripBoardingModal");
+    });
+    document.getElementById("transportContractForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const start=document.getElementById("transportContractStart").value,end=document.getElementById("transportContractEnd").value;
+            if(start&&end&&end<start)throw Error("La fecha final no puede ser anterior a la fecha inicial.");
+            const {error}=await supabase.from("transport_contracts").insert({name:document.getElementById("transportContractName").value.trim(),client_name:document.getElementById("transportContractClient").value.trim(),status:document.getElementById("transportContractStatus").value,start_date:start||null,end_date:end||null,notes:document.getElementById("transportContractNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("transportContractModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el contrato");}finally{btn.disabled=false;}
+    });
+    document.getElementById("transportPassengerForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const {error}=await supabase.from("transport_passengers").insert({full_name:document.getElementById("transportPassengerName").value.trim(),contact:document.getElementById("transportPassengerContact").value.trim(),notes:document.getElementById("transportPassengerNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("transportPassengerModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el pasajero");}finally{btn.disabled=false;}
+    });
+    document.getElementById("contractAssignForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const {error}=await supabase.from("contract_passengers").insert({contract_id:selectedTransportContractId,passenger_id:document.getElementById("contractAssignPassenger").value,pickup_point:document.getElementById("contractAssignPoint").value.trim(),active:true});
+            if(error)throw error;boardingModalClose("contractAssignModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"asignar el pasajero al contrato");}finally{btn.disabled=false;}
+    });
+    document.getElementById("tripBoardingForm").addEventListener("submit",async e=>{
+        e.preventDefault();const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;
+        try{
+            const at=document.getElementById("tripBoardingAt").value;
+            const {error}=await supabase.from("trip_passenger_boardings").insert({trip_id:document.getElementById("tripBoardingTrip").value,passenger_id:document.getElementById("tripBoardingPassenger").value,boarded_at:at?new Date(at).toISOString():new Date().toISOString(),boarding_point:document.getElementById("tripBoardingPoint").value.trim(),notes:document.getElementById("tripBoardingNotes").value.trim(),created_by:currentUserId});
+            if(error)throw error;boardingModalClose("tripBoardingModal");await loadBoardingsData();
+        }catch(error){showOperationError(error,"guardar el abordaje");}finally{btn.disabled=false;}
+    });
+    document.getElementById("transportContractsBody").addEventListener("click",e=>{
+        const button=e.target.closest("[data-contract-passengers]");if(!button)return;
+        selectedTransportContractId=button.dataset.contractPassengers;renderContractPassengers();
+    });
+    document.getElementById("transportPassengersBody").addEventListener("click",e=>{
+        const button=e.target.closest("[data-passenger-contract]");if(!button)return;
+        if(!selectedTransportContractId){alert("Selecciona primero un contrato.");return;}
+        document.getElementById("contractAssignPassenger").value=button.dataset.passengerContract;
+        document.getElementById("contractAssignPoint").value="";
+        boardingModalOpen("contractAssignModal");
+    });
+    document.getElementById("contractPassengerBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-remove-contract-passenger]");if(!button)return;
+        if(!confirm("¿Quitar este pasajero del contrato?"))return;
+        const {error}=await supabase.from("contract_passengers").delete().eq("contract_id",selectedTransportContractId).eq("passenger_id",button.dataset.removeContractPassenger);
+        if(error)showOperationError(error,"quitar el pasajero");else await loadBoardingsData();
+    });
+    document.getElementById("tripBoardingsBody").addEventListener("click",async e=>{
+        const button=e.target.closest("[data-delete-trip-boarding]");if(!button)return;
+        if(!confirm("¿Eliminar este registro de abordaje?"))return;
+        const {error}=await supabase.from("trip_passenger_boardings").delete().eq("id",button.dataset.deleteTripBoarding);
+        if(error)showOperationError(error,"eliminar el abordaje");else await loadBoardingsData();
+    });
+    document.getElementById("transportPassengerSearch").addEventListener("input",renderBoardingModule);
+    document.getElementById("tripBoardingSearch").addEventListener("input",renderTripPassengerBoardings);
+    document.getElementById("tripBoardingFilter").addEventListener("change",renderTripPassengerBoardings);
 
     // =====================================
     // TRANSPORTE ESCOLAR
