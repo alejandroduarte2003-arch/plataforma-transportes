@@ -2340,10 +2340,6 @@
         await loadPersonalData();
         if(allowedModules.has("finanzas")) await loadFinanceData();
     });
-    window.addEventListener("transport-payroll-deleted",async()=>{
-        await loadPersonalData();
-        await loadFinanceData();
-    });
 
 
     // FLOTA Y GASTOS: COMBUSTIBLE, MANTENIMIENTO Y REPUESTOS
