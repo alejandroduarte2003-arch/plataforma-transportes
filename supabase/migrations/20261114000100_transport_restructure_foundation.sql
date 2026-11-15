@@ -82,8 +82,7 @@ create table if not exists public.financial_movements (
   student_id uuid,
   created_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (source_table, source_id)
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists financial_movements_date_idx
