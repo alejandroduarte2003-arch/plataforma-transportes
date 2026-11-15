@@ -411,7 +411,7 @@
         }
 
 
-        /* OPERACIONES - VEHICULOS */
+        /* VEHÍCULOS */
 
         .section-toolbar {
             display: flex;
@@ -891,7 +891,7 @@
 
 
             <!-- ================================= -->
-            <!-- OPERACIONES -->
+            <!-- VEHÍCULOS -->
             <!-- ================================= -->
 
             <section class="view" id="view-vehiculos">
@@ -1963,7 +1963,7 @@
 
 
     // =====================================
-    // CONEXIÓN Y CARGA DE OPERACIONES
+    // CARGA DE DATOS DE TRANSPORTE
     // =====================================
 
     async function loadOperationalData() {
@@ -2397,8 +2397,8 @@
     ["fuelLiters","fuelPrice"].forEach(id=>document.getElementById(id).addEventListener("input",calculateFuel));
     ["partsQuantity","partsUnitCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateParts));
     document.getElementById("addFuelButton").addEventListener("click",()=>vehicles.length?openFuelModal():alert("Primero registra un vehículo en Vehículos."));
-    document.getElementById("addMaintenanceButton").addEventListener("click",()=>vehicles.length?openMaintenanceModal():alert("Primero registra un vehículo en Operaciones."));
-    document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Operaciones."));
+    document.getElementById("addMaintenanceButton").addEventListener("click",()=>vehicles.length?openMaintenanceModal():alert("Primero registra un vehículo en Vehículos."));
+    document.getElementById("addPartButton").addEventListener("click",()=>vehicles.length?openPartModal():alert("Primero registra un vehículo en Vehículos."));
     async function saveFleetRecord(formId,table,payload,id,action){
         const form=document.getElementById(formId),btn=form.querySelector('[type="submit"]');btn.disabled=true;
         try{const query=id?supabase.from(table).update(payload).eq("id",id):supabase.from(table).insert({...payload,created_by:currentUserId});const {error}=await query;if(error)throw error;
