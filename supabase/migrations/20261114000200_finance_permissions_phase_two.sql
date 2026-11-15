@@ -230,15 +230,7 @@ begin
     raise exception 'No tienes permiso para registrar pagos escolares';
   end if;
 
-  -- Idempotency: a retry returns the already-created payment.
-  select id into v_payment_id
-  from public.school_student_payments
-  where request_key = p_request_key;
-
-  if v_payment_id is not null then
-    return v_payment_id;
-  end if;
-
+  -- Atomic idempotency: concurrent retries cannot create two payments.
   insert into public.school_student_payments (
     student_id, amount, currency, payment_status,
     enrollment_status, reference, created_by, request_key
@@ -246,7 +238,15 @@ begin
     p_student_id, round(p_amount, 2), 'GTQ', 'Realizado',
     p_enrollment_status, coalesce(p_reference, ''), v_user_id, p_request_key
   )
+  on conflict (request_key) where request_key is not null do nothing
   returning id into v_payment_id;
+
+  if v_payment_id is null then
+    select id into v_payment_id
+    from public.school_student_payments
+    where request_key = p_request_key;
+    return v_payment_id;
+  end if;
 
   insert into public.financial_movements (
     direction, movement_date, category, concept, amount, currency,
