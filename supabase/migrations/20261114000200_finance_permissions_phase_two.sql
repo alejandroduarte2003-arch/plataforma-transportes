@@ -46,38 +46,58 @@ create policy school_user_permissions_superadmin_manage
 
 -- Read access is still controlled by the school module. Restrictive write
 -- policies override the broad module policy created in phase 1.
-create policy school_students_write_capability
-  on public.school_students as restrictive for all to authenticated
+create policy school_students_insert_capability
+  on public.school_students as restrictive for insert to authenticated
+  with check (
+    public.is_superadmin()
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true)
+  );
+create policy school_students_update_capability
+  on public.school_students as restrictive for update to authenticated
   using (
     public.is_superadmin()
-    or exists (
-      select 1 from public.school_user_permissions s
-      where s.user_id = (select auth.uid()) and s.can_edit_students = true
-    )
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true)
   )
   with check (
     public.is_superadmin()
-    or exists (
-      select 1 from public.school_user_permissions s
-      where s.user_id = (select auth.uid()) and s.can_edit_students = true
-    )
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true)
+  );
+create policy school_students_delete_capability
+  on public.school_students as restrictive for delete to authenticated
+  using (
+    public.is_superadmin()
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_students = true)
   );
 
-create policy school_student_followups_write_capability
-  on public.school_student_followups as restrictive for all to authenticated
+create policy school_student_followups_insert_capability
+  on public.school_student_followups as restrictive for insert to authenticated
+  with check (
+    public.is_superadmin()
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true)
+  );
+create policy school_student_followups_update_capability
+  on public.school_student_followups as restrictive for update to authenticated
   using (
     public.is_superadmin()
-    or exists (
-      select 1 from public.school_user_permissions s
-      where s.user_id = (select auth.uid()) and s.can_edit_followups = true
-    )
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true)
   )
   with check (
     public.is_superadmin()
-    or exists (
-      select 1 from public.school_user_permissions s
-      where s.user_id = (select auth.uid()) and s.can_edit_followups = true
-    )
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true)
+  );
+create policy school_student_followups_delete_capability
+  on public.school_student_followups as restrictive for delete to authenticated
+  using (
+    public.is_superadmin()
+    or exists (select 1 from public.school_user_permissions s
+      where s.user_id = (select auth.uid()) and s.can_edit_followups = true)
   );
 
 -- A server-side KPI calculation guarantees equal weighting and the agreed
