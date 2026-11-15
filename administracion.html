@@ -373,19 +373,39 @@ tr:last-child td {
 
 .permission-item {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    gap: 11px;
     background: #F7F8FA;
     border: 1px solid var(--border);
-    padding: 13px;
+    padding: 14px;
     border-radius: 8px;
     font-size: 12px;
+    cursor: pointer;
 }
 
 .permission-item input {
     accent-color: var(--orange);
     width: 16px;
     height: 16px;
+    flex: 0 0 16px;
+    margin-top: 2px;
+}
+
+.permission-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.permission-name {
+    color: var(--navy);
+    font-weight: 700;
+}
+
+.permission-description {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 .editor-actions {
@@ -641,8 +661,10 @@ tr:last-child td {
                     <h2 style="font-size:14px;color:var(--navy)">
                         Permisos de acceso
                     </h2>
-                    <p style="font-size:11px;color:var(--muted);margin-top:6px">
-                        Selecciona qué módulos podrá ver este usuario.
+                    <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+                        Activa únicamente las secciones que este usuario puede consultar y utilizar.
+                        Cada usuario tiene permisos independientes y los registros siguen siendo compartidos
+                        entre quienes tengan acceso.
                     </p>
 
                     <div class="permissions" id="permissionsList"></div>
@@ -932,10 +954,19 @@ async function loadPermissions(userId) {
             checkbox.disabled = true;
         }
 
-        const text = document.createElement("span");
-        text.textContent = module.name;
+        const copy = document.createElement("span");
+        copy.className = "permission-copy";
 
-        label.append(checkbox, text);
+        const name = document.createElement("span");
+        name.className = "permission-name";
+        name.textContent = module.name;
+
+        const description = document.createElement("span");
+        description.className = "permission-description";
+        description.textContent = module.description || "Acceso a esta sección de la plataforma.";
+
+        copy.append(name, description);
+        label.append(checkbox, copy);
         permissionsList.appendChild(label);
     });
 }
