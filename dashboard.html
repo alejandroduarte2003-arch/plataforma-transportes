@@ -2632,6 +2632,7 @@
     let schoolPermissions = { can_edit_students: false, can_edit_followups: false, can_register_payments: false };
     let editingSchoolStudentId = null;
     let selectedSchoolStudentId = null;
+    let schoolPaymentRequestKey = null;
     const schoolModalOpen = id => { const el=document.getElementById(id); el.classList.add("open"); el.setAttribute("aria-hidden","false"); };
     const schoolModalClose = id => { const el=document.getElementById(id); el.classList.remove("open"); el.setAttribute("aria-hidden","true"); };
     document.querySelectorAll("[data-close-school]").forEach(btn=>btn.addEventListener("click",()=>schoolModalClose(btn.dataset.closeSchool)));
@@ -2699,6 +2700,7 @@
         const student=schoolStudents.find(x=>x.id===selectedSchoolStudentId);if(!student)return;
         document.getElementById("schoolPaymentForm").reset();
         document.getElementById("schoolPaymentStudent").value=student.full_name+" · "+student.student_code;
+        schoolPaymentRequestKey=crypto.randomUUID();
         schoolModalOpen("schoolPaymentModal");
     });
     document.getElementById("schoolStudentForm").addEventListener("submit",async e=>{
@@ -2726,9 +2728,10 @@
                 p_student_id:selectedSchoolStudentId,p_amount:Number(document.getElementById("schoolPaymentAmount").value),
                 p_enrollment_status:document.getElementById("schoolPaymentStatus").value,
                 p_reference:document.getElementById("schoolPaymentReference").value.trim(),
-                p_request_key:crypto.randomUUID()
+                p_request_key:schoolPaymentRequestKey
             });
             if(error)throw error;
+            schoolPaymentRequestKey=null;
             schoolModalClose("schoolPaymentModal");
             alert("Pago registrado correctamente. Referencia: "+data);
         }catch(error){showOperationError(error,"registrar el pago escolar");}finally{btn.disabled=false;}
