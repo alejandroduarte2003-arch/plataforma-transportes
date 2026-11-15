@@ -1231,9 +1231,10 @@
                 </div>
                 <div class="panel">
                     <div class="personal-tabs">
-                        <button class="personal-tab active" data-finance-tab="cobros">Cobros</button>
-                        <button class="personal-tab" data-finance-tab="pagos">Pagos</button>
-                        <button class="personal-tab" data-finance-tab="reportes">Reportes</button>
+                        <button class="personal-tab active" data-finance-tab="cobros" type="button">Cobros</button>
+                        <button class="personal-tab" data-finance-tab="pagos" type="button">Pagos</button>
+                        <button class="personal-tab" data-finance-tab="reportes" type="button">Reportes</button>
+                        <button class="personal-tab" data-finance-tab="personal" type="button">Personal</button>
                     </div>
                     <div class="personal-panel active" id="finance-cobros">
                         <div class="section-toolbar">
@@ -1261,6 +1262,12 @@
                             <div class="stat-card"><span>Planilla pagada</span><h2 id="reportPayroll">Q0.00</h2></div>
                         </div>
                         <div class="panel table-panel"><div class="table-wrapper"><table><thead><tr><th>Concepto</th><th>Total del período</th></tr></thead><tbody id="financeReportBody"></tbody></table></div></div>
+                    </div>
+                    <div class="personal-panel" id="finance-personal">
+                        <div class="section-toolbar">
+                            <div><h3>Personal y planilla</h3><p class="personal-hint">Administra compensaciones, préstamos y pagos quincenales desde un solo lugar.</p></div>
+                        </div>
+                        <div id="extFinanceWorkspace"></div>
                     </div>
                 </div>
             </section>
@@ -2722,7 +2729,7 @@
     verifySession();
 
 </script>
-<script type="module" src="./js/transport-enhancements.js?v=20261114-2"></script>
+<script type="module" src="./js/transport-enhancements.js?v=20261114-3"></script>
 
 
     <div class="modal-backdrop" id="employeeModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 id="employeeModalTitle">Registrar trabajador</h2><button class="modal-close" type="button" data-close-modal="employeeModal">×</button></div><form id="employeeForm"><div class="form-grid">
