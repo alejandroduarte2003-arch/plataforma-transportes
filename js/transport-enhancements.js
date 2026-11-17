@@ -589,10 +589,34 @@ async function initFinance() {
     }finally{button.disabled=false;button.textContent="Guardar planilla quincenal";}
   });
   $("extLoansTable").addEventListener("click",async e=>{
-    const b=e.target.closest("[data-cancel-loan]");if(!b)return;
-    if(!confirm("¿Cancelar este préstamo?"))return;
-    const {error}=await supabase.from("employee_loans").update({status:"Cancelado"}).eq("id",b.dataset.cancelLoan);
-    if(error)return fail("cancelar el préstamo",error);await loadFinanceDataExt();renderPayrollPreview();
+    const b=e.target.closest("[data-cancel-loan]");if(!b||b.disabled)return;
+    if(!confirm("¿Cancelar este préstamo? El registro se conservará y dejará de generar descuentos futuros."))return;
+    const loanId=b.dataset.cancelLoan;
+    b.disabled=true;
+    const originalText=b.textContent;
+    b.textContent="Cancelando...";
+    try{
+      const {data:updated,error}=await supabase.from("employee_loans")
+        .update({status:"Cancelado"})
+        .eq("id",loanId)
+        .eq("status","Activo")
+        .select("id")
+        .maybeSingle();
+      if(error)throw error;
+      if(!updated){
+        await loadFinanceDataExt();
+        notify("No se pudo cancelar: el préstamo ya no está activo o tu usuario no tiene permisos para modificarlo.");
+        return;
+      }
+      await loadFinanceDataExt();
+      renderPayrollPreview();
+      notify("Préstamo cancelado. Se conservó el historial y ya no se incluirá en nuevos descuentos.");
+    }catch(error){
+      fail("cancelar el préstamo",error);
+    }finally{
+      b.disabled=false;
+      b.textContent=originalText;
+    }
   });
   $("extPayrollTable").addEventListener("click",async e=>{
     const b=e.target.closest("[data-payroll-paid]");if(!b)return;
