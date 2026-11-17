@@ -589,18 +589,10 @@ async function initFinance() {
     }finally{button.disabled=false;button.textContent="Guardar planilla quincenal";}
   });
   $("extLoansTable").addEventListener("click",async e=>{
-    const b=e.target.closest("[data-delete-loan]");if(!b)return;
-    if(b.disabled)return;
-    const loan=loans.find(x=>x.id===b.dataset.deleteLoan);
-    if(!loan)return;
-    const employee=employees.find(x=>x.id===loan.employee_id)?.full_name||"el trabajador";
-    if(!confirm("¿Eliminar definitivamente el préstamo de "+employee+"? El registro dejará de generar descuentos en futuras planillas. Las planillas ya guardadas conservarán los descuentos históricos."))return;
-    b.disabled=true;
-    const {error}=await supabase.from("employee_loans").delete().eq("id",loan.id);
-    if(error){b.disabled=false;return fail("eliminar el préstamo",error);}
-    await loadFinanceDataExt();
-    renderPayrollPreview();
-    notify("Préstamo eliminado correctamente.");
+    const b=e.target.closest("[data-cancel-loan]");if(!b)return;
+    if(!confirm("¿Cancelar este préstamo?"))return;
+    const {error}=await supabase.from("employee_loans").update({status:"Cancelado"}).eq("id",b.dataset.cancelLoan);
+    if(error)return fail("cancelar el préstamo",error);await loadFinanceDataExt();renderPayrollPreview();
   });
   $("extPayrollTable").addEventListener("click",async e=>{
     const b=e.target.closest("[data-payroll-paid]");if(!b)return;
@@ -668,7 +660,7 @@ async function loadFinanceDataExt() {
   const opts='<option value="">Seleccionar trabajador</option>'+employees.map(x=>'<option value="'+x.id+'">'+esc(x.full_name)+'</option>').join("");
   $("extCompEmployee").innerHTML=opts;$("extLoanEmployee").innerHTML=opts;$("extPayrollEmployee").innerHTML=opts;
   $("extCompTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Sueldo mensual</th><th>Bono KPI mensual</th></tr></thead><tbody>'+compensation.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.monthly_base_salary)+'</td><td>'+money(x.monthly_kpi_bonus_max)+'</td></tr>').join("")+'</tbody></table>';
-  $("extLoansTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Monto</th><th>Saldo</th><th>Cuota</th><th>Cuotas</th><th>Estado</th><th></th></tr></thead><tbody>'+loans.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.amount)+'</td><td>'+money(x.balance)+'</td><td>'+money(x.installment_amount)+'</td><td>'+x.installments_paid+'/'+x.installments_total+'</td><td>'+esc(x.status)+'</td><td>'+'<button class="ext-action light" data-delete-loan="'+x.id+'">Eliminar</button>'+'</td></tr>').join("")+'</tbody></table>';
+  $("extLoansTable").innerHTML='<table><thead><tr><th>Trabajador</th><th>Monto</th><th>Saldo</th><th>Cuota</th><th>Cuotas</th><th>Estado</th><th></th></tr></thead><tbody>'+loans.map(x=>'<tr><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.amount)+'</td><td>'+money(x.balance)+'</td><td>'+money(x.installment_amount)+'</td><td>'+x.installments_paid+'/'+x.installments_total+'</td><td>'+esc(x.status)+'</td><td>'+(x.status==="Activo"?'<button class="ext-action light" data-cancel-loan="'+x.id+'">Cancelar</button>':"")+'</td></tr>').join("")+'</tbody></table>';
   $("extPayrollTable").innerHTML='<table><thead><tr><th>Mes / quincena</th><th>Trabajador</th><th>Base</th><th>KPI</th><th>Bono</th><th>Préstamo</th><th>Neto</th><th>Estado</th><th></th></tr></thead><tbody>'+payroll.map(x=>'<tr><td>'+esc(String(x.period).slice(0,7))+' · '+(x.fortnight===1?"1.ª":"2.ª")+'</td><td>'+esc(employees.find(e=>e.id===x.employee_id)?.full_name||"—")+'</td><td>'+money(x.base_salary)+'</td><td>'+(x.kpi_percentage==null?"—":Number(x.kpi_percentage).toFixed(0)+"%")+'</td><td>'+money(x.bonuses)+'</td><td>'+money(x.loan_deduction)+'</td><td><strong>'+money(x.net_pay)+'</strong></td><td>'+esc(x.status)+'</td><td>'+(x.status==="Pendiente"?'<button class="ext-action" data-payroll-paid="'+x.id+'">Marcar pagada</button>':"")+'</td></tr>').join("")+'</tbody></table>';
   $("extCompEmployee").onchange=()=>{
     const x=compensation.find(c=>c.employee_id===$("extCompEmployee").value);
